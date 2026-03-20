@@ -392,6 +392,7 @@ td{padding:11px 14px;font-size:13px;vertical-align:middle}
         <button class="pin-btn del" onclick="pinDel()">⌫</button>
       </div>
       <button class="login-back" onclick="backToUsers()">← Changer d'utilisateur</button>
+      <div style="text-align:center;font-size:10px;color:rgba(255,255,255,0.2);margin-top:6px;font-family:var(--fn)">Vous pouvez aussi taper au clavier</div>
     </div>
   </div>
 </div>
@@ -2195,6 +2196,29 @@ document.getElementById('qr-overlay').addEventListener('click', e => {
 loadUsers();
 renderUserGrid();
 setInterval(()=>{if(SCRIPT_URL&&currentUser&&document.visibilityState==='visible')loadAll();},60000);
+
+// ── SAISIE PIN AU CLAVIER ─────────────────────────────────────
+document.addEventListener('keydown', e => {
+  // Seulement si l'écran de login est visible et qu'un utilisateur est sélectionné
+  const pinStep = document.getElementById('step-pin');
+  if (!pinStep || !pinStep.classList.contains('active')) return;
+  // Ignorer si focus sur un input texte
+  if (['INPUT','TEXTAREA','SELECT'].includes(document.activeElement.tagName)) return;
+
+  if (e.key >= '0' && e.key <= '9') {
+    pinPress(parseInt(e.key));
+    // Animation visuelle sur le bouton correspondant
+    const btns = document.querySelectorAll('.pin-btn');
+    btns.forEach(b => { if (b.textContent === e.key) {
+      b.style.transform = 'scale(0.92)';
+      setTimeout(() => b.style.transform = '', 100);
+    }});
+  } else if (e.key === 'Backspace') {
+    pinDel();
+  } else if (e.key === 'Escape') {
+    backToUsers();
+  }
+});
 </script>
 </body>
 </html>
