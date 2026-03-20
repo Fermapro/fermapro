@@ -283,6 +283,42 @@ td{padding:11px 14px;font-size:13px;vertical-align:middle}
 .mobile-nav-item .mn-ico{font-size:20px;line-height:1}
 .mobile-nav-item.active{color:var(--pink)}
 
+/* ══ QR SCANNER ══ */
+.qr-overlay{position:fixed;inset:0;background:#000;z-index:500;display:none;flex-direction:column;align-items:center;justify-content:center}
+.qr-overlay.open{display:flex}
+.qr-header{position:absolute;top:0;left:0;right:0;padding:max(20px,env(safe-area-inset-top)) 20px 16px;background:linear-gradient(to bottom,rgba(0,0,0,0.8),transparent);display:flex;align-items:center;gap:12px;z-index:2}
+.qr-title{font-family:var(--fn);font-size:16px;font-weight:900;color:#fff}
+.qr-close{background:rgba(255,255,255,0.15);border:none;color:#fff;width:36px;height:36px;border-radius:50%;cursor:pointer;font-size:16px;display:grid;place-items:center;margin-left:auto}
+.qr-video-wrap{position:relative;width:100%;max-width:420px}
+#qr-video{width:100%;border-radius:8px;display:block}
+.qr-frame{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none}
+.qr-frame-box{width:220px;height:220px;position:relative}
+.qr-frame-box::before,.qr-frame-box::after{content:'';position:absolute;width:40px;height:40px;border-color:var(--pink);border-style:solid}
+.qr-frame-box::before{top:0;left:0;border-width:4px 0 0 4px;border-radius:4px 0 0 0}
+.qr-frame-box::after{top:0;right:0;border-width:4px 4px 0 0;border-radius:0 4px 0 0}
+.qr-corner-bl,.qr-corner-br{position:absolute;width:40px;height:40px;border-color:var(--pink);border-style:solid}
+.qr-corner-bl{bottom:0;left:0;border-width:0 0 4px 4px;border-radius:0 0 0 4px}
+.qr-corner-br{bottom:0;right:0;border-width:0 4px 4px 0;border-radius:0 0 4px 0}
+.qr-scan-line{position:absolute;left:10px;right:10px;height:2px;background:linear-gradient(90deg,transparent,var(--pink),transparent);animation:scanLine 2s ease-in-out infinite;top:15%}
+@keyframes scanLine{0%,100%{top:15%}50%{top:85%}}
+.qr-hint{color:rgba(255,255,255,0.6);font-family:var(--fn);font-size:13px;font-weight:700;margin-top:20px;text-align:center;padding:0 20px}
+.qr-result{position:absolute;bottom:0;left:0;right:0;background:linear-gradient(to top,rgba(0,0,0,0.95) 80%,transparent);padding:24px 20px max(24px,env(safe-area-inset-bottom));display:none;animation:riseUp 0.2s ease}
+.qr-result.show{display:block}
+.qr-result-ref{font-family:var(--fm);font-size:12px;color:var(--pink);font-weight:700;margin-bottom:4px}
+.qr-result-nom{font-family:var(--fn);font-size:17px;font-weight:900;color:#fff;margin-bottom:14px}
+.qr-result-btns{display:flex;gap:10px}
+
+/* ══ IMPRESSION QR ══ */
+@media print{body>*:not(#print-qr-page){display:none!important}#print-qr-page{display:block!important}.no-print{display:none!important}}
+#print-qr-page{display:none}
+.print-page{padding:16px;font-family:'Nunito',sans-serif}
+.print-header{display:flex;align-items:center;gap:12px;margin-bottom:20px;padding-bottom:12px;border-bottom:3px solid #E8457A}
+.print-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.print-card{border:1.5px solid #DDE0EE;border-radius:8px;padding:12px;text-align:center;break-inside:avoid;page-break-inside:avoid}
+.print-ref{font-family:'JetBrains Mono',monospace;font-size:11px;background:#2D3580;color:#fff;padding:2px 8px;border-radius:4px;display:inline-block;margin-bottom:6px}
+.print-nom{font-size:11px;font-weight:800;color:#1E2345;margin-bottom:4px;line-height:1.3}
+.print-fourn{font-size:10px;color:#8A8FAE;margin-bottom:8px}
+
 @keyframes riseUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
 @keyframes fadeRow{from{opacity:0}to{opacity:1}}
 @keyframes popIn{from{opacity:0;transform:scale(0.97) translateY(6px)}to{opacity:1;transform:scale(1) translateY(0)}}
@@ -395,6 +431,7 @@ td{padding:11px 14px;font-size:13px;vertical-align:middle}
   <button class="nav-item" onclick="goPage('moves',this)"><span class="nav-icon">↕️</span>Mouvements</button>
 
   <div class="side-sect">Actions rapides</div>
+  <button class="nav-item" onclick="openQrScanner()"><span class="nav-icon">📷</span>Scanner QR Code</button>
   <button class="nav-item" onclick="openMoveModal('entrée')"><span class="nav-icon">📥</span>Réception stock</button>
   <button class="nav-item" onclick="openMoveModal('sortie')"><span class="nav-icon">🔧</span>Sortie chantier</button>
 
@@ -402,6 +439,7 @@ td{padding:11px 14px;font-size:13px;vertical-align:middle}
   <div class="side-sect nav-admin">Administration</div>
   <button class="nav-item nav-admin" onclick="goPage('users',this)"><span class="nav-icon">👥</span>Utilisateurs</button>
   <button class="nav-item nav-admin" onclick="openPieceModal()"><span class="nav-icon">➕</span>Nouvelle pièce</button>
+  <button class="nav-item nav-admin" onclick="openPrintQr()"><span class="nav-icon">🖨️</span>Imprimer QR Codes</button>
   <button class="nav-item nav-admin" onclick="document.getElementById('import-xl-input').click()"><span class="nav-icon">📊</span>Importer Excel</button>
   <input type="file" id="import-xl-input" accept=".xlsx" style="display:none" onchange="handleImportExcel(this)">
   <button class="nav-item nav-admin" onclick="goPage('config',this)"><span class="nav-icon">⚙️</span>Configuration</button>
@@ -420,6 +458,7 @@ td{padding:11px 14px;font-size:13px;vertical-align:middle}
     </div>
     <div class="topbar-actions">
       <button class="btn btn-ghost" onclick="loadAll()">🔄 Actualiser</button>
+      <button class="btn btn-ghost" onclick="openQrScanner()">📷 Scanner QR</button>
       <button class="btn btn-ghost" onclick="openMoveModal('entrée')">📥 Réception</button>
       <button class="btn btn-ghost" onclick="openMoveModal('sortie')">🔧 Sortie</button>
       <button class="btn btn-pink admin-only" onclick="openPieceModal()">＋ Nouvelle pièce</button>
@@ -672,19 +711,77 @@ td{padding:11px 14px;font-size:13px;vertical-align:middle}
   </div>
 </div>
 
+<!-- ══ QR SCANNER OVERLAY ══ -->
+<div class="qr-overlay" id="qr-overlay">
+  <div class="qr-header">
+    <div class="qr-title">📷 Scanner un QR Code</div>
+    <button class="qr-close" onclick="closeQrScanner()">✕</button>
+  </div>
+  <div class="qr-video-wrap">
+    <video id="qr-video" autoplay playsinline muted></video>
+    <div class="qr-frame">
+      <div class="qr-frame-box">
+        <div class="qr-corner-bl"></div>
+        <div class="qr-corner-br"></div>
+        <div class="qr-scan-line"></div>
+      </div>
+    </div>
+    <div class="qr-result" id="qr-result">
+      <div class="qr-result-ref" id="qr-ref"></div>
+      <div class="qr-result-nom" id="qr-nom"></div>
+      <div class="qr-result-btns">
+        <button class="btn btn-pink" style="flex:1" onclick="qrAction('entrée')">📥 Réception</button>
+        <button class="btn btn-primary" style="flex:1" onclick="qrAction('sortie')">🔧 Sortie chantier</button>
+      </div>
+    </div>
+  </div>
+  <div class="qr-hint" id="qr-hint">Pointez la caméra vers le QR code d'une pièce</div>
+</div>
+
+<!-- ══ PAGE IMPRESSION QR ══ -->
+<div id="print-qr-page">
+  <div class="print-page">
+    <div class="print-header no-print" style="justify-content:space-between">
+      <div style="display:flex;align-items:center;gap:12px">
+        <svg width="120" height="32" viewBox="0 0 120 32" fill="none"><rect x="1" y="2" width="24" height="24" rx="2" fill="#E8457A"/><rect x="3" y="4" width="9" height="10" rx="1" fill="#2D3580" opacity="0.85"/><rect x="14" y="4" width="9" height="10" rx="1" fill="#2D3580" opacity="0.85"/><rect x="3" y="16" width="9" height="8" rx="1" fill="#2D3580" opacity="0.85"/><rect x="14" y="16" width="9" height="8" rx="1" fill="#2D3580" opacity="0.85"/><text x="30" y="19" font-family="Nunito,sans-serif" font-size="14" font-weight="900" fill="#2D3580">fermapro</text></svg>
+        <div style="font-family:'Nunito',sans-serif;font-size:16px;font-weight:900;color:#2D3580">QR Codes — Étiquettes pièces</div>
+      </div>
+      <div style="display:flex;gap:8px">
+        <button class="btn btn-ghost btn-sm no-print" onclick="document.getElementById('print-qr-page').style.display='none';document.getElementById('app-wrap').style.display='flex'">✕ Fermer</button>
+        <button class="btn btn-pink btn-sm no-print" onclick="window.print()">🖨️ Imprimer</button>
+      </div>
+    </div>
+    <div style="margin-bottom:14px;display:flex;align-items:center;gap:10px" class="no-print">
+      <label style="font-family:'Nunito',sans-serif;font-size:12px;font-weight:800;color:#8A8FAE">Affichage :</label>
+      <button class="btn btn-ghost btn-sm no-print" onclick="setPrintMode('grid')" id="pm-grid">Grille (3×A4)</button>
+      <button class="btn btn-ghost btn-sm no-print" onclick="setPrintMode('single')" id="pm-single">Fiche individuelle</button>
+      <select class="flt no-print" id="print-filter-piece" style="font-size:12px;padding:6px 10px" onchange="renderPrintPage()">
+        <option value="">Toutes les pièces</option>
+      </select>
+    </div>
+    <div id="print-content"></div>
+  </div>
+</div>
+
 <!-- MOBILE NAV -->
 <nav class="mobile-nav" id="mobile-nav">
   <button class="mobile-nav-item active" onclick="goPage('stock',this)"><span class="mn-ico">📦</span>Stock</button>
   <button class="mobile-nav-item" onclick="goPage('alerts',this)"><span class="mn-ico">⚠️</span>Alertes</button>
+  <button class="mobile-nav-item" onclick="openQrScanner()"><span class="mn-ico">📷</span>Scanner</button>
   <button class="mobile-nav-item" onclick="openMoveModal('entrée')"><span class="mn-ico">📥</span>Réception</button>
   <button class="mobile-nav-item" onclick="openMoveModal('sortie')"><span class="mn-ico">🔧</span>Sortie</button>
-  <button class="mobile-nav-item" onclick="goPage('moves',this)"><span class="mn-ico">↕️</span>Historique</button>
 </nav>
 
 <div class="toast-box" id="toasts"></div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jsQR/1.4.0/jsQR.min.js"></script>
 <script>
+// Fermeture modals
+document.getElementById('ov-piece').addEventListener('click',e=>{if(e.target.id==='ov-piece')closePieceModal();});
+document.getElementById('ov-move').addEventListener('click',e=>{if(e.target.id==='ov-move')closeMoveModal();});
+document.getElementById('ov-user').addEventListener('click',e=>{if(e.target.id==='ov-user')closeUserModal();});
+document.getElementById('ov-changepin').addEventListener('click',e=>{if(e.target.id==='ov-changepin')closeChangePin();});
 // ══════════════════════════════════════════════════════════════
 //  STATE
 // ══════════════════════════════════════════════════════════════
@@ -1422,19 +1519,164 @@ function toast(msg,type='ok'){
   box.appendChild(t);setTimeout(()=>t.remove(),3500);
 }
 
-// Fermeture modals
-document.getElementById('ov-piece').addEventListener('click',e=>{if(e.target.id==='ov-piece')closePieceModal();});
-document.getElementById('ov-move').addEventListener('click',e=>{if(e.target.id==='ov-move')closeMoveModal();});
-document.getElementById('ov-user').addEventListener('click',e=>{if(e.target.id==='ov-user')closeUserModal();});
-document.getElementById('ov-changepin').addEventListener('click',e=>{if(e.target.id==='ov-changepin')closeChangePin();});
+// ══════════════════════════════════════════════════════════════
+//  QR CODE — GÉNÉRATION (via API QR publique)
+// ══════════════════════════════════════════════════════════════
+function qrUrl(text, size=120) {
+  return `https://api.qrserver.com/v1/create-qr-code/?size=${size}x${size}&data=${encodeURIComponent(text)}&bgcolor=ffffff&color=2D3580&margin=4`;
+}
+
+// QR data = préfixe "FP:" + ref pour éviter les faux scans
+function qrData(piece) { return 'FP:' + piece.ref; }
 
 // ══════════════════════════════════════════════════════════════
-//  INIT
+//  QR SCANNER (caméra iPhone)
 // ══════════════════════════════════════════════════════════════
+let qrStream = null, qrCanvas = null, qrCtx = null, qrAnimId = null, qrFoundPiece = null, qrCooldown = false;
+
+async function openQrScanner() {
+  if (!currentUser) return;
+  const overlay = document.getElementById('qr-overlay');
+  overlay.classList.add('open');
+  document.getElementById('qr-result').classList.remove('show');
+  document.getElementById('qr-hint').textContent = 'Pointez la caméra vers le QR code d\'une pièce';
+  qrFoundPiece = null;
+
+  try {
+    qrStream = await navigator.mediaDevices.getUserMedia({
+      video: { facingMode: 'environment', width:{ideal:1280}, height:{ideal:720} }
+    });
+    const video = document.getElementById('qr-video');
+    video.srcObject = qrStream;
+    await video.play();
+
+    // Canvas pour analyse
+    qrCanvas = document.createElement('canvas');
+    qrCtx = qrCanvas.getContext('2d', {willReadFrequently: true});
+    qrScanLoop();
+  } catch(e) {
+    document.getElementById('qr-hint').textContent = '⚠️ Accès caméra refusé — autorisez la caméra dans les réglages';
+  }
+}
+
+function qrScanLoop() {
+  const video = document.getElementById('qr-video');
+  if (!video || video.readyState < 2) { qrAnimId = requestAnimationFrame(qrScanLoop); return; }
+
+  qrCanvas.width  = video.videoWidth;
+  qrCanvas.height = video.videoHeight;
+  qrCtx.drawImage(video, 0, 0);
+
+  if (!qrCooldown) {
+    try {
+      const imgData = qrCtx.getImageData(0, 0, qrCanvas.width, qrCanvas.height);
+      const code = jsQR(imgData.data, imgData.width, imgData.height, {inversionAttempts:'dontInvert'});
+      if (code && code.data.startsWith('FP:')) {
+        const ref = code.data.replace('FP:', '').trim();
+        const piece = pieces.find(p => p.ref === ref);
+        if (piece) {
+          qrCooldown = true;
+          qrFoundPiece = piece;
+          document.getElementById('qr-ref').textContent = piece.ref;
+          document.getElementById('qr-nom').textContent = piece.nom + ' — stock : ' + piece.qty;
+          document.getElementById('qr-result').classList.add('show');
+          document.getElementById('qr-hint').textContent = '✓ Pièce identifiée !';
+          // Vibration tactile
+          if (navigator.vibrate) navigator.vibrate(80);
+          setTimeout(() => { qrCooldown = false; }, 3000);
+        } else {
+          document.getElementById('qr-hint').textContent = '⚠️ Référence inconnue : ' + ref;
+          qrCooldown = true;
+          setTimeout(() => {
+            qrCooldown = false;
+            document.getElementById('qr-hint').textContent = 'Pointez la caméra vers le QR code d\'une pièce';
+          }, 2000);
+        }
+      }
+    } catch(e) {}
+  }
+  qrAnimId = requestAnimationFrame(qrScanLoop);
+}
+
+function closeQrScanner() {
+  document.getElementById('qr-overlay').classList.remove('open');
+  if (qrAnimId) cancelAnimationFrame(qrAnimId);
+  if (qrStream) { qrStream.getTracks().forEach(t => t.stop()); qrStream = null; }
+  qrFoundPiece = null; qrCooldown = false;
+}
+
+function qrAction(type) {
+  if (!qrFoundPiece) return;
+  const piece = qrFoundPiece;
+  closeQrScanner();
+  openMoveModal(type, piece.id);
+}
+
+// ══════════════════════════════════════════════════════════════
+//  IMPRESSION QR CODES
+// ══════════════════════════════════════════════════════════════
+let printMode = 'grid';
+
+function openPrintQr() {
+  // Peupler le filtre
+  const sel = document.getElementById('print-filter-piece');
+  sel.innerHTML = '<option value="">Toutes les pièces (' + pieces.length + ')</option>' +
+    [...pieces].sort((a,b)=>String(a.ref).localeCompare(String(b.ref)))
+    .map(p=>`<option value="${p.id}">[${p.ref}] ${p.nom}</option>`).join('');
+
+  document.getElementById('app-wrap').style.display = 'none';
+  document.getElementById('print-qr-page').style.display = 'block';
+  setPrintMode('grid');
+}
+
+function setPrintMode(mode) {
+  printMode = mode;
+  document.getElementById('pm-grid').className   = mode==='grid'  ? 'btn btn-primary btn-sm no-print' : 'btn btn-ghost btn-sm no-print';
+  document.getElementById('pm-single').className = mode==='single'? 'btn btn-primary btn-sm no-print' : 'btn btn-ghost btn-sm no-print';
+  renderPrintPage();
+}
+
+function renderPrintPage() {
+  const filterId = document.getElementById('print-filter-piece').value;
+  const list = filterId ? pieces.filter(p=>p.id===filterId) : pieces;
+
+  if (printMode === 'grid') {
+    document.getElementById('print-content').innerHTML = `
+      <div class="print-grid">
+        ${list.map(p => `
+          <div class="print-card">
+            <div class="print-ref">${p.ref}</div>
+            <div class="print-nom">${p.nom}</div>
+            <div class="print-fourn">${p.fourn||''}</div>
+            <img class="print-qr" src="${qrUrl(qrData(p),100)}" width="100" height="100" alt="QR ${p.ref}">
+            <div style="font-size:9px;color:#8A8FAE;margin-top:4px;font-family:'JetBrains Mono',monospace">${qrData(p)}</div>
+          </div>
+        `).join('')}
+      </div>`;
+  } else {
+    // Fiche individuelle (1 par page)
+    document.getElementById('print-content').innerHTML = list.map((p,i) => `
+      <div style="page-break-after:${i<list.length-1?'always':'auto'};padding:24px;max-width:320px;margin:0 auto;text-align:center;font-family:'Nunito',sans-serif">
+        <div style="font-size:10px;font-weight:800;letter-spacing:2px;text-transform:uppercase;color:#8A8FAE;margin-bottom:8px">FERMAPRO — PIÈCE DÉTACHÉE</div>
+        <img src="${qrUrl(qrData(p),180)}" width="180" height="180" alt="QR ${p.ref}" style="border-radius:8px;border:2px solid #DDE0EE;margin-bottom:12px">
+        <div style="font-family:'JetBrains Mono',monospace;font-size:13px;background:#2D3580;color:#fff;padding:4px 14px;border-radius:6px;display:inline-block;margin-bottom:10px">${p.ref}</div>
+        <div style="font-size:16px;font-weight:900;color:#1E2345;margin-bottom:6px;line-height:1.3">${p.nom}</div>
+        ${p.fourn?`<div style="font-size:12px;color:#8A8FAE;margin-bottom:6px">${p.fourn}${p.reffourn?' — '+p.reffourn:''}</div>`:''}
+        ${p.empl?`<div style="font-size:12px;color:#4A4F78;margin-bottom:6px">📍 ${p.empl}</div>`:''}
+        <div style="margin-top:14px;padding-top:12px;border-top:2px solid #E8457A;font-size:10px;color:#8A8FAE">Scannez pour entrée/sortie stock</div>
+        <div style="font-size:9px;color:#C8CBDF;margin-top:4px;font-family:'JetBrains Mono',monospace">${qrData(p)}</div>
+      </div>
+    `).join('');
+  }
+}
+
+// Fermeture scan overlay au clic extérieur
+document.getElementById('qr-overlay').addEventListener('click', e => {
+  if (e.target.id === 'qr-overlay') closeQrScanner();
+});
+
 loadUsers();
 renderUserGrid();
-
-// Auto-refresh toutes les 60s
 setInterval(()=>{if(SCRIPT_URL&&currentUser&&document.visibilityState==='visible')loadAll();},60000);
 </script>
 </body>
