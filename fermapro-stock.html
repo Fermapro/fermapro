@@ -651,14 +651,50 @@ td{padding:11px 14px;font-size:13px;vertical-align:middle}
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
       <div>
         <div style="font-family:var(--fn);font-size:18px;font-weight:900;color:var(--navy)">Historique des connexions</div>
-        <div style="font-size:12px;color:var(--muted);margin-top:2px">Qui s'est connecté et quand</div>
+        <div style="font-size:12px;color:var(--muted);margin-top:2px">Surveillance des accès — qui s'est connecté, quand et depuis quel appareil</div>
       </div>
-      <button class="btn btn-ghost btn-sm" onclick="clearConnexions()">🗑 Effacer l'historique</button>
+      <button class="btn btn-ghost btn-sm" onclick="clearConnexions()">🗑 Effacer</button>
     </div>
+
+    <!-- KPIs connexions -->
+    <div class="kpi-row" style="margin-bottom:16px" id="cx-kpis">
+      <div class="kpi navy"><div class="kpi-lbl">Total connexions</div><div class="kpi-val" id="cx-k-total" style="font-size:32px">0</div><div class="kpi-foot">sur cet appareil</div></div>
+      <div class="kpi pink"><div class="kpi-lbl">Aujourd'hui</div><div class="kpi-val" id="cx-k-today" style="font-size:32px">0</div><div class="kpi-foot">connexions</div></div>
+      <div class="kpi green"><div class="kpi-lbl">Utilisateur le + actif</div><div class="kpi-val" id="cx-k-top" style="font-size:16px;margin-top:8px">—</div><div class="kpi-foot" id="cx-k-top-count"></div></div>
+      <div class="kpi amber"><div class="kpi-lbl">Dernière connexion</div><div class="kpi-val" id="cx-k-last" style="font-size:14px;margin-top:8px">—</div><div class="kpi-foot" id="cx-k-last-who"></div></div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px">
+      <!-- Graphique activité 7j -->
+      <div class="card">
+        <div class="card-head"><div class="card-title">📈 Activité — 7 derniers jours</div></div>
+        <div style="padding:14px"><canvas id="cx-chart" height="140"></canvas></div>
+      </div>
+      <!-- Répartition par utilisateur -->
+      <div class="card">
+        <div class="card-head"><div class="card-title">👤 Répartition par utilisateur</div></div>
+        <div style="padding:14px"><canvas id="cx-chart-users" height="140"></canvas></div>
+      </div>
+    </div>
+
+    <!-- Filtres + journal -->
     <div class="card">
       <div class="card-head"><div class="card-title">🔐 Journal de connexions</div><span class="card-count" id="cx-count"></span></div>
+      <!-- Filtres -->
+      <div style="padding:12px 16px;border-bottom:1px solid var(--border);display:flex;gap:8px;flex-wrap:wrap">
+        <div class="search-box" style="max-width:200px"><span class="search-ico">🔍</span><input type="text" id="cx-srch" placeholder="Nom…" oninput="renderConnexions()" style="padding-left:32px"></div>
+        <select class="flt" id="cx-flt-ua" onchange="renderConnexions()">
+          <option value="">Tous appareils</option>
+          <option value="iPhone">iPhone</option>
+          <option value="iPad">iPad</option>
+          <option value="Android">Android</option>
+          <option value="Ordinateur">Ordinateur</option>
+        </select>
+        <input type="date" class="flt" id="cx-flt-date" onchange="renderConnexions()" title="Filtrer par date">
+        <button class="btn btn-ghost btn-sm" onclick="document.getElementById('cx-srch').value='';document.getElementById('cx-flt-ua').value='';document.getElementById('cx-flt-date').value='';renderConnexions()">✕</button>
+      </div>
       <table><thead><tr>
-        <th>Date / Heure</th><th>Utilisateur</th><th>Rôle</th><th>Appareil</th>
+        <th>Date / Heure</th><th>Utilisateur</th><th>Rôle</th><th>Appareil</th><th>Durée depuis</th>
       </tr></thead>
       <tbody id="cx-body"></tbody></table>
       <div class="empty" id="cx-empty" style="display:none"><div class="empty-ico">🔐</div><div class="empty-txt">Aucune connexion enregistrée</div></div>
@@ -2157,21 +2193,103 @@ function logConnexion(user) {
   localStorage.setItem('fp_connexions', JSON.stringify(connexions));
 }
 
+let cxChartAct = null, cxChartUsers = null;
+
 function renderConnexions() {
   loadConnexions();
-  document.getElementById('cx-count').textContent=`${connexions.length} entrée(s)`;
-  document.getElementById('cx-empty').style.display=connexions.length?'none':'block';
-  document.getElementById('cx-body').innerHTML=connexions.map((c,i)=>{
-    const u=users.find(x=>x.id===c.userId);
-    const uColor=u?u.color:'#8A8FAE';
-    const uPhotoStyle=u&&u.photo?`background-image:url('${u.photo}');background-size:cover;background-position:center;`:'';
-    const uInitials=u?avatarContent(u):(c.userName||'?').charAt(0).toUpperCase();
-    const dts=new Date(c.ts).toLocaleDateString('fr-FR')+' '+new Date(c.ts).toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'});
+
+  const q    = (document.getElementById('cx-srch')?.value||'').toLowerCase();
+  const ua   = document.getElementById('cx-flt-ua')?.value||'';
+  const date = document.getElementById('cx-flt-date')?.value;
+
+  const filtered = connexions.filter(c => {
+    if (q && !String(c.userName||'').toLowerCase().includes(q)) return false;
+    if (ua && c.ua !== ua) return false;
+    if (date) {
+      const d = new Date(c.ts);
+      const ds = d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+      if (ds !== date) return false;
+    }
+    return true;
+  });
+
+  // ── KPIs ──
+  const today = new Date(); today.setHours(0,0,0,0);
+  const todayCount = connexions.filter(c => c.ts >= today.getTime()).length;
+  document.getElementById('cx-k-total').textContent = connexions.length;
+  document.getElementById('cx-k-today').textContent = todayCount;
+
+  // Top utilisateur
+  const userCount = {};
+  connexions.forEach(c => { userCount[c.userName] = (userCount[c.userName]||0)+1; });
+  const topUser = Object.entries(userCount).sort((a,b)=>b[1]-a[1])[0];
+  if (topUser) {
+    document.getElementById('cx-k-top').textContent = topUser[0];
+    document.getElementById('cx-k-top-count').textContent = topUser[1] + ' connexion(s)';
+  }
+
+  // Dernière connexion
+  if (connexions.length > 0) {
+    const last = connexions[0];
+    const d = new Date(last.ts);
+    document.getElementById('cx-k-last').textContent = d.toLocaleDateString('fr-FR') + ' ' + d.toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'});
+    document.getElementById('cx-k-last-who').textContent = last.userName || '—';
+  }
+
+  // ── GRAPHIQUE 7 JOURS ──
+  const days = 7, labels7 = [], data7 = [];
+  for (let i = days-1; i >= 0; i--) {
+    const d = new Date(); d.setDate(d.getDate()-i); d.setHours(0,0,0,0);
+    labels7.push(d.toLocaleDateString('fr-FR',{weekday:'short',day:'numeric'}));
+    const dEnd = new Date(d); dEnd.setDate(dEnd.getDate()+1);
+    data7.push(connexions.filter(c => c.ts >= d.getTime() && c.ts < dEnd.getTime()).length);
+  }
+  if (cxChartAct) cxChartAct.destroy();
+  const ctx1 = document.getElementById('cx-chart')?.getContext('2d');
+  if (ctx1) cxChartAct = new Chart(ctx1, {
+    type:'bar',
+    data:{labels:labels7,datasets:[{label:'Connexions',data:data7,backgroundColor:'rgba(45,53,128,0.7)',borderRadius:4}]},
+    options:{responsive:true,plugins:{legend:{display:false}},scales:{x:{ticks:{font:{size:10}}},y:{ticks:{font:{size:10},stepSize:1},beginAtZero:true}}}
+  });
+
+  // ── GRAPHIQUE PAR UTILISATEUR ──
+  const uNames = Object.keys(userCount);
+  const uColors = ['#E8457A','#2D3580','#1A7A45','#B8680A','#6B3FA0','#1A6B8A','#C0392B'];
+  if (cxChartUsers) cxChartUsers.destroy();
+  const ctx2 = document.getElementById('cx-chart-users')?.getContext('2d');
+  if (ctx2 && uNames.length > 0) cxChartUsers = new Chart(ctx2, {
+    type:'doughnut',
+    data:{labels:uNames,datasets:[{data:uNames.map(n=>userCount[n]),backgroundColor:uColors,borderWidth:2,borderColor:'#fff'}]},
+    options:{responsive:true,plugins:{legend:{position:'bottom',labels:{font:{family:'Nunito',size:11}}}}}
+  });
+
+  // ── JOURNAL ──
+  document.getElementById('cx-count').textContent = `${filtered.length} / ${connexions.length}`;
+  document.getElementById('cx-empty').style.display = filtered.length ? 'none' : 'block';
+  document.getElementById('cx-body').innerHTML = filtered.map((c,i) => {
+    const u = users.find(x => x.id === c.userId);
+    const uColor = u ? u.color : '#8A8FAE';
+    const uPhotoStyle = u&&u.photo ? `background-image:url('${u.photo}');background-size:cover;background-position:center;` : '';
+    const uInitials = u ? avatarContent(u) : (c.userName||'?').charAt(0).toUpperCase();
+    const dts = new Date(c.ts).toLocaleDateString('fr-FR') + ' ' + new Date(c.ts).toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'});
+
+    // Durée depuis la connexion
+    const diff = Date.now() - c.ts;
+    let duree = '';
+    if (diff < 60000) duree = 'À l\'instant';
+    else if (diff < 3600000) duree = 'Il y a ' + Math.floor(diff/60000) + ' min';
+    else if (diff < 86400000) duree = 'Il y a ' + Math.floor(diff/3600000) + 'h';
+    else duree = 'Il y a ' + Math.floor(diff/86400000) + 'j';
+
+    // Icône appareil
+    const uaIco = c.ua==='iPhone'?'📱':c.ua==='iPad'?'📟':c.ua==='Android'?'📱':'💻';
+
     return `<tr>
       <td style="font-size:11px;color:var(--muted);font-family:var(--fm)">${dts}</td>
       <td><span class="user-badge"><span style="width:20px;height:20px;border-radius:50%;background:${uColor};${uPhotoStyle}display:inline-grid;place-items:center;font-size:9px;font-weight:900;color:#fff;flex-shrink:0;font-family:var(--fn)">${uInitials}</span> ${c.userName||'—'}</span></td>
       <td><span class="role-badge ${u?roleBadge(u.role):'role-tech'}" style="font-size:10px">${c.userRole||'—'}</span></td>
-      <td style="font-size:12px;color:var(--muted)">${c.ua||'—'}</td>
+      <td style="font-size:12px;color:var(--muted)">${uaIco} ${c.ua||'—'}</td>
+      <td style="font-size:11px;color:var(--muted);font-family:var(--fn)">${duree}</td>
     </tr>`;
   }).join('');
 }
