@@ -1007,13 +1007,69 @@ function clearPhoto() {
   preview.textContent = '📷';
   document.getElementById('u-photo-clear').style.display = 'none';
 }
+// ══════════════════════════════════════════════════════════════
+//  GESTION UTILISATEURS — GOOGLE SHEETS
+// ══════════════════════════════════════════════════════════════
 function loadUsers() {
+  // Fallback localStorage pendant le chargement initial
   const saved = localStorage.getItem('fp_users');
   users = saved ? JSON.parse(saved) : [...DEFAULT_USERS];
 }
 
 function saveUsers() {
+  // Toujours sauvegarder en local comme cache
   localStorage.setItem('fp_users', JSON.stringify(users));
+}
+
+async function syncUsersFromSheets() {
+  if (!SCRIPT_URL) return;
+  try {
+    const remote = await apiGet('getUsers');
+    if (remote && Array.isArray(remote) && remote.length > 0) {
+      // Fusionner : garder les données locales (photo) et compléter avec Sheets
+      users = remote.map(ru => {
+        const local = users.find(u => u.id === ru.id);
+        return {
+          ...ru,
+          photo: local?.photo || ru.photo || null,   // photo gardée en local
+          perms: ru.perms ? (typeof ru.perms === 'string' ? JSON.parse(ru.perms) : ru.perms) : null,
+        };
+      });
+      // Toujours garder au moins l'admin par défaut
+      if (!users.find(u => u.role === 'admin')) {
+        users.push(...DEFAULT_USERS);
+      }
+      saveUsers(); // Mettre à jour le cache local
+      renderUserGrid(); // Rafraîchir la grille de login
+    }
+  } catch(e) {
+    console.warn('Sync users error:', e);
+    // Pas de toast — on utilise le cache local silencieusement
+  }
+}
+
+async function pushUserToSheets(user) {
+  if (!SCRIPT_URL) return;
+  try {
+    // Ne pas envoyer la photo (trop lourde pour Sheets)
+    const {photo, ...userWithoutPhoto} = user;
+    if (userWithoutPhoto.perms) {
+      userWithoutPhoto.perms = JSON.stringify(userWithoutPhoto.perms);
+    }
+    await apiPost({action:'saveUser', user: userWithoutPhoto});
+  } catch(e) {
+    console.warn('Push user error:', e);
+    toast('Utilisateur sauvegardé localement (erreur synchro Sheets)', 'warn');
+  }
+}
+
+async function deleteUserFromSheets(id) {
+  if (!SCRIPT_URL) return;
+  try {
+    await apiPost({action:'deleteUser', id});
+  } catch(e) {
+    console.warn('Delete user error:', e);
+  }
 }
 
 // ══════════════════════════════════════════════════════════════
@@ -1666,29 +1722,33 @@ function saveUser() {
   if(!name){toast('Nom requis','err');return;}
   if(pin.length!==4||!/^\d{4}$/.test(pin)){toast('PIN de 4 chiffres requis','err');return;}
 
-  // Vérifier unicité du PIN
   const existing=users.find(u=>u.pin===pin&&u.id!==(editUserId||''));
   if(existing){toast(`Ce PIN est déjà utilisé par ${existing.name}`,'err');return;}
 
-  // Récupérer les permissions cochées
   const permsChecked = getPermCheckboxes();
   const roleDefaults = ROLE_DEFAULTS[role] || ROLE_DEFAULTS.tech;
-  // Stocker perms seulement si différentes des défauts du rôle
   const isCustom = Object.keys(permsChecked).some(k => permsChecked[k] !== roleDefaults[k]);
   const perms = isCustom ? permsChecked : null;
   const finalRole = isCustom ? 'custom' : role;
 
+  let savedUser;
   if(editUserId){
     const idx=users.findIndex(u=>u.id===editUserId);
-    if(idx>=0) users[idx]={...users[idx],name,role:finalRole,pin,color:selectedColor,perms,photo:currentPhotoData!==null?currentPhotoData:users[idx].photo||null};
+    if(idx>=0){
+      users[idx]={...users[idx],name,role:finalRole,pin,color:selectedColor,perms,photo:currentPhotoData!==null?currentPhotoData:users[idx].photo||null};
+      savedUser=users[idx];
+    }
   } else {
-    users.push({id:uid(),name,role:finalRole,pin,color:selectedColor,perms,photo:currentPhotoData||null});
+    savedUser={id:uid(),name,role:finalRole,pin,color:selectedColor,perms,photo:currentPhotoData||null};
+    users.push(savedUser);
   }
+
   saveUsers();
+  pushUserToSheets(savedUser); // Sync vers Sheets en arrière-plan
   closeUserModal();
   renderUsers();
   renderUserGrid();
-  toast(editUserId?`${name} modifié`:`${name} ajouté — PIN : ${pin}`);
+  toast(editUserId?`${name} modifié et synchronisé`:`${name} ajouté — PIN : ${pin}`);
 }
 
 function deleteUser(id) {
@@ -1696,7 +1756,10 @@ function deleteUser(id) {
   if(!u||!confirm(`Supprimer ${u.name} ?`))return;
   if(currentUser&&currentUser.id===id){toast('Impossible de supprimer votre propre compte','err');return;}
   users=users.filter(x=>x.id!==id);
-  saveUsers();renderUsers();renderUserGrid();
+  saveUsers();
+  deleteUserFromSheets(id); // Sync vers Sheets en arrière-plan
+  renderUsers();
+  renderUserGrid();
   toast(`${u.name} supprimé`,'warn');
 }
 
@@ -2195,6 +2258,15 @@ document.getElementById('qr-overlay').addEventListener('click', e => {
 
 loadUsers();
 renderUserGrid();
+
+// Synchroniser les utilisateurs depuis Sheets au démarrage
+if (SCRIPT_URL) {
+  // Afficher un indicateur de chargement discret
+  const grid = document.getElementById('user-grid');
+  grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:20px;color:rgba(255,255,255,0.4);font-family:var(--fn);font-size:13px">⏳ Chargement des profils…</div>';
+  syncUsersFromSheets();
+}
+
 setInterval(()=>{if(SCRIPT_URL&&currentUser&&document.visibilityState==='visible')loadAll();},60000);
 
 // ── SAISIE PIN AU CLAVIER ─────────────────────────────────────
