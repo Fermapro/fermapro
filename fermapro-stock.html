@@ -291,7 +291,22 @@ td{padding:11px 14px;font-size:13px;vertical-align:middle}
 .mobile-nav-item .mn-ico{font-size:20px;line-height:1}
 .mobile-nav-item.active{color:var(--pink)}
 
-/* ══ QR SCANNER ══ */
+/* ══ DÉPÔTS ══ */
+.depot-tabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px;padding:10px 14px;background:var(--surface);border:1px solid var(--border);border-radius:10px}
+.depot-tab{font-family:var(--fn);font-size:12px;font-weight:800;padding:7px 14px;border-radius:7px;border:2px solid transparent;cursor:pointer;transition:all 0.15s;background:var(--bg);color:var(--text2);display:flex;align-items:center;gap:6px}
+.depot-tab:hover{border-color:var(--border2);color:var(--navy)}
+.depot-tab.active{color:#fff;border-color:transparent}
+.depot-tab .depot-badge{font-family:var(--fm);font-size:10px;padding:1px 5px;border-radius:8px;background:rgba(255,255,255,0.2)}
+.transfer-arrow{display:flex;align-items:center;justify-content:center;font-size:20px;color:var(--muted)}
+
+/* ══ MODAL DÉPÔTS ══ */
+.depot-item{display:flex;align-items:center;gap:10px;padding:10px 16px;border-bottom:1px solid var(--border);transition:background 0.1s}
+.depot-item:hover{background:var(--bg)}
+.depot-item:last-child{border-bottom:none}
+.depot-emoji{font-size:20px;flex-shrink:0}
+.depot-info{flex:1}
+.depot-name{font-family:var(--fn);font-weight:800;font-size:14px;color:var(--navy)}
+.depot-count{font-size:11px;color:var(--muted);margin-top:1px}
 .qr-overlay{position:fixed;inset:0;background:#000;z-index:500;display:none;flex-direction:column;align-items:center;justify-content:center}
 .qr-overlay.open{display:flex}
 .qr-header{position:absolute;top:0;left:0;right:0;padding:max(20px,env(safe-area-inset-top)) 20px 16px;background:linear-gradient(to bottom,rgba(0,0,0,0.8),transparent);display:flex;align-items:center;gap:12px;z-index:2}
@@ -434,6 +449,10 @@ td{padding:11px 14px;font-size:13px;vertical-align:middle}
     <div class="sync-dot"></div>
     <span id="sync-txt">Non configuré</span>
   </div>
+  <div class="sync-bar" id="offline-bar" style="display:none;background:rgba(184,104,10,0.2);color:#f0c060">
+    <div class="sync-dot" style="background:#f0c060"></div>
+    <span id="offline-txt">Hors ligne — <span id="offline-queue-count">0</span> op. en attente</span>
+  </div>
 
   <div class="side-sect">Navigation</div>
   <button class="nav-item active" onclick="goPage('stock',this)"><span class="nav-icon">📦</span>Inventaire</button>
@@ -450,6 +469,7 @@ td{padding:11px 14px;font-size:13px;vertical-align:middle}
   <!-- Admin uniquement -->
   <div class="side-sect nav-admin">Administration</div>
   <button class="nav-item nav-admin" onclick="goPage('users',this)"><span class="nav-icon">👥</span>Utilisateurs</button>
+  <button class="nav-item nav-admin" onclick="goPage('depots',this)"><span class="nav-icon">🏭</span>Dépôts</button>
   <button class="nav-item nav-admin" onclick="openPieceModal()"><span class="nav-icon">➕</span>Nouvelle pièce</button>
   <button class="nav-item print-only" onclick="openPrintQr()"><span class="nav-icon">🖨️</span>Imprimer QR Codes</button>
   <button class="nav-item nav-admin import-only" onclick="document.getElementById('import-xl-input').click()"><span class="nav-icon">📊</span>Importer Excel</button>
@@ -470,8 +490,10 @@ td{padding:11px 14px;font-size:13px;vertical-align:middle}
       <div class="topbar-sub" id="topbar-user-info">Connecté en tant que —</div>
     </div>
     <div class="topbar-actions">
+      <select class="flt" id="depot-selector" onchange="changeDepot(this.value)" style="font-family:var(--fn);font-weight:800;font-size:12px;border-color:var(--navy);color:var(--navy);padding:7px 10px"></select>
       <button class="btn btn-ghost" onclick="loadAll()">🔄 Actualiser</button>
       <button class="btn btn-ghost" onclick="openQrScanner()">📷 Scanner QR</button>
+      <button class="btn btn-ghost admin-only" onclick="openTransferModal()">🔄 Transfert</button>
       <button class="btn btn-ghost admin-only" onclick="exportExcel()">📥 Export Excel</button>
       <button class="btn btn-ghost admin-only" onclick="exportPDF()">📄 Export PDF</button>
       <button class="btn btn-ghost" onclick="openMoveModal('entrée')">📥 Réception</button>
@@ -518,6 +540,8 @@ td{padding:11px 14px;font-size:13px;vertical-align:middle}
 
   <!-- PAGE INVENTAIRE -->
   <div class="page active" id="page-stock">
+    <!-- ONGLETS DÉPÔTS -->
+    <div class="depot-tabs" id="depot-tabs"></div>
     <div class="kpi-row">
       <div class="kpi navy"><div class="kpi-lbl">Total références</div><div class="kpi-val" id="k-total">—</div><div class="kpi-foot">pièces en catalogue</div></div>
       <div class="kpi green"><div class="kpi-lbl">Disponibles</div><div class="kpi-val" id="k-ok">—</div><div class="kpi-foot">stock suffisant</div></div>
@@ -641,7 +665,25 @@ td{padding:11px 14px;font-size:13px;vertical-align:middle}
     </div>
   </div>
 
-  <!-- PAGE UTILISATEURS (admin) -->
+  <!-- PAGE DÉPÔTS -->
+  <div class="page" id="page-depots">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+      <div>
+        <div style="font-family:var(--fn);font-size:18px;font-weight:900;color:var(--navy)">Gestion des dépôts</div>
+        <div style="font-size:12px;color:var(--muted);margin-top:2px">Zones de stock, véhicules, emplacements — renommez, créez, supprimez</div>
+      </div>
+      <button class="btn btn-pink" onclick="openDepotModal()">＋ Nouveau dépôt</button>
+    </div>
+    <!-- Grille des dépôts -->
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:14px;margin-bottom:20px" id="depots-grid"></div>
+    <!-- Historique des transferts -->
+    <div class="card">
+      <div class="card-head"><div class="card-title">🔄 Historique des transferts</div><span class="card-count" id="transfers-count"></span></div>
+      <table><thead><tr><th>Date / Heure</th><th>Pièce</th><th>Qté</th><th>De</th><th>Vers</th><th>Par</th></tr></thead>
+      <tbody id="transfers-body"></tbody></table>
+      <div class="empty" id="transfers-empty" style="display:none"><div class="empty-ico">🔄</div><div class="empty-txt">Aucun transfert effectué</div></div>
+    </div>
+  </div>
   <div class="page" id="page-users">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
       <div>
@@ -687,11 +729,13 @@ td{padding:11px 14px;font-size:13px;vertical-align:middle}
 
 <!-- MODAL MOUVEMENT -->
 <div class="overlay" id="ov-move">
-  <div class="modal" style="width:460px">
+  <div class="modal" style="width:480px">
     <div class="modal-head"><div class="modal-title" id="mv-title">Réception de stock</div><button class="modal-close" onclick="closeMoveModal()">✕</button></div>
     <div class="modal-body">
       <div class="form-grid">
-        <div class="fg full"><label class="fl">Pièce *</label><select class="fs" id="mv-piece"><option value="">Sélectionner une pièce…</option></select></div>
+        <div class="fg full"><label class="fl">Pièce *</label><select class="fs" id="mv-piece" onchange="updateMoveStock()"><option value="">Sélectionner une pièce…</option></select></div>
+        <div class="fg"><label class="fl">Dépôt *</label><select class="fs" id="mv-depot" onchange="updateMoveStock()"><option value="">Sélectionner…</option></select></div>
+        <div class="fg"><label class="fl">Stock actuel dans ce dépôt</label><div id="mv-stock-info" style="font-family:var(--fm);font-size:14px;font-weight:700;color:var(--navy);padding:9px 11px;background:var(--bg);border-radius:7px;border:1.5px solid var(--border2)">—</div></div>
         <div class="fg"><label class="fl">Quantité *</label><input class="fi" id="mv-qty" type="number" min="1" placeholder="1"></div>
         <div class="fg"><label class="fl">Chantier / Raison</label><input class="fi" id="mv-raison" placeholder="N° chantier, BL…"></div>
         <div class="fg full" style="background:rgba(45,53,128,0.05);border-radius:8px;padding:10px 12px;border:1px solid var(--border)">
@@ -898,6 +942,119 @@ td{padding:11px 14px;font-size:13px;vertical-align:middle}
   </div>
 </div>
 
+<!-- MODAL TRANSFERT ENTRE DÉPÔTS -->
+<div class="overlay" id="ov-transfer">
+  <div class="modal" style="width:480px">
+    <div class="modal-head">
+      <div class="modal-title">🔄 Transfert entre dépôts</div>
+      <button class="modal-close" onclick="closeTransferModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="fg full"><label class="fl">Pièce *</label>
+          <select class="fs" id="tr-piece"><option value="">Sélectionner une pièce…</option></select>
+        </div>
+        <div class="fg"><label class="fl">Dépôt source *</label>
+          <select class="fs" id="tr-from" onchange="updateTransferStock()"></select>
+        </div>
+        <div class="fg"><label class="fl">Dépôt destination *</label>
+          <select class="fs" id="tr-to"></select>
+        </div>
+        <div class="fg"><label class="fl">Quantité *</label>
+          <input class="fi" id="tr-qty" type="number" min="1" placeholder="1">
+        </div>
+        <div class="fg">
+          <label class="fl">Stock disponible</label>
+          <div style="font-family:var(--fm);font-size:18px;font-weight:700;color:var(--navy);padding:9px 0" id="tr-stock-dispo">—</div>
+        </div>
+        <div class="fg full"><label class="fl">Raison / Chantier</label>
+          <input class="fi" id="tr-raison" placeholder="Ex: Préparation chantier 2026-031">
+        </div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" onclick="closeTransferModal()">Annuler</button>
+      <button class="btn btn-primary" id="tr-confirm" onclick="confirmTransfer()">Valider le transfert</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL DÉPÔT -->
+<div class="overlay" id="ov-depot">
+  <div class="modal" style="width:420px">
+    <div class="modal-head"><div class="modal-title" id="dm-title">Nouveau dépôt</div><button class="modal-close" onclick="closeDepotModal()">✕</button></div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="fg full"><label class="fl">Nom du dépôt *</label><input class="fi" id="d-name" placeholder="Ex : Véhicule Pierre, Atelier…"></div>
+        <div class="fg full">
+          <label class="fl">Icône</label>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:4px" id="depot-emoji-picker">
+            <span onclick="selectDepotEmoji(this,'🏭')" class="depot-emoji-opt" style="font-size:22px;cursor:pointer;padding:6px 10px;border-radius:8px;border:2px solid transparent;transition:all 0.15s" data-emoji="🏭">🏭</span>
+            <span onclick="selectDepotEmoji(this,'🚐')" class="depot-emoji-opt" style="font-size:22px;cursor:pointer;padding:6px 10px;border-radius:8px;border:2px solid transparent;transition:all 0.15s" data-emoji="🚐">🚐</span>
+            <span onclick="selectDepotEmoji(this,'🚗')" class="depot-emoji-opt" style="font-size:22px;cursor:pointer;padding:6px 10px;border-radius:8px;border:2px solid transparent;transition:all 0.15s" data-emoji="🚗">🚗</span>
+            <span onclick="selectDepotEmoji(this,'🏢')" class="depot-emoji-opt" style="font-size:22px;cursor:pointer;padding:6px 10px;border-radius:8px;border:2px solid transparent;transition:all 0.15s" data-emoji="🏢">🏢</span>
+            <span onclick="selectDepotEmoji(this,'🔧')" class="depot-emoji-opt" style="font-size:22px;cursor:pointer;padding:6px 10px;border-radius:8px;border:2px solid transparent;transition:all 0.15s" data-emoji="🔧">🔧</span>
+            <span onclick="selectDepotEmoji(this,'📦')" class="depot-emoji-opt" style="font-size:22px;cursor:pointer;padding:6px 10px;border-radius:8px;border:2px solid transparent;transition:all 0.15s" data-emoji="📦">📦</span>
+            <span onclick="selectDepotEmoji(this,'🏗️')" class="depot-emoji-opt" style="font-size:22px;cursor:pointer;padding:6px 10px;border-radius:8px;border:2px solid transparent;transition:all 0.15s" data-emoji="🏗️">🏗️</span>
+          </div>
+        </div>
+        <div class="fg full">
+          <label class="fl">Couleur</label>
+          <div style="display:flex;gap:8px;margin-top:4px;flex-wrap:wrap" id="depot-color-picker">
+            <div onclick="selectDepotColor('#2D3580')" style="width:28px;height:28px;border-radius:50%;background:#2D3580;cursor:pointer;border:3px solid transparent;transition:all 0.15s" class="depot-color-opt" data-color="#2D3580"></div>
+            <div onclick="selectDepotColor('#E8457A')" style="width:28px;height:28px;border-radius:50%;background:#E8457A;cursor:pointer;border:3px solid transparent;transition:all 0.15s" class="depot-color-opt" data-color="#E8457A"></div>
+            <div onclick="selectDepotColor('#1A7A45')" style="width:28px;height:28px;border-radius:50%;background:#1A7A45;cursor:pointer;border:3px solid transparent;transition:all 0.15s" class="depot-color-opt" data-color="#1A7A45"></div>
+            <div onclick="selectDepotColor('#B8680A')" style="width:28px;height:28px;border-radius:50%;background:#B8680A;cursor:pointer;border:3px solid transparent;transition:all 0.15s" class="depot-color-opt" data-color="#B8680A"></div>
+            <div onclick="selectDepotColor('#6B3FA0')" style="width:28px;height:28px;border-radius:50%;background:#6B3FA0;cursor:pointer;border:3px solid transparent;transition:all 0.15s" class="depot-color-opt" data-color="#6B3FA0"></div>
+            <div onclick="selectDepotColor('#1A6B8A')" style="width:28px;height:28px;border-radius:50%;background:#1A6B8A;cursor:pointer;border:3px solid transparent;transition:all 0.15s" class="depot-color-opt" data-color="#1A6B8A"></div>
+            <div onclick="selectDepotColor('#C0392B')" style="width:28px;height:28px;border-radius:50%;background:#C0392B;cursor:pointer;border:3px solid transparent;transition:all 0.15s" class="depot-color-opt" data-color="#C0392B"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" onclick="closeDepotModal()">Annuler</button>
+      <button class="btn btn-primary" onclick="saveDepot()">Enregistrer</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL TRANSFERT ENTRE DÉPÔTS -->
+<div class="overlay" id="ov-transfer">
+  <div class="modal" style="width:500px">
+    <div class="modal-head"><div class="modal-title">🔄 Transfert entre dépôts</div><button class="modal-close" onclick="closeTransferModal()">✕</button></div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="fg full"><label class="fl">Pièce *</label><select class="fs" id="tr-piece"><option value="">Sélectionner une pièce…</option></select></div>
+        <div class="fg">
+          <label class="fl">Dépôt source *</label>
+          <select class="fs" id="tr-from" onchange="updateTransferStock()"><option value="">Sélectionner…</option></select>
+        </div>
+        <div class="fg">
+          <label class="fl">Dépôt destination *</label>
+          <select class="fs" id="tr-to"><option value="">Sélectionner…</option></select>
+        </div>
+        <div class="fg">
+          <label class="fl">Quantité *</label>
+          <input class="fi" id="tr-qty" type="number" min="1" placeholder="1">
+        </div>
+        <div class="fg">
+          <label class="fl">Stock disponible (source)</label>
+          <div id="tr-stock-info" style="font-family:var(--fm);font-size:14px;font-weight:700;color:var(--navy);padding:9px 11px;background:var(--bg);border-radius:7px;border:1.5px solid var(--border2)">—</div>
+        </div>
+        <div class="fg full" style="background:rgba(45,53,128,0.05);border-radius:8px;padding:10px 12px;border:1px solid var(--border)">
+          <label class="fl">Technicien</label>
+          <div style="font-family:var(--fn);font-weight:800;color:var(--navy);margin-top:4px;font-size:14px" id="tr-user-display">—</div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" onclick="closeTransferModal()">Annuler</button>
+      <button class="btn btn-primary" id="tr-confirm" onclick="confirmTransfer()">🔄 Valider le transfert</button>
+    </div>
+  </div>
+</div>
+
 <!-- MOBILE NAV -->
 <nav class="mobile-nav" id="mobile-nav">
   <button class="mobile-nav-item active" onclick="goPage('stock',this)"><span class="mn-ico">📦</span>Stock</button>
@@ -918,18 +1075,34 @@ document.getElementById('ov-piece').addEventListener('click',e=>{if(e.target.id=
 document.getElementById('ov-move').addEventListener('click',e=>{if(e.target.id==='ov-move')closeMoveModal();});
 document.getElementById('ov-user').addEventListener('click',e=>{if(e.target.id==='ov-user')closeUserModal();});
 document.getElementById('ov-changepin').addEventListener('click',e=>{if(e.target.id==='ov-changepin')closeChangePin();});
+document.getElementById('ov-depot').addEventListener('click',e=>{if(e.target.id==='ov-depot')closeDepotModal();});
+document.getElementById('ov-transfer').addEventListener('click',e=>{if(e.target.id==='ov-transfer')closeTransferModal();});
 // ══════════════════════════════════════════════════════════════
 //  STATE
 // ══════════════════════════════════════════════════════════════
 let SCRIPT_URL = localStorage.getItem('fp_script_url') || '';
 let pieces = [], moves = [], users = [];
+let depots = [];
+let currentDepotId = 'all';
+let editDepotId = null;
+let selectedDepotEmoji = '🏭';
+let selectedDepotColor = '#2D3580';
+
+const DEFAULT_DEPOTS = [
+  { id:'depot-plateforme', name:'Plateforme',            emoji:'🏭', color:'#2D3580' },
+  { id:'depot-julien',     name:'Véhicule Julien',       emoji:'🚐', color:'#E8457A' },
+  { id:'depot-tech2',      name:'Véhicule Technicien 2', emoji:'🚐', color:'#1A7A45' },
+  { id:'depot-tech3',      name:'Véhicule Technicien 3', emoji:'🚐', color:'#B8680A' },
+  { id:'depot-bureau',     name:'Bureau / Accueil',      emoji:'🏢', color:'#6B3FA0' },
+];
+
 let currentUser = null;
 let editPieceId = null, editUserId = null, mvType = 'entrée';
 let sfld = 'nom', sdir = 1;
 let pinBuffer = '', pinTarget = null;
 let selectedColor = '#E8457A';
 
-// Utilisateurs par défaut (stockés localement, syncables vers Sheets)
+// Utilisateurs par défaut
 const DEFAULT_USERS = [
   { id:'u-admin', name:'Administrateur', role:'admin', pin:'1234', color:'#E8457A' }
 ];
@@ -1164,6 +1337,7 @@ function enterApp() {
   logConnexion(currentUser);
   applyRoleUI();
   updateUserDisplay();
+  renderDepotTabs();
   loadAll();
 }
 
@@ -1267,10 +1441,19 @@ async function loadAll() {
   setSyncStatus('syncing','Synchronisation…');
   try {
     const [p, m] = await Promise.all([apiGet('getPieces'), apiGet('getMouvements')]);
-    pieces = p.map(r => ({...r, qty:Number(r.qty)||0, seuil:Number(r.seuil)||0, prix:Number(r.prix)||0}));
+    pieces = p.map(r => {
+      const piece = {...r, qty:Number(r.qty)||0, seuil:Number(r.seuil)||0, prix:Number(r.prix)||0};
+      // Parser stocks si stocké en JSON string
+      if (r.stocks && typeof r.stocks === 'string') {
+        try { piece.stocks = JSON.parse(r.stocks); } catch(e) { piece.stocks = null; }
+      }
+      ensurePieceStocks(piece);
+      return piece;
+    });
     moves  = m.map(r => ({...r, qty:Number(r.qty)||0, stockApres:Number(r.stockApres)||0, ts:Number(r.ts)||0}));
     setSyncStatus('ok','Synchronisé — '+new Date().toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'}));
     refreshAll();
+    renderDepotTabs();
     checkAndSendAlerts();
   } catch(e) {
     setSyncStatus('error','Erreur : '+e.message);
@@ -1310,10 +1493,10 @@ async function testConnection() {
 //  KPI & RENDU
 // ══════════════════════════════════════════════════════════════
 function kpi() {
-  const ok=pieces.filter(p=>status(p)==='ok').length;
-  const low=pieces.filter(p=>status(p)==='low').length;
-  const crit=pieces.filter(p=>status(p)==='crit').length;
-  const val=pieces.reduce((s,p)=>s+p.prix*p.qty,0);
+  const ok=pieces.filter(p=>{const q=getPieceDisplayStock(p);return q>0&&q>(Number(p.seuil)||0);}).length;
+  const low=pieces.filter(p=>{const q=getPieceDisplayStock(p);return q>0&&q<=(Number(p.seuil)||0);}).length;
+  const crit=pieces.filter(p=>getPieceDisplayStock(p)===0).length;
+  const val=pieces.reduce((s,p)=>s+getPieceDisplayStock(p)*(Number(p.prix)||0),0);
   document.getElementById('k-total').textContent=pieces.length;
   document.getElementById('k-ok').textContent=ok;
   document.getElementById('k-low').textContent=low;
@@ -1342,8 +1525,12 @@ function renderStock() {
   const st=document.getElementById('flt-st').value;
   const isAdmin = currentUser && currentUser.role==='admin';
   let rows=pieces.filter(p=>{
-    const mq=!q||String(p.ref).toLowerCase().includes(q)||String(p.nom).toLowerCase().includes(q)||(p.fourn||'').toLowerCase().includes(q);
-    return mq&&(!cat||p.cat===cat)&&(!st||status(p)===st);
+    const displayQty = getPieceDisplayStock(p);
+    const displayStatus = displayQty===0?'crit':displayQty<=(Number(p.seuil)||0)?'low':'ok';
+    if(q && !String(p.ref).toLowerCase().includes(q)&&!String(p.nom).toLowerCase().includes(q)&&!(p.fourn||'').toLowerCase().includes(q)) return false;
+    if(cat&&p.cat!==cat) return false;
+    if(st&&displayStatus!==st) return false;
+    return true;
   }).sort((a,b)=>{let av=a[sfld],bv=b[sfld];if(typeof av==='string')av=av.toLowerCase(),bv=bv.toLowerCase();return av<bv?-sdir:av>bv?sdir:0;});
 
   document.getElementById('tbl-count').textContent=`${rows.length} / ${pieces.length}`;
@@ -1352,15 +1539,20 @@ function renderStock() {
   if(isEmpty) document.getElementById('tbl-empty-txt').textContent='Aucune pièce trouvée';
 
   document.getElementById('tbl-body').innerHTML=rows.map((p,i)=>{
-    const s=status(p),sc=ST[s],cs=catStyle(p.cat);
-    const max=Math.max(p.qty,p.seuil*3,10),pct=Math.min(100,(p.qty/max)*100);
+    const qty = getPieceDisplayStock(p);
+    const s = qty===0?'crit':qty<=(Number(p.seuil)||0)?'low':'ok';
+    const sc=ST[s],cs=catStyle(p.cat);
+    const max=Math.max(qty,Number(p.seuil||0)*3,10),pct=Math.min(100,(qty/max)*100);
     const bc=s==='ok'?'#1A7A45':s==='low'?'#E8640A':'#C0392B';
+    // Badge dépôt si vue globale
+    const depotBadge = currentDepotId==='all' && p.stocks ?
+      `<div style="display:flex;gap:3px;margin-top:3px;flex-wrap:wrap">${depots.map(d=>{const ds=getPieceStock(p,d.id);return ds>0?`<span style="background:${d.color};color:#fff;font-size:9px;padding:1px 5px;border-radius:3px;font-family:var(--fm)">${d.emoji}${ds}</span>`:''}).join('')}</div>` : '';
     return `<tr style="animation-delay:${i*20}ms">
       <td><span class="ref-tag">${p.ref}</span></td>
-      <td><div style="font-weight:600;color:var(--navy)">${p.nom}</div>${p.empl?`<div style="font-size:11px;color:var(--muted);margin-top:2px">📍 ${p.empl}</div>`:''}</td>
+      <td><div style="font-weight:600;color:var(--navy)">${p.nom}</div>${depotBadge}${p.empl?`<div style="font-size:11px;color:var(--muted);margin-top:2px">📍 ${p.empl}</div>`:''}</td>
       <td><span class="cat-pill" style="background:${cs.bg};color:${cs.c}">${p.cat}</span></td>
       <td style="font-size:12px;color:var(--text2)">${p.fourn||'—'}</td>
-      <td><div class="stock-cell"><div class="stock-track"><div class="stock-fill" style="width:${pct}%;background:${bc}"></div></div><span class="stock-num" style="color:${bc}">${p.qty}</span></div><div style="font-size:10px;color:var(--muted);margin-top:2px">seuil:${p.seuil}</div></td>
+      <td><div class="stock-cell"><div class="stock-track"><div class="stock-fill" style="width:${pct}%;background:${bc}"></div></div><span class="stock-num" style="color:${bc}">${qty}</span></div><div style="font-size:10px;color:var(--muted);margin-top:2px">seuil:${p.seuil}</div></td>
       <td style="font-family:var(--fm);font-size:12px;color:var(--text2)">${p.prix?Number(p.prix).toFixed(2)+' €':'—'}</td>
       <td><span class="badge" style="background:${sc.bg};color:${sc.c}"><span class="dot" style="background:${sc.dot}"></span>${sc.lbl}</span></td>
       ${isAdmin?`<td><div class="act-row"><button class="btn btn-ghost btn-sm" onclick="openPieceModal('${p.id}')">✏️</button><button class="btn btn-danger btn-sm" onclick="delPiece('${p.id}')">🗑</button></div></td>`:'<td></td>'}
@@ -1468,11 +1660,12 @@ function goPage(p, btn) {
   document.getElementById('page-'+p).classList.add('active');
   document.querySelectorAll('.nav-item').forEach(b=>b.classList.remove('active'));
   if(btn) btn.classList.add('active');
-  const t={stock:'Inventaire des pièces',dashboard:'Tableau de bord',alerts:'Alertes de stock',moves:'Historique des mouvements',users:'Gestion des utilisateurs',connexions:'Historique des connexions',config:'Configuration'};
+  const t={stock:'Inventaire des pièces',dashboard:'Tableau de bord',alerts:'Alertes de stock',moves:'Historique des mouvements',users:'Gestion des utilisateurs',depots:'Dépôts & Véhicules',connexions:'Historique des connexions',config:'Configuration'};
   document.getElementById('topbar-title').textContent=t[p]||'';
   if(p==='alerts')     renderAlerts();
   if(p==='moves')      { refreshMvFilters(); renderMoves(); }
   if(p==='users')      renderUsers();
+  if(p==='depots')     renderDepotsPage();
   if(p==='dashboard')  renderDashboard();
   if(p==='connexions') renderConnexions();
   if(p==='config')     { if(SCRIPT_URL) document.getElementById('cfg-url').value=SCRIPT_URL; loadEmailConfig(); }
@@ -1533,44 +1726,81 @@ function openMoveModal(type, preselectId) {
   document.getElementById('mv-title').textContent=type==='entrée'?'📥 Réception de stock':'🔧 Sortie pour chantier';
   document.getElementById('mv-confirm').textContent=type==='entrée'?'Valider la réception':'Valider la sortie';
   document.getElementById('mv-user-display').textContent = currentUser ? currentUser.name : '—';
+
+  // Pièces
   const sel=document.getElementById('mv-piece');
   sel.innerHTML='<option value="">Sélectionner une pièce…</option>'+
     [...pieces].sort((a,b)=>String(a.nom).localeCompare(String(b.nom)))
-    .map(p=>`<option value="${p.id}"${p.id===preselectId?' selected':''}>[${p.ref}] ${p.nom} — stock:${p.qty}</option>`).join('');
+    .map(p=>`<option value="${p.id}"${p.id===preselectId?' selected':''}>[${p.ref}] ${p.nom}</option>`).join('');
+
+  // Dépôts
+  const depotSel = document.getElementById('mv-depot');
+  depotSel.innerHTML = '<option value="">Sélectionner un dépôt…</option>' +
+    depots.map(d=>`<option value="${d.id}"${currentDepotId===d.id?' selected':''}>${d.emoji} ${d.name}</option>`).join('');
+
   document.getElementById('mv-qty').value='';
   document.getElementById('mv-raison').value='';
+  document.getElementById('mv-stock-info').textContent='—';
+  document.getElementById('mv-stock-info').style.color='var(--navy)';
+  updateMoveStock();
   document.getElementById('ov-move').classList.add('open');
 }
 function closeMoveModal(){document.getElementById('ov-move').classList.remove('open');}
 
+function updateMoveStock() {
+  const pid = document.getElementById('mv-piece').value;
+  const depotId = document.getElementById('mv-depot').value;
+  if (!pid || !depotId) { document.getElementById('mv-stock-info').textContent = '—'; return; }
+  const p = pieces.find(x => x.id === pid);
+  if (!p) return;
+  ensurePieceStocks(p);
+  const stock = getPieceStock(p, depotId);
+  document.getElementById('mv-stock-info').textContent = stock + ' unité(s)';
+  document.getElementById('mv-stock-info').style.color = stock > 0 ? 'var(--green)' : 'var(--red)';
+}
+
 async function confirmMove() {
   if(!SCRIPT_URL){toast('Configurez d\'abord la connexion','err');return;}
   const pid=document.getElementById('mv-piece').value;
+  const depotId=document.getElementById('mv-depot').value;
   const qty=parseInt(document.getElementById('mv-qty').value)||0;
   const raison=document.getElementById('mv-raison').value.trim();
   if(!pid){toast('Sélectionnez une pièce','err');return;}
+  if(!depotId){toast('Sélectionnez un dépôt','err');return;}
   if(qty<=0){toast('Quantité invalide','err');return;}
+
   const p=pieces.find(x=>x.id===pid);
-  if(mvType==='sortie'&&qty>p.qty){toast(`Stock insuffisant (disponible:${p.qty})`,'err');return;}
+  ensurePieceStocks(p);
+  const depotStock = getPieceStock(p, depotId);
+  if(mvType==='sortie'&&qty>depotStock){
+    toast(`Stock insuffisant dans ce dépôt (disponible : ${depotStock})`,'err');return;
+  }
+
   const btn=document.getElementById('mv-confirm');
   btn.disabled=true;
-  const newQty=mvType==='entrée'?p.qty+qty:p.qty-qty;
+
+  // Mettre à jour le stock du dépôt
+  if(mvType==='entrée') p.stocks[depotId] = depotStock + qty;
+  else                  p.stocks[depotId] = depotStock - qty;
+  p.qty = getPieceTotalStock(p); // sync total
+
+  const depot = getDepot(depotId);
   const mouvement={
     id:uid(), ts:Date.now(), type:mvType,
-    ref:p.ref, nom:p.nom, qty, raison, stockApres:newQty,
-    // ── TRAÇABILITÉ ──
-    userId: currentUser ? currentUser.id : '',
-    userName: currentUser ? currentUser.name : 'Inconnu',
-    userRole: currentUser ? currentUser.role : '',
+    ref:p.ref, nom:p.nom, qty, raison,
+    stockApres:p.qty, depotId, depotName:depot?.name||'',
+    userId: currentUser?.id||'', userName: currentUser?.name||'Inconnu', userRole: currentUser?.role||'',
   };
   try{
     setSyncStatus('syncing','Enregistrement…');
     await Promise.all([
-      apiPost({action:'savePiece',piece:{...p,qty:newQty}}),
+      apiPost({action:'savePiece',piece:{...p, stocks: JSON.stringify(p.stocks)}}),
       apiPost({action:'addMouvement',mouvement})
     ]);
     closeMoveModal();await loadAll();
-    toast(mvType==='entrée'?`+${qty} unité(s) réceptionnée(s) par ${mouvement.userName}`:`${qty} unité(s) sortie(s) par ${mouvement.userName}`);
+    toast(mvType==='entrée'
+      ?`+${qty} unité(s) réceptionnée(s) dans ${depot?.name} par ${mouvement.userName}`
+      :`${qty} unité(s) sortie(s) de ${depot?.name} par ${mouvement.userName}`);
   }catch(e){toast('Erreur : '+e.message,'err');setSyncStatus('error','Erreur');}
   finally{btn.disabled=false;}
 }
@@ -2112,6 +2342,328 @@ async function checkAndSendAlerts() {
 }
 
 // ══════════════════════════════════════════════════════════════
+//  GESTION DES DÉPÔTS
+// ══════════════════════════════════════════════════════════════
+function loadDepots() {
+  const saved = localStorage.getItem('fp_depots');
+  depots = saved ? JSON.parse(saved) : [...DEFAULT_DEPOTS];
+}
+
+function saveDepots() {
+  localStorage.setItem('fp_depots', JSON.stringify(depots));
+}
+
+function getDepot(id) {
+  return depots.find(d => d.id === id);
+}
+
+// Stock d'une pièce dans un dépôt spécifique
+function getPieceStock(piece, depotId) {
+  if (!piece.stocks) return 0;
+  return Number(piece.stocks[depotId]) || 0;
+}
+
+// Stock total d'une pièce (tous dépôts)
+function getPieceTotalStock(piece) {
+  if (!piece.stocks) return Number(piece.qty) || 0;
+  return Object.values(piece.stocks).reduce((s, v) => s + (Number(v) || 0), 0);
+}
+
+// Stock affiché selon le dépôt sélectionné
+function getPieceDisplayStock(piece) {
+  if (currentDepotId === 'all') return getPieceTotalStock(piece);
+  return getPieceStock(piece, currentDepotId);
+}
+
+// Initialiser le stock par dépôt si pas encore fait
+function ensurePieceStocks(piece) {
+  if (!piece.stocks) {
+    piece.stocks = {};
+    // Mettre tout le stock existant dans la plateforme par défaut
+    piece.stocks['depot-plateforme'] = Number(piece.qty) || 0;
+    depots.filter(d => d.id !== 'depot-plateforme').forEach(d => {
+      piece.stocks[d.id] = 0;
+    });
+  }
+  // Ajouter les nouveaux dépôts créés depuis
+  depots.forEach(d => {
+    if (!(d.id in piece.stocks)) piece.stocks[d.id] = 0;
+  });
+  return piece;
+}
+
+// Changer le dépôt actif
+function changeDepot(id) {
+  currentDepotId = id;
+  localStorage.setItem('fp_current_depot', id);
+  renderDepotTabs();
+  renderStock();
+  kpi();
+}
+
+// Rendu des onglets dépôts
+function renderDepotTabs() {
+  const tabs = document.getElementById('depot-tabs');
+  if (!tabs) return;
+
+  const allStock = pieces.reduce((s, p) => s + getPieceTotalStock(p), 0);
+
+  tabs.innerHTML =
+    `<button class="depot-tab${currentDepotId==='all'?' active':''}" onclick="changeDepot('all')" style="${currentDepotId==='all'?'background:#2D3580;':''}">
+      🗂️ Tous les dépôts <span class="depot-badge" style="${currentDepotId==='all'?'':'background:var(--border2);color:var(--text2)'}">${allStock}</span>
+    </button>` +
+    depots.map(d => {
+      const stock = pieces.reduce((s, p) => s + getPieceStock(ensurePieceStocks(p), d.id), 0);
+      const active = currentDepotId === d.id;
+      return `<button class="depot-tab${active?' active':''}" onclick="changeDepot('${d.id}')"
+        style="${active?`background:${d.color};`:''}">
+        ${d.emoji} ${d.name}
+        <span class="depot-badge" style="${active?'':'background:var(--border2);color:var(--text2)'}">${stock}</span>
+      </button>`;
+    }).join('');
+}
+
+// Rendu page dépôts
+function renderDepotsPage() {
+  document.getElementById('depots-count') && (document.getElementById('depots-count').textContent = depots.length + ' dépôt(s)');
+
+  // Grille des cartes dépôts
+  document.getElementById('depots-grid').innerHTML = depots.map(d => {
+    const totalPieces = pieces.filter(p => getPieceStock(ensurePieceStocks(p), d.id) > 0).length;
+    const totalStock  = pieces.reduce((s, p) => s + getPieceStock(ensurePieceStocks(p), d.id), 0);
+    const valeur      = pieces.reduce((s, p) => s + getPieceStock(ensurePieceStocks(p), d.id) * (Number(p.prix)||0), 0);
+    return `
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden;box-shadow:0 2px 8px rgba(45,53,128,0.06)">
+        <div style="background:${d.color};padding:16px 20px;display:flex;align-items:center;justify-content:space-between">
+          <div style="display:flex;align-items:center;gap:10px">
+            <span style="font-size:24px">${d.emoji}</span>
+            <div style="font-family:var(--fn);font-size:15px;font-weight:900;color:#fff">${d.name}</div>
+          </div>
+          <div style="display:flex;gap:6px">
+            <button class="btn btn-sm" style="background:rgba(255,255,255,0.2);color:#fff;border:none" onclick="openDepotModal('${d.id}')">✏️</button>
+            ${d.id!=='depot-plateforme'?`<button class="btn btn-sm" style="background:rgba(255,255,255,0.1);color:#fff;border:none" onclick="deleteDepot('${d.id}')">🗑</button>`:''}
+          </div>
+        </div>
+        <div style="padding:14px 20px;display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px">
+          <div style="text-align:center">
+            <div style="font-family:var(--fm);font-size:22px;font-weight:700;color:${d.color}">${totalPieces}</div>
+            <div style="font-size:10px;color:var(--muted);font-family:var(--fn);font-weight:800;text-transform:uppercase;letter-spacing:1px">Références</div>
+          </div>
+          <div style="text-align:center">
+            <div style="font-family:var(--fm);font-size:22px;font-weight:700;color:${d.color}">${totalStock}</div>
+            <div style="font-size:10px;color:var(--muted);font-family:var(--fn);font-weight:800;text-transform:uppercase;letter-spacing:1px">Unités</div>
+          </div>
+          <div style="text-align:center">
+            <div style="font-family:var(--fm);font-size:18px;font-weight:700;color:${d.color}">${valeur.toLocaleString('fr-FR',{maximumFractionDigits:0})}€</div>
+            <div style="font-size:10px;color:var(--muted);font-family:var(--fn);font-weight:800;text-transform:uppercase;letter-spacing:1px">Valeur HT</div>
+          </div>
+        </div>
+        <div style="padding:0 20px 14px;display:flex;gap:6px">
+          <button class="btn btn-ghost btn-sm" style="flex:1" onclick="changeDepot('${d.id}');goPage('stock',null)">📦 Voir le stock</button>
+          <button class="btn btn-pink btn-sm" style="flex:1" onclick="openTransferModal('${d.id}')">🔄 Transférer</button>
+        </div>
+      </div>`;
+  }).join('');
+
+  // Historique transferts
+  const transfers = moves.filter(m => m.transferFrom || m.transferTo).sort((a,b)=>b.ts-a.ts);
+  document.getElementById('transfers-count').textContent = transfers.length + ' transfert(s)';
+  document.getElementById('transfers-empty').style.display = transfers.length ? 'none' : 'block';
+  document.getElementById('transfers-body').innerHTML = transfers.map((m,i) => {
+    const from = getDepot(m.transferFrom);
+    const to   = getDepot(m.transferTo);
+    const ts   = new Date(m.ts);
+    return `<tr>
+      <td style="font-size:11px;color:var(--muted);font-family:var(--fm)">${ts.toLocaleDateString('fr-FR')} ${ts.toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'})}</td>
+      <td><span class="ref-tag">${m.ref}</span> <span style="font-size:12px;color:var(--text2)">${m.nom}</span></td>
+      <td style="font-family:var(--fm);font-weight:700;color:var(--navy)">${m.qty}</td>
+      <td><span style="background:${from?.color||'#ccc'};color:#fff;padding:2px 8px;border-radius:4px;font-size:11px;font-family:var(--fn);font-weight:700">${from?.emoji||''} ${from?.name||m.transferFrom||'—'}</span></td>
+      <td><span style="background:${to?.color||'#ccc'};color:#fff;padding:2px 8px;border-radius:4px;font-size:11px;font-family:var(--fn);font-weight:700">${to?.emoji||''} ${to?.name||m.transferTo||'—'}</span></td>
+      <td><span class="user-badge">${m.userName||'—'}</span></td>
+    </tr>`;
+  }).join('');
+}
+
+// ── MODAL DÉPÔT ───────────────────────────────────────────────
+function selectDepotEmoji(el, emoji) {
+  selectedDepotEmoji = emoji;
+  document.querySelectorAll('.depot-emoji-opt').forEach(e => {
+    e.style.border = e.dataset.emoji === emoji ? '2px solid var(--pink)' : '2px solid transparent';
+    e.style.background = e.dataset.emoji === emoji ? 'var(--pink-l)' : 'transparent';
+  });
+}
+
+function selectDepotColor(c) {
+  selectedDepotColor = c;
+  document.querySelectorAll('.depot-color-opt').forEach(el => {
+    el.style.border = el.dataset.color === c ? '3px solid white' : '3px solid transparent';
+    el.style.transform = el.dataset.color === c ? 'scale(1.2)' : 'scale(1)';
+  });
+}
+
+function openDepotModal(id) {
+  editDepotId = id || null;
+  selectedDepotEmoji = '🏭';
+  selectedDepotColor = '#2D3580';
+  document.getElementById('dm-title').textContent = id ? 'Modifier le dépôt' : 'Nouveau dépôt';
+  document.getElementById('d-name').value = '';
+
+  if (id) {
+    const d = getDepot(id);
+    if (d) {
+      document.getElementById('d-name').value = d.name;
+      selectedDepotEmoji = d.emoji;
+      selectedDepotColor = d.color;
+    }
+  }
+  // Reset pickers
+  document.querySelectorAll('.depot-emoji-opt').forEach(e => {
+    e.style.border = e.dataset.emoji === selectedDepotEmoji ? '2px solid var(--pink)' : '2px solid transparent';
+    e.style.background = e.dataset.emoji === selectedDepotEmoji ? 'var(--pink-l)' : 'transparent';
+  });
+  document.querySelectorAll('.depot-color-opt').forEach(el => {
+    el.style.border = el.dataset.color === selectedDepotColor ? '3px solid white' : '3px solid transparent';
+    el.style.transform = el.dataset.color === selectedDepotColor ? 'scale(1.2)' : 'scale(1)';
+  });
+  document.getElementById('ov-depot').classList.add('open');
+}
+function closeDepotModal() { document.getElementById('ov-depot').classList.remove('open'); }
+
+function saveDepot() {
+  const name = document.getElementById('d-name').value.trim();
+  if (!name) { toast('Nom du dépôt requis', 'err'); return; }
+
+  if (editDepotId) {
+    const idx = depots.findIndex(d => d.id === editDepotId);
+    if (idx >= 0) depots[idx] = { ...depots[idx], name, emoji: selectedDepotEmoji, color: selectedDepotColor };
+    toast(`Dépôt "${name}" modifié`);
+  } else {
+    const id = 'depot-' + uid();
+    depots.push({ id, name, emoji: selectedDepotEmoji, color: selectedDepotColor });
+    // Ajouter ce dépôt à toutes les pièces avec stock 0
+    pieces.forEach(p => { ensurePieceStocks(p); p.stocks[id] = 0; });
+    toast(`Dépôt "${name}" créé`);
+  }
+  saveDepots();
+  closeDepotModal();
+  renderDepotTabs();
+  renderDepotsPage();
+}
+
+function deleteDepot(id) {
+  const d = getDepot(id);
+  if (!d) return;
+  const hasStock = pieces.some(p => getPieceStock(ensurePieceStocks(p), id) > 0);
+  if (hasStock) {
+    if (!confirm(`⚠️ Le dépôt "${d.name}" contient du stock.\nLe stock sera transféré à la Plateforme. Continuer ?`)) return;
+    // Transférer le stock vers la plateforme
+    pieces.forEach(p => {
+      ensurePieceStocks(p);
+      const s = p.stocks[id] || 0;
+      if (s > 0) { p.stocks['depot-plateforme'] = (p.stocks['depot-plateforme'] || 0) + s; }
+      delete p.stocks[id];
+    });
+  }
+  depots = depots.filter(x => x.id !== id);
+  if (currentDepotId === id) currentDepotId = 'all';
+  saveDepots();
+  renderDepotTabs();
+  renderDepotsPage();
+  toast(`Dépôt "${d.name}" supprimé`, 'warn');
+}
+
+// ── MODAL TRANSFERT ───────────────────────────────────────────
+function openTransferModal(preselectFrom) {
+  document.getElementById('tr-user-display').textContent = currentUser ? currentUser.name : '—';
+  document.getElementById('tr-qty').value = '';
+  document.getElementById('tr-stock-info').textContent = '—';
+
+  // Peupler les sélecteurs de pièces
+  const sel = document.getElementById('tr-piece');
+  sel.innerHTML = '<option value="">Sélectionner une pièce…</option>' +
+    [...pieces].sort((a,b) => String(a.nom).localeCompare(String(b.nom)))
+    .map(p => `<option value="${p.id}">[${p.ref}] ${p.nom}</option>`).join('');
+
+  // Peupler les sélecteurs de dépôts
+  const fromSel = document.getElementById('tr-from');
+  const toSel   = document.getElementById('tr-to');
+  const opts = depots.map(d => `<option value="${d.id}">${d.emoji} ${d.name}</option>`).join('');
+  fromSel.innerHTML = '<option value="">Dépôt source…</option>' + opts;
+  toSel.innerHTML   = '<option value="">Dépôt destination…</option>' + opts;
+
+  if (preselectFrom) fromSel.value = preselectFrom;
+  updateTransferStock();
+  document.getElementById('ov-transfer').classList.add('open');
+}
+function closeTransferModal() { document.getElementById('ov-transfer').classList.remove('open'); }
+
+function updateTransferStock() {
+  const pid = document.getElementById('tr-piece').value;
+  const fromId = document.getElementById('tr-from').value;
+  if (!pid || !fromId) { document.getElementById('tr-stock-info').textContent = '—'; return; }
+  const p = pieces.find(x => x.id === pid);
+  if (!p) return;
+  const stock = getPieceStock(ensurePieceStocks(p), fromId);
+  document.getElementById('tr-stock-info').textContent = stock + ' unité(s)';
+  document.getElementById('tr-stock-info').style.color = stock > 0 ? 'var(--green)' : 'var(--red)';
+}
+
+async function confirmTransfer() {
+  if (!SCRIPT_URL) { toast('Configurez la connexion Google Sheets', 'err'); return; }
+  const pid    = document.getElementById('tr-piece').value;
+  const fromId = document.getElementById('tr-from').value;
+  const toId   = document.getElementById('tr-to').value;
+  const qty    = parseInt(document.getElementById('tr-qty').value) || 0;
+
+  if (!pid)    { toast('Sélectionnez une pièce', 'err'); return; }
+  if (!fromId) { toast('Sélectionnez le dépôt source', 'err'); return; }
+  if (!toId)   { toast('Sélectionnez le dépôt destination', 'err'); return; }
+  if (fromId === toId) { toast('Source et destination identiques', 'err'); return; }
+  if (qty <= 0)  { toast('Quantité invalide', 'err'); return; }
+
+  const p = pieces.find(x => x.id === pid);
+  ensurePieceStocks(p);
+  const stockFrom = getPieceStock(p, fromId);
+  if (qty > stockFrom) { toast(`Stock insuffisant dans ce dépôt (disponible : ${stockFrom})`, 'err'); return; }
+
+  const btn = document.getElementById('tr-confirm');
+  btn.disabled = true;
+
+  // Mise à jour des stocks
+  p.stocks[fromId] = stockFrom - qty;
+  p.stocks[toId]   = (getPieceStock(p, toId)) + qty;
+  p.qty = getPieceTotalStock(p); // sync total
+
+  const fromDepot = getDepot(fromId);
+  const toDepot   = getDepot(toId);
+
+  const mouvement = {
+    id: uid(), ts: Date.now(), type: 'transfert',
+    ref: p.ref, nom: p.nom, qty,
+    raison: `Transfert ${fromDepot.emoji} ${fromDepot.name} → ${toDepot.emoji} ${toDepot.name}`,
+    stockApres: p.qty,
+    transferFrom: fromId, transferTo: toId,
+    userId: currentUser?.id || '', userName: currentUser?.name || 'Inconnu', userRole: currentUser?.role || '',
+  };
+
+  try {
+    setSyncStatus('syncing', 'Transfert en cours…');
+    await Promise.all([
+      apiPost({ action: 'savePiece', piece: p }),
+      apiPost({ action: 'addMouvement', mouvement })
+    ]);
+    closeTransferModal();
+    await loadAll();
+    toast(`🔄 ${qty} unité(s) transférée(s) de ${fromDepot.name} vers ${toDepot.name}`);
+  } catch(e) {
+    toast('Erreur : ' + e.message, 'err');
+    setSyncStatus('error', 'Erreur');
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+// ══════════════════════════════════════════════════════════════
 //  QR CODE — GÉNÉRATION
 // ══════════════════════════════════════════════════════════════
 function qrUrl(text, size=120) {
@@ -2324,6 +2876,7 @@ document.getElementById('qr-overlay').addEventListener('click', e => {
 });
 
 loadUsers();
+loadDepots();
 renderUserGrid(); // Affiche immédiatement le cache local
 
 // Synchroniser les utilisateurs depuis Sheets en arrière-plan
