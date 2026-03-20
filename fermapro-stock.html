@@ -2158,8 +2158,11 @@ function qrScanLoop() {
       const imgData = qrCtx.getImageData(0, 0, qrCanvas.width, qrCanvas.height);
       const code = jsQR(imgData.data, imgData.width, imgData.height, {inversionAttempts:'dontInvert'});
       if (code && code.data.startsWith('FP:')) {
-        const ref = code.data.replace('FP:', '').trim();
-        const piece = pieces.find(p => p.ref === ref);
+        const raw = code.data.replace('FP:', '').trim();
+        // Chercher par référence exacte OU avec le préfixe FP- si doublon
+        let piece = pieces.find(p => p.ref === raw);
+        if (!piece) piece = pieces.find(p => p.ref === 'FP-' + raw);
+        if (!piece) piece = pieces.find(p => String(p.ref).toLowerCase() === raw.toLowerCase());
         if (piece) {
           qrCooldown = true;
           qrFoundPiece = piece;
@@ -2171,7 +2174,7 @@ function qrScanLoop() {
           if (navigator.vibrate) navigator.vibrate(80);
           setTimeout(() => { qrCooldown = false; }, 3000);
         } else {
-          document.getElementById('qr-hint').textContent = '⚠️ Référence inconnue : ' + ref;
+          document.getElementById('qr-hint').textContent = '⚠️ Référence inconnue : ' + raw;
           qrCooldown = true;
           setTimeout(() => {
             qrCooldown = false;
