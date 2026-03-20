@@ -587,10 +587,15 @@ td{padding:11px 14px;font-size:13px;vertical-align:middle}
         </div>
         <div class="fg full">
           <label class="fl">Couleur avatar</label>
-          <div style="display:flex;gap:8px;margin-top:4px;flex-wrap:wrap">
-            ${['#E8457A','#2D3580','#1A7A45','#B8680A','#6B3FA0','#C0392B','#1A6B8A','#4A7A1A'].map(c=>
-              `<div onclick="selectColor('${c}')" style="width:28px;height:28px;border-radius:50%;background:${c};cursor:pointer;border:3px solid transparent;transition:all 0.15s" class="color-opt" data-color="${c}"></div>`
-            ).join('')}
+          <div style="display:flex;gap:8px;margin-top:4px;flex-wrap:wrap" id="color-picker">
+            <div onclick="selectColor('#E8457A')" style="width:28px;height:28px;border-radius:50%;background:#E8457A;cursor:pointer;border:3px solid transparent;transition:all 0.15s" class="color-opt" data-color="#E8457A"></div>
+            <div onclick="selectColor('#2D3580')" style="width:28px;height:28px;border-radius:50%;background:#2D3580;cursor:pointer;border:3px solid transparent;transition:all 0.15s" class="color-opt" data-color="#2D3580"></div>
+            <div onclick="selectColor('#1A7A45')" style="width:28px;height:28px;border-radius:50%;background:#1A7A45;cursor:pointer;border:3px solid transparent;transition:all 0.15s" class="color-opt" data-color="#1A7A45"></div>
+            <div onclick="selectColor('#B8680A')" style="width:28px;height:28px;border-radius:50%;background:#B8680A;cursor:pointer;border:3px solid transparent;transition:all 0.15s" class="color-opt" data-color="#B8680A"></div>
+            <div onclick="selectColor('#6B3FA0')" style="width:28px;height:28px;border-radius:50%;background:#6B3FA0;cursor:pointer;border:3px solid transparent;transition:all 0.15s" class="color-opt" data-color="#6B3FA0"></div>
+            <div onclick="selectColor('#C0392B')" style="width:28px;height:28px;border-radius:50%;background:#C0392B;cursor:pointer;border:3px solid transparent;transition:all 0.15s" class="color-opt" data-color="#C0392B"></div>
+            <div onclick="selectColor('#1A6B8A')" style="width:28px;height:28px;border-radius:50%;background:#1A6B8A;cursor:pointer;border:3px solid transparent;transition:all 0.15s" class="color-opt" data-color="#1A6B8A"></div>
+            <div onclick="selectColor('#4A7A1A')" style="width:28px;height:28px;border-radius:50%;background:#4A7A1A;cursor:pointer;border:3px solid transparent;transition:all 0.15s" class="color-opt" data-color="#4A7A1A"></div>
           </div>
         </div>
       </div>
