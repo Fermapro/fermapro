@@ -54,6 +54,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--fb);min-height:100
 .user-avatar {
   width:48px;height:48px;border-radius:50%;display:grid;place-items:center;
   font-family:var(--fn);font-size:18px;font-weight:900;color:#fff;flex-shrink:0;
+  background-size:cover;background-position:center;
 }
 .user-name { font-family:var(--fn);font-size:12px;font-weight:800;color:#fff;text-align:center; }
 .user-role { font-size:10px;color:rgba(255,255,255,0.4);font-family:var(--fn); }
@@ -108,7 +109,7 @@ aside{width:256px;flex-shrink:0;background:var(--navy);display:flex;flex-directi
 
 /* Utilisateur connecté dans sidebar */
 .side-user{margin:10px;background:rgba(255,255,255,0.07);border-radius:10px;padding:10px 14px;display:flex;align-items:center;gap:10px;border:1px solid rgba(255,255,255,0.08)}
-.side-user-avatar{width:32px;height:32px;border-radius:50%;display:grid;place-items:center;font-family:var(--fn);font-size:13px;font-weight:900;color:#fff;flex-shrink:0}
+.side-user-avatar{width:32px;height:32px;border-radius:50%;display:grid;place-items:center;font-family:var(--fn);font-size:13px;font-weight:900;color:#fff;flex-shrink:0;background-size:cover;background-position:center;}
 .side-user-info{flex:1;min-width:0}
 .side-user-name{font-family:var(--fn);font-size:12px;font-weight:800;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .side-user-role{font-size:10px;color:rgba(255,255,255,0.35);font-family:var(--fn)}
@@ -244,7 +245,7 @@ td{padding:11px 14px;font-size:13px;vertical-align:middle}
 .user-list-item{display:flex;align-items:center;gap:12px;padding:12px 16px;border-bottom:1px solid var(--border);transition:background 0.1s}
 .user-list-item:hover{background:var(--bg)}
 .user-list-item:last-child{border-bottom:none}
-.ul-avatar{width:40px;height:40px;border-radius:50%;display:grid;place-items:center;font-family:var(--fn);font-size:16px;font-weight:900;color:#fff;flex-shrink:0}
+.ul-avatar{width:40px;height:40px;border-radius:50%;display:grid;place-items:center;font-family:var(--fn);font-size:16px;font-weight:900;color:#fff;flex-shrink:0;background-size:cover;background-position:center;}
 .ul-info{flex:1}
 .ul-name{font-family:var(--fn);font-weight:800;font-size:14px;color:var(--navy)}
 .ul-role{font-size:11px;color:var(--muted);font-family:var(--fn)}
@@ -591,7 +592,19 @@ td{padding:11px 14px;font-size:13px;vertical-align:middle}
           <div style="font-size:11px;color:var(--muted);margin-top:6px;text-align:center" id="pin-label-hint">L'utilisateur utilisera ce code pour se connecter</div>
         </div>
         <div class="fg full">
-          <label class="fl">Couleur avatar</label>
+          <label class="fl">Photo (optionnel)</label>
+          <div style="display:flex;align-items:center;gap:14px;margin-top:4px">
+            <div id="u-photo-preview" style="width:64px;height:64px;border-radius:50%;background:var(--bg2);border:2px dashed var(--border2);display:grid;place-items:center;font-size:24px;flex-shrink:0;overflow:hidden;cursor:pointer" onclick="document.getElementById('u-photo-input').click()">📷</div>
+            <div style="flex:1">
+              <button type="button" class="btn btn-ghost btn-sm" onclick="document.getElementById('u-photo-input').click()" style="width:100%;justify-content:center;margin-bottom:6px">📁 Choisir une photo</button>
+              <button type="button" class="btn btn-danger btn-sm" id="u-photo-clear" onclick="clearPhoto()" style="width:100%;justify-content:center;display:none">✕ Supprimer la photo</button>
+              <div style="font-size:10px;color:var(--muted);margin-top:4px;text-align:center">JPG, PNG — max 2 Mo</div>
+            </div>
+            <input type="file" id="u-photo-input" accept="image/*" style="display:none" onchange="handlePhotoUpload(this)">
+          </div>
+        </div>
+        <div class="fg full">
+          <label class="fl">Couleur avatar <span style="font-weight:400;text-transform:none;letter-spacing:0;color:var(--muted)">(si pas de photo)</span></label>
           <div style="display:flex;gap:8px;margin-top:4px;flex-wrap:wrap" id="color-picker">
             <div onclick="selectColor('#E8457A')" style="width:28px;height:28px;border-radius:50%;background:#E8457A;cursor:pointer;border:3px solid transparent;transition:all 0.15s" class="color-opt" data-color="#E8457A"></div>
             <div onclick="selectColor('#2D3580')" style="width:28px;height:28px;border-radius:50%;background:#2D3580;cursor:pointer;border:3px solid transparent;transition:all 0.15s" class="color-opt" data-color="#2D3580"></div>
@@ -714,9 +727,59 @@ const ST = {
 };
 const status = p => p.qty===0?'crit':p.qty<=p.seuil?'low':'ok';
 
-// ══════════════════════════════════════════════════════════════
-//  GESTION UTILISATEURS (localStorage)
-// ══════════════════════════════════════════════════════════════
+// ── HELPER AVATAR (photo ou initiales) ───────────────────────
+function avatarStyle(u, size='md') {
+  if (u.photo) {
+    return `style="background:${u.color};background-image:url('${u.photo}');background-size:cover;background-position:center"`;
+  }
+  return `style="background:${u.color}"`;
+}
+function avatarContent(u) {
+  return u.photo ? '' : initials(u.name);
+}
+
+// ── PHOTO UPLOAD ──────────────────────────────────────────────
+let currentPhotoData = null;
+
+function handlePhotoUpload(input) {
+  const file = input.files[0];
+  if (!file) return;
+  if (file.size > 2 * 1024 * 1024) { toast('Photo trop lourde — max 2 Mo', 'err'); return; }
+
+  const reader = new FileReader();
+  reader.onload = e => {
+    // Redimensionner à max 200x200 pour économiser localStorage
+    const img = new Image();
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      const max = 200;
+      let w = img.width, h = img.height;
+      if (w > h) { if (w > max) { h = h * max / w; w = max; } }
+      else       { if (h > max) { w = w * max / h; h = max; } }
+      canvas.width = w; canvas.height = h;
+      canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+      currentPhotoData = canvas.toDataURL('image/jpeg', 0.82);
+      // Prévisualisation
+      const preview = document.getElementById('u-photo-preview');
+      preview.style.backgroundImage = `url('${currentPhotoData}')`;
+      preview.style.backgroundSize = 'cover';
+      preview.style.backgroundPosition = 'center';
+      preview.textContent = '';
+      document.getElementById('u-photo-clear').style.display = '';
+    };
+    img.src = e.target.result;
+  };
+  reader.readAsDataURL(file);
+  input.value = '';
+}
+
+function clearPhoto() {
+  currentPhotoData = null;
+  const preview = document.getElementById('u-photo-preview');
+  preview.style.backgroundImage = '';
+  preview.textContent = '📷';
+  document.getElementById('u-photo-clear').style.display = 'none';
+}
 function loadUsers() {
   const saved = localStorage.getItem('fp_users');
   users = saved ? JSON.parse(saved) : [...DEFAULT_USERS];
@@ -733,9 +796,9 @@ function renderUserGrid() {
   const grid = document.getElementById('user-grid');
   grid.innerHTML = users.map(u => `
     <div class="user-card" onclick="selectUser('${u.id}')">
-      <div class="user-avatar" style="background:${u.color}">${initials(u.name)}</div>
+      <div class="user-avatar" ${avatarStyle(u)}>${avatarContent(u)}</div>
       <div class="user-name">${u.name}</div>
-      <div class="user-role">${u.role==='admin'?'Administrateur':'Technicien'}</div>
+      <div class="user-role">${roleLabel(u.role)}</div>
     </div>
   `).join('');
 }
@@ -842,8 +905,17 @@ function applyRoleUI() {
 function updateUserDisplay() {
   if (!currentUser) return;
   const u = currentUser;
-  document.getElementById('side-avatar').style.background = u.color;
-  document.getElementById('side-avatar').textContent = initials(u.name);
+  const el = document.getElementById('side-avatar');
+  el.style.background = u.color;
+  if (u.photo) {
+    el.style.backgroundImage = `url('${u.photo}')`;
+    el.style.backgroundSize = 'cover';
+    el.style.backgroundPosition = 'center';
+    el.textContent = '';
+  } else {
+    el.style.backgroundImage = '';
+    el.textContent = initials(u.name);
+  }
   document.getElementById('side-uname').textContent = u.name;
   document.getElementById('side-urole').textContent = roleLabel(u.role);
   document.getElementById('topbar-user-info').textContent =
@@ -1003,6 +1075,8 @@ function renderMoves() {
     const u = users.find(x=>x.id===m.userId);
     const uColor = u?u.color:'#8A8FAE';
     const uName = m.userName||'—';
+    const uPhotoStyle = u&&u.photo ? `background-image:url('${u.photo}');background-size:cover;background-position:center;` : '';
+    const uInitials = u ? avatarContent(u) : uName.charAt(0).toUpperCase();
     return `<tr style="animation-delay:${i*20}ms">
       <td style="font-size:11px;color:var(--muted);font-family:var(--fm)">${dts}</td>
       <td><span class="ref-tag">${m.ref}</span></td>
@@ -1010,7 +1084,7 @@ function renderMoves() {
       <td><span class="badge" style="background:${isIn?'#D4EDDF':'#FADDDA'};color:${col};font-size:11px"><span class="dot" style="background:${col}"></span>${isIn?'Réception':'Sortie'}</span></td>
       <td style="font-family:var(--fm);font-weight:700;color:${col}">${isIn?'+':'-'}${m.qty}</td>
       <td style="font-size:12px;color:var(--muted)">${m.raison||'—'}</td>
-      <td><span class="user-badge"><span class="user-badge-dot" style="background:${uColor}"></span>${uName}</span></td>
+      <td><span class="user-badge"><span style="width:20px;height:20px;border-radius:50%;background:${uColor};${uPhotoStyle}display:inline-grid;place-items:center;font-size:9px;font-weight:900;color:#fff;flex-shrink:0;font-family:var(--fn)">${uInitials}</span> ${uName}</span></td>
       <td style="font-family:var(--fm);font-size:12px">${m.stockApres}</td>
     </tr>`;
   }).join('');
@@ -1020,7 +1094,7 @@ function renderUsers() {
   document.getElementById('users-count').textContent=`${users.length} utilisateur(s)`;
   document.getElementById('users-list').innerHTML=users.map(u=>`
     <div class="user-list-item">
-      <div class="ul-avatar" style="background:${u.color}">${initials(u.name)}</div>
+      <div class="ul-avatar" ${avatarStyle(u)}>${avatarContent(u)}</div>
       <div class="ul-info">
         <div class="ul-name">${u.name}</div>
         <div class="ul-role"><span class="role-badge ${roleBadge(u.role)}">${roleLabel(u.role)}</span></div>
@@ -1214,8 +1288,15 @@ function pinFieldNext(idx) {
 function openUserModal(id) {
   editUserId=id||null;
   selectedColor='#E8457A';
+  currentPhotoData=null;
   document.getElementById('um-title').textContent=id?'Modifier l\'utilisateur':'Nouvel utilisateur';
   [0,1,2,3].forEach(i=>document.getElementById('u-pin-'+i).value='');
+
+  // Reset photo preview
+  const preview = document.getElementById('u-photo-preview');
+  preview.style.backgroundImage=''; preview.textContent='📷';
+  document.getElementById('u-photo-clear').style.display='none';
+
   if(id){
     const u=users.find(x=>x.id===id);
     document.getElementById('u-name').value=u.name;
@@ -1223,11 +1304,19 @@ function openUserModal(id) {
     selectedColor=u.color;
     const pin=String(u.pin);
     [...pin].forEach((d,i)=>{const el=document.getElementById('u-pin-'+i);if(el)el.value=d;});
+    // Charger photo existante
+    if(u.photo){
+      currentPhotoData=u.photo;
+      preview.style.backgroundImage=`url('${u.photo}')`;
+      preview.style.backgroundSize='cover';
+      preview.style.backgroundPosition='center';
+      preview.textContent='';
+      document.getElementById('u-photo-clear').style.display='';
+    }
   } else {
     document.getElementById('u-name').value='';
     document.getElementById('u-role').value='tech';
   }
-  // Appliquer la couleur sélectionnée
   document.querySelectorAll('.color-opt').forEach(el=>{
     el.style.border=el.dataset.color===selectedColor?'3px solid white':'3px solid transparent';
     el.style.transform=el.dataset.color===selectedColor?'scale(1.2)':'scale(1)';
@@ -1249,9 +1338,9 @@ function saveUser() {
 
   if(editUserId){
     const idx=users.findIndex(u=>u.id===editUserId);
-    if(idx>=0) users[idx]={...users[idx],name,role,pin,color:selectedColor};
+    if(idx>=0) users[idx]={...users[idx],name,role,pin,color:selectedColor,photo:currentPhotoData!==null?currentPhotoData:users[idx].photo||null};
   } else {
-    users.push({id:uid(),name,role,pin,color:selectedColor});
+    users.push({id:uid(),name,role,pin,color:selectedColor,photo:currentPhotoData||null});
   }
   saveUsers();
   closeUserModal();
