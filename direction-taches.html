@@ -748,7 +748,7 @@ function hashPin(p) {
 function pinStart() {
   const stored = localStorage.getItem(PIN_KEY);
   const session = sessionStorage.getItem(SESSION_KEY);
-  if (session === 'ok') { unlockApp(); return; }
+  if (session === 'ok' && stored) { unlockApp(); return; }
   if (!stored) {
     pinMode = 'set';
     document.getElementById('pin-sub').textContent = 'Créez votre code PIN à 4 chiffres';
@@ -758,6 +758,7 @@ function pinStart() {
     document.getElementById('pin-sub').textContent = 'Entrez votre code PIN';
     document.getElementById('pin-change-btn').style.display = 'block';
   }
+  document.getElementById('pin-screen').style.display = 'flex';
   document.getElementById('pin-screen').classList.remove('hidden');
 }
 
