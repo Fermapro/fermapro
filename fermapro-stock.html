@@ -97,10 +97,11 @@ body{background:var(--bg);color:var(--text);font-family:var(--fb);min-height:100
 .app-wrap.visible { display:flex; }
 
 .layout{display:flex;min-height:100vh}
-aside{width:256px;flex-shrink:0;background:var(--navy);display:block;position:sticky;top:0;height:100vh;z-index:50;overflow-y:auto;overflow-x:hidden;scrollbar-width:thin;scrollbar-color:rgba(255,255,255,0.15) transparent}
+aside{width:256px;flex-shrink:0;background:var(--navy);position:sticky;top:0;height:100vh;z-index:50;overflow-y:auto;overflow-x:hidden;scrollbar-width:thin;scrollbar-color:rgba(255,255,255,0.15) transparent}
 aside::-webkit-scrollbar{width:4px}
 aside::-webkit-scrollbar-track{background:transparent}
-aside::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.15);border-radius:2px}
+aside::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.2);border-radius:2px}
+.side-inner{display:flex;flex-direction:column;min-height:100%;}
 aside::-webkit-scrollbar{width:3px}
 aside::-webkit-scrollbar-track{background:transparent}
 aside::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.15);border-radius:3px}
@@ -402,6 +403,7 @@ td{padding:11px 14px;font-size:13px;vertical-align:middle}
 <div class="layout">
 
 <aside>
+<div class="side-inner">
   <div class="brand">
     <svg width="200" height="52" viewBox="0 0 200 52" fill="none" xmlns="http://www.w3.org/2000/svg">
       <rect x="1" y="4" width="38" height="38" rx="3" fill="#E8457A"/>
@@ -457,6 +459,7 @@ td{padding:11px 14px;font-size:13px;vertical-align:middle}
     <div class="side-kpi"><div class="side-kpi-lbl">Valeur stock HT</div><div class="side-kpi-val" id="side-val">— <small>€</small></div></div>
     <div class="side-kpi"><div class="side-kpi-lbl">Références</div><div class="side-kpi-val" id="side-refs">0 <small>réf.</small></div></div>
   </div>
+</div>
 </aside>
 
 <div class="main-wrap">
