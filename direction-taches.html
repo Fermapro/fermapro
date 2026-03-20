@@ -234,6 +234,28 @@ main{max-width:1100px;margin:0 auto;padding:24px 18px 100px;}
 .spin-lg{width:38px;height:38px;border:4px solid var(--border);border-top-color:var(--navy);border-radius:50%;animation:spin .7s linear infinite;}
 @keyframes spin{to{transform:rotate(360deg)}}
 .ltxt{font-family:'Syne',sans-serif;font-weight:600;color:var(--navy);font-size:15px;}
+/* PIN */
+.pin-screen{position:fixed;inset:0;background:var(--navy);z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;}
+.pin-screen.hidden{display:none;}
+.pin-logo{width:64px;height:64px;background:var(--pink);border-radius:18px;display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-weight:800;font-size:28px;color:#fff;margin-bottom:16px;}
+.pin-title{font-family:'Syne',sans-serif;font-weight:700;font-size:22px;color:#fff;margin-bottom:4px;}
+.pin-sub{font-size:13px;color:rgba(255,255,255,.5);margin-bottom:36px;text-align:center;}
+.pin-dots{display:flex;gap:16px;margin-bottom:32px;}
+.pin-dot{width:16px;height:16px;border-radius:50%;border:2px solid rgba(255,255,255,.3);transition:all .2s;}
+.pin-dot.filled{background:var(--pink);border-color:var(--pink);}
+.pin-dot.error{background:var(--red);border-color:var(--red);animation:shake .3s ease;}
+@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+.pin-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;width:100%;max-width:280px;}
+.pin-btn{background:rgba(255,255,255,.1);border:none;border-radius:14px;height:64px;font-family:'Syne',sans-serif;font-weight:700;font-size:22px;color:#fff;cursor:pointer;transition:all .15s;display:flex;align-items:center;justify-content:center;}
+.pin-btn:hover{background:rgba(255,255,255,.2);}
+.pin-btn:active{background:var(--pink);transform:scale(.96);}
+.pin-btn.del{font-size:18px;}
+.pin-btn.empty{background:transparent;cursor:default;}
+.pin-msg{margin-top:20px;font-size:13px;color:rgba(255,255,255,.5);text-align:center;min-height:20px;}
+.pin-change{margin-top:24px;background:none;border:1.5px solid rgba(255,255,255,.2);color:rgba(255,255,255,.5);border-radius:10px;padding:8px 18px;font-family:'Syne',sans-serif;font-size:12px;cursor:pointer;}
+.pin-change:hover{border-color:rgba(255,255,255,.4);color:#fff;}
+.btn-logout{background:rgba(255,255,255,.1);border:none;color:rgba(255,255,255,.6);border-radius:7px;padding:5px 11px;font-size:11px;font-family:'Syne',sans-serif;font-weight:600;cursor:pointer;}
+.btn-logout:hover{background:rgba(255,255,255,.2);color:#fff;}
 
 /* UTILS */
 .btn-primary{background:var(--pink);color:#fff;border:none;border-radius:8px;padding:8px 16px;font-family:'Syne',sans-serif;font-weight:700;font-size:12px;cursor:pointer;box-shadow:0 3px 10px rgba(232,69,122,.25);}
@@ -244,6 +266,35 @@ main{max-width:1100px;margin:0 auto;padding:24px 18px 100px;}
 </head>
 <body>
 
+<!-- PIN SCREEN -->
+<div class="pin-screen" id="pin-screen">
+  <div class="pin-logo">F</div>
+  <div class="pin-title">Tâches Direction</div>
+  <div class="pin-sub" id="pin-sub">Entrez votre code PIN</div>
+  <div class="pin-dots">
+    <div class="pin-dot" id="pd0"></div>
+    <div class="pin-dot" id="pd1"></div>
+    <div class="pin-dot" id="pd2"></div>
+    <div class="pin-dot" id="pd3"></div>
+  </div>
+  <div class="pin-grid">
+    <button class="pin-btn" onclick="pinPress(1)">1</button>
+    <button class="pin-btn" onclick="pinPress(2)">2</button>
+    <button class="pin-btn" onclick="pinPress(3)">3</button>
+    <button class="pin-btn" onclick="pinPress(4)">4</button>
+    <button class="pin-btn" onclick="pinPress(5)">5</button>
+    <button class="pin-btn" onclick="pinPress(6)">6</button>
+    <button class="pin-btn" onclick="pinPress(7)">7</button>
+    <button class="pin-btn" onclick="pinPress(8)">8</button>
+    <button class="pin-btn" onclick="pinPress(9)">9</button>
+    <button class="pin-btn empty"></button>
+    <button class="pin-btn" onclick="pinPress(0)">0</button>
+    <button class="pin-btn del" onclick="pinDel()">⌫</button>
+  </div>
+  <div class="pin-msg" id="pin-msg"></div>
+  <button class="pin-change" onclick="pinReset()" id="pin-change-btn">Changer le code PIN</button>
+</div>
+
 <div class="loading-screen" id="loading"><div class="spin-lg"></div><div class="ltxt">Chargement…</div></div>
 
 <header>
@@ -252,6 +303,7 @@ main{max-width:1100px;margin:0 auto;padding:24px 18px 100px;}
     <div class="htitle">Tâches Direction <span>— Fermapro</span></div>
   </div>
   <div class="hright">
+    <button class="btn-logout" onclick="pinLogout()">🔒</button>
     <div class="sdot" id="sdot" title="Statut synchro"></div>
     <div class="hdate" id="hdate"></div>
   </div>
@@ -533,6 +585,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     document.getElementById('loading').classList.add('hidden');
   }
   renderAll();
+  pinStart();
 });
 
 // ════════════════════════════════════════════════════════
@@ -676,6 +729,123 @@ function showTab(t) {
   document.getElementById('section-' + t).classList.add('active');
   if (t === 'gestion') renderManage();
 }
+
+// ════════════════════════════════════════════════════════
+//  PIN SYSTEM
+// ════════════════════════════════════════════════════════
+const PIN_KEY = 'fp-dir-pin';
+const SESSION_KEY = 'fp-dir-session';
+let pinBuffer = '';
+let pinMode = 'login';
+let pinTemp = '';
+
+function hashPin(p) {
+  let h = 0;
+  for (let i = 0; i < p.length; i++) { h = ((h << 5) - h) + p.charCodeAt(i); h |= 0; }
+  return h.toString(36);
+}
+
+function pinStart() {
+  const stored = localStorage.getItem(PIN_KEY);
+  const session = sessionStorage.getItem(SESSION_KEY);
+  if (session === 'ok') { unlockApp(); return; }
+  if (!stored) {
+    pinMode = 'set';
+    document.getElementById('pin-sub').textContent = 'Créez votre code PIN à 4 chiffres';
+    document.getElementById('pin-change-btn').style.display = 'none';
+  } else {
+    pinMode = 'login';
+    document.getElementById('pin-sub').textContent = 'Entrez votre code PIN';
+    document.getElementById('pin-change-btn').style.display = 'block';
+  }
+  document.getElementById('pin-screen').classList.remove('hidden');
+}
+
+function pinPress(n) {
+  if (pinBuffer.length >= 4) return;
+  pinBuffer += n;
+  updateDots();
+  if (pinBuffer.length === 4) setTimeout(pinSubmit, 120);
+}
+
+function pinDel() {
+  pinBuffer = pinBuffer.slice(0, -1);
+  updateDots();
+  document.getElementById('pin-msg').textContent = '';
+}
+
+function updateDots(error = false) {
+  for (let i = 0; i < 4; i++) {
+    const d = document.getElementById('pd'+i);
+    d.className = 'pin-dot' + (i < pinBuffer.length ? ' filled' : '') + (error ? ' error' : '');
+  }
+}
+
+function pinSubmit() {
+  if (pinMode === 'set') {
+    pinTemp = pinBuffer; pinBuffer = '';
+    updateDots();
+    document.getElementById('pin-sub').textContent = 'Confirmez votre code PIN';
+    document.getElementById('pin-msg').textContent = '';
+    pinMode = 'confirm';
+  } else if (pinMode === 'confirm') {
+    if (pinBuffer === pinTemp) {
+      localStorage.setItem(PIN_KEY, hashPin(pinBuffer));
+      document.getElementById('pin-msg').textContent = '✅ Code PIN enregistré !';
+      setTimeout(unlockApp, 600);
+    } else {
+      pinBuffer = ''; pinTemp = '';
+      updateDots(true);
+      document.getElementById('pin-msg').textContent = '❌ Les codes ne correspondent pas';
+      document.getElementById('pin-sub').textContent = 'Créez votre code PIN à 4 chiffres';
+      pinMode = 'set';
+    }
+  } else {
+    const stored = localStorage.getItem(PIN_KEY);
+    if (hashPin(pinBuffer) === stored) {
+      sessionStorage.setItem(SESSION_KEY, 'ok');
+      document.getElementById('pin-msg').textContent = '✅ Accès autorisé';
+      setTimeout(unlockApp, 400);
+    } else {
+      updateDots(true);
+      document.getElementById('pin-msg').textContent = '❌ Code incorrect';
+      pinBuffer = '';
+      setTimeout(() => { updateDots(); document.getElementById('pin-msg').textContent = ''; }, 1200);
+    }
+  }
+}
+
+function unlockApp() {
+  document.getElementById('pin-screen').classList.add('hidden');
+  pinBuffer = '';
+}
+
+function pinLogout() {
+  sessionStorage.removeItem(SESSION_KEY);
+  pinBuffer = ''; pinMode = 'login';
+  updateDots();
+  document.getElementById('pin-sub').textContent = 'Entrez votre code PIN';
+  document.getElementById('pin-msg').textContent = '';
+  document.getElementById('pin-change-btn').style.display = 'block';
+  document.getElementById('pin-screen').classList.remove('hidden');
+}
+
+function pinReset() {
+  if (!confirm('Changer le code PIN ? Vous devrez en créer un nouveau.')) return;
+  localStorage.removeItem(PIN_KEY);
+  sessionStorage.removeItem(SESSION_KEY);
+  pinBuffer = ''; pinMode = 'set';
+  updateDots();
+  document.getElementById('pin-sub').textContent = 'Créez votre code PIN à 4 chiffres';
+  document.getElementById('pin-msg').textContent = '';
+  document.getElementById('pin-change-btn').style.display = 'none';
+}
+
+document.addEventListener('keydown', e => {
+  if (document.getElementById('pin-screen').classList.contains('hidden')) return;
+  if (e.key >= '0' && e.key <= '9') pinPress(+e.key);
+  if (e.key === 'Backspace') pinDel();
+});
 
 // ════════════════════════════════════════════════════════
 //  RENDER ALL
