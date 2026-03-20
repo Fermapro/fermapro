@@ -251,6 +251,8 @@ td{padding:11px 14px;font-size:13px;vertical-align:middle}
 .role-badge{display:inline-flex;font-family:var(--fn);font-size:10px;font-weight:800;padding:2px 8px;border-radius:10px}
 .role-admin{background:rgba(232,69,122,0.1);color:var(--pink)}
 .role-tech{background:rgba(45,53,128,0.1);color:var(--navy)}
+.role-comm{background:rgba(26,107,138,0.12);color:#1A6B8A}
+.role-asst{background:rgba(107,63,160,0.12);color:#6B3FA0}
 
 .toast-box{position:fixed;bottom:22px;right:22px;display:flex;flex-direction:column;gap:8px;z-index:9999}
 .toast{background:var(--navy);color:#fff;border-radius:8px;padding:11px 16px;font-size:13px;font-weight:600;display:flex;align-items:center;gap:9px;animation:slideToast 0.25s ease,fadeToast 0.3s ease 2.7s both;box-shadow:0 8px 24px rgba(45,53,128,0.3);max-width:320px;font-family:var(--fn)}
@@ -377,6 +379,7 @@ td{padding:11px 14px;font-size:13px;vertical-align:middle}
       <div class="side-user-name" id="side-uname">—</div>
       <div class="side-user-role" id="side-urole">—</div>
     </div>
+    <button class="logout-btn" onclick="openChangePin()" title="Changer mon PIN" style="margin-right:4px">🔑</button>
     <button class="logout-btn" onclick="logout()" title="Se déconnecter">⏻</button>
   </div>
 
@@ -570,9 +573,11 @@ td{padding:11px 14px;font-size:13px;vertical-align:middle}
       <div class="form-grid">
         <div class="fg full"><label class="fl">Prénom / Nom *</label><input class="fi" id="u-name" placeholder="Ex : Jean Dupont"></div>
         <div class="fg full"><label class="fl">Rôle *</label>
-          <select class="fs" id="u-role">
-            <option value="tech">Technicien</option>
-            <option value="admin">Administrateur</option>
+          <select class="fs" id="u-role" onchange="updatePinLabel()">
+            <option value="tech">Technicien — Entrées/sorties stock</option>
+            <option value="commercial">Commercial — Consultation uniquement</option>
+            <option value="assistante">Assistante — Consultation uniquement</option>
+            <option value="admin">Administrateur — Accès complet</option>
           </select>
         </div>
         <div class="fg full">
@@ -583,7 +588,7 @@ td{padding:11px 14px;font-size:13px;vertical-align:middle}
             <input class="pin-input" id="u-pin-2" maxlength="1" type="password" inputmode="numeric" oninput="pinFieldNext(2)">
             <input class="pin-input" id="u-pin-3" maxlength="1" type="password" inputmode="numeric" oninput="pinFieldNext(3)">
           </div>
-          <div style="font-size:11px;color:var(--muted);margin-top:6px;text-align:center">Le technicien utilisera ce code pour se connecter</div>
+          <div style="font-size:11px;color:var(--muted);margin-top:6px;text-align:center" id="pin-label-hint">L'utilisateur utilisera ce code pour se connecter</div>
         </div>
         <div class="fg full">
           <label class="fl">Couleur avatar</label>
@@ -603,6 +608,53 @@ td{padding:11px 14px;font-size:13px;vertical-align:middle}
     <div class="modal-foot">
       <button class="btn btn-ghost" onclick="closeUserModal()">Annuler</button>
       <button class="btn btn-primary" id="save-user-btn" onclick="saveUser()">Enregistrer</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL CHANGER MON PIN -->
+<div class="overlay" id="ov-changepin">
+  <div class="modal" style="width:380px">
+    <div class="modal-head">
+      <div class="modal-title">🔑 Changer mon PIN</div>
+      <button class="modal-close" onclick="closeChangePin()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div style="text-align:center;margin-bottom:20px">
+        <div style="font-family:var(--fn);font-size:13px;color:var(--text2);margin-bottom:4px">Compte : <strong id="changepin-name" style="color:var(--navy)"></strong></div>
+      </div>
+      <div class="fg" style="margin-bottom:16px">
+        <label class="fl">PIN actuel</label>
+        <div class="pin-field" style="justify-content:flex-start;gap:8px">
+          <input class="pin-input" id="cp-old-0" maxlength="1" type="password" inputmode="numeric" oninput="cpNext('old',0)">
+          <input class="pin-input" id="cp-old-1" maxlength="1" type="password" inputmode="numeric" oninput="cpNext('old',1)">
+          <input class="pin-input" id="cp-old-2" maxlength="1" type="password" inputmode="numeric" oninput="cpNext('old',2)">
+          <input class="pin-input" id="cp-old-3" maxlength="1" type="password" inputmode="numeric" oninput="cpNext('old',3)">
+        </div>
+      </div>
+      <div class="fg" style="margin-bottom:8px">
+        <label class="fl">Nouveau PIN</label>
+        <div class="pin-field" style="justify-content:flex-start;gap:8px">
+          <input class="pin-input" id="cp-new-0" maxlength="1" type="password" inputmode="numeric" oninput="cpNext('new',0)">
+          <input class="pin-input" id="cp-new-1" maxlength="1" type="password" inputmode="numeric" oninput="cpNext('new',1)">
+          <input class="pin-input" id="cp-new-2" maxlength="1" type="password" inputmode="numeric" oninput="cpNext('new',2)">
+          <input class="pin-input" id="cp-new-3" maxlength="1" type="password" inputmode="numeric" oninput="cpNext('new',3)">
+        </div>
+      </div>
+      <div class="fg">
+        <label class="fl">Confirmer le nouveau PIN</label>
+        <div class="pin-field" style="justify-content:flex-start;gap:8px">
+          <input class="pin-input" id="cp-conf-0" maxlength="1" type="password" inputmode="numeric" oninput="cpNext('conf',0)">
+          <input class="pin-input" id="cp-conf-1" maxlength="1" type="password" inputmode="numeric" oninput="cpNext('conf',1)">
+          <input class="pin-input" id="cp-conf-2" maxlength="1" type="password" inputmode="numeric" oninput="cpNext('conf',2)">
+          <input class="pin-input" id="cp-conf-3" maxlength="1" type="password" inputmode="numeric" oninput="cpNext('conf',3)">
+        </div>
+      </div>
+      <div style="font-size:12px;color:var(--red);margin-top:10px;text-align:center;min-height:18px;font-family:var(--fn);font-weight:700" id="cp-error"></div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" onclick="closeChangePin()">Annuler</button>
+      <button class="btn btn-pink" onclick="confirmChangePin()">Valider le nouveau PIN</button>
     </div>
   </div>
 </div>
@@ -768,14 +820,23 @@ function logout() {
 // ══════════════════════════════════════════════════════════════
 //  GESTION DES RÔLES
 // ══════════════════════════════════════════════════════════════
+const ROLES = {
+  admin:      { label:'Administrateur', badge:'role-admin',  canMove:true,  canEdit:true,  canAdmin:true  },
+  tech:       { label:'Technicien',     badge:'role-tech',   canMove:true,  canEdit:false, canAdmin:false },
+  commercial: { label:'Commercial',     badge:'role-comm',   canMove:false, canEdit:false, canAdmin:false },
+  assistante: { label:'Assistante',     badge:'role-asst',   canMove:false, canEdit:false, canAdmin:false },
+};
+
+function roleLabel(r) { return ROLES[r]?.label || r; }
+function roleBadge(r) { return ROLES[r]?.badge || 'role-tech'; }
+
 function applyRoleUI() {
-  const isAdmin = currentUser && currentUser.role === 'admin';
-  document.querySelectorAll('.admin-only').forEach(el => {
-    el.style.display = isAdmin ? '' : 'none';
-  });
-  document.querySelectorAll('.nav-admin').forEach(el => {
-    el.style.display = isAdmin ? '' : 'none';
-  });
+  const r = currentUser ? (ROLES[currentUser.role] || ROLES.tech) : ROLES.tech;
+  // Admin
+  document.querySelectorAll('.admin-only').forEach(el => el.style.display = r.canAdmin ? '' : 'none');
+  document.querySelectorAll('.nav-admin').forEach(el => el.style.display = r.canAdmin ? '' : 'none');
+  // Entrées/sorties (tech + admin)
+  document.querySelectorAll('.move-only').forEach(el => el.style.display = r.canMove ? '' : 'none');
 }
 
 function updateUserDisplay() {
@@ -784,9 +845,9 @@ function updateUserDisplay() {
   document.getElementById('side-avatar').style.background = u.color;
   document.getElementById('side-avatar').textContent = initials(u.name);
   document.getElementById('side-uname').textContent = u.name;
-  document.getElementById('side-urole').textContent = u.role==='admin'?'Administrateur':'Technicien';
+  document.getElementById('side-urole').textContent = roleLabel(u.role);
   document.getElementById('topbar-user-info').textContent =
-    `Connecté : ${u.name} — ${new Date().toLocaleDateString('fr-FR')}`;
+    `Connecté : ${u.name} (${roleLabel(u.role)}) — ${new Date().toLocaleDateString('fr-FR')}`;
   document.getElementById('mv-user-display').textContent = u.name;
 }
 
@@ -962,7 +1023,7 @@ function renderUsers() {
       <div class="ul-avatar" style="background:${u.color}">${initials(u.name)}</div>
       <div class="ul-info">
         <div class="ul-name">${u.name}</div>
-        <div class="ul-role"><span class="role-badge ${u.role==='admin'?'role-admin':'role-tech'}">${u.role==='admin'?'Admin':'Technicien'}</span></div>
+        <div class="ul-role"><span class="role-badge ${roleBadge(u.role)}">${roleLabel(u.role)}</span></div>
       </div>
       <div style="display:flex;gap:6px">
         <button class="btn btn-ghost btn-sm" onclick="openUserModal('${u.id}')">✏️ Modifier</button>
@@ -1091,6 +1152,58 @@ function selectColor(c) {
     el.style.border=el.dataset.color===c?'3px solid white':'3px solid transparent';
     el.style.transform=el.dataset.color===c?'scale(1.2)':'scale(1)';
   });
+}
+
+function updatePinLabel() {
+  const role = document.getElementById('u-role').value;
+  const labels = {
+    admin:'L\'administrateur utilisera ce code pour se connecter',
+    tech:'Le technicien utilisera ce code pour se connecter',
+    commercial:'Le commercial utilisera ce code pour se connecter',
+    assistante:'L\'assistante utilisera ce code pour se connecter',
+  };
+  document.getElementById('pin-label-hint').textContent = labels[role] || 'L\'utilisateur utilisera ce code pour se connecter';
+}
+
+// ── CHANGER SON PROPRE PIN ────────────────────────────────────
+function openChangePin() {
+  document.getElementById('changepin-name').textContent = currentUser.name;
+  ['old','new','conf'].forEach(g=>[0,1,2,3].forEach(i=>{
+    const el=document.getElementById(`cp-${g}-${i}`);if(el)el.value='';
+  }));
+  document.getElementById('cp-error').textContent='';
+  document.getElementById('ov-changepin').classList.add('open');
+  setTimeout(()=>document.getElementById('cp-old-0').focus(),100);
+}
+
+function closeChangePin(){document.getElementById('ov-changepin').classList.remove('open');}
+
+function cpNext(group, idx) {
+  const val = document.getElementById(`cp-${group}-${idx}`).value;
+  if(val.length===1 && idx<3) document.getElementById(`cp-${group}-${idx+1}`).focus();
+}
+
+function confirmChangePin() {
+  const oldPin  = [0,1,2,3].map(i=>document.getElementById(`cp-old-${i}`).value).join('');
+  const newPin  = [0,1,2,3].map(i=>document.getElementById(`cp-new-${i}`).value).join('');
+  const confPin = [0,1,2,3].map(i=>document.getElementById(`cp-conf-${i}`).value).join('');
+  const err = document.getElementById('cp-error');
+
+  if(oldPin !== String(currentUser.pin)) { err.textContent='PIN actuel incorrect'; return; }
+  if(!/^\d{4}$/.test(newPin))            { err.textContent='Le nouveau PIN doit contenir 4 chiffres'; return; }
+  if(newPin !== confPin)                 { err.textContent='Les deux nouveaux PIN ne correspondent pas'; return; }
+  if(newPin === oldPin)                  { err.textContent='Le nouveau PIN doit être différent de l\'ancien'; return; }
+
+  // Vérifier unicité
+  const conflict = users.find(u=>u.pin===newPin && u.id!==currentUser.id);
+  if(conflict) { err.textContent=`Ce PIN est déjà utilisé par ${conflict.name}`; return; }
+
+  // Sauvegarder
+  const idx = users.findIndex(u=>u.id===currentUser.id);
+  if(idx>=0) { users[idx].pin=newPin; currentUser.pin=newPin; }
+  saveUsers();
+  closeChangePin();
+  toast(`✓ PIN modifié avec succès`);
 }
 
 function pinFieldNext(idx) {
@@ -1224,6 +1337,7 @@ function toast(msg,type='ok'){
 document.getElementById('ov-piece').addEventListener('click',e=>{if(e.target.id==='ov-piece')closePieceModal();});
 document.getElementById('ov-move').addEventListener('click',e=>{if(e.target.id==='ov-move')closeMoveModal();});
 document.getElementById('ov-user').addEventListener('click',e=>{if(e.target.id==='ov-user')closeUserModal();});
+document.getElementById('ov-changepin').addEventListener('click',e=>{if(e.target.id==='ov-changepin')closeChangePin();});
 
 // ══════════════════════════════════════════════════════════════
 //  INIT
