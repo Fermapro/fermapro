@@ -817,7 +817,9 @@ function pinSubmit() {
 }
 
 function unlockApp() {
-  document.getElementById('pin-screen').classList.add('hidden');
+  const el = document.getElementById('pin-screen');
+  el.classList.add('hidden');
+  el.style.display = 'none';
   pinBuffer = '';
 }
 

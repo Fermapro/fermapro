@@ -573,7 +573,12 @@ function pinSubmit() {
     }
   }
 }
-function unlockApp() { document.getElementById('pin-screen').classList.add('hidden'); pinBuffer = ''; }
+function unlockApp() {
+  const el = document.getElementById('pin-screen');
+  el.classList.add('hidden');
+  el.style.display = 'none';
+  pinBuffer = '';
+}
 function pinLogout() {
   sessionStorage.removeItem(SESSION_KEY);
   pinBuffer = ''; pinMode = 'login'; updateDots();
