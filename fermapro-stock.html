@@ -726,7 +726,10 @@ td{padding:11px 14px;font-size:13px;vertical-align:middle}
         <div style="font-family:var(--fn);font-size:18px;font-weight:900;color:var(--navy)">Gestion des dépôts</div>
         <div style="font-size:12px;color:var(--muted);margin-top:2px">Zones de stock, véhicules, emplacements — renommez, créez, supprimez</div>
       </div>
-      <button class="btn btn-pink" onclick="openDepotModal()">＋ Nouveau dépôt</button>
+      <div style="display:flex;gap:8px">
+        <button class="btn btn-ghost btn-sm" onclick="forceSyncDepots()">🔄 Forcer la synchro</button>
+        <button class="btn btn-pink" onclick="openDepotModal()">＋ Nouveau dépôt</button>
+      </div>
     </div>
     <!-- Grille des dépôts -->
     <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:14px;margin-bottom:20px" id="depots-grid"></div>
@@ -744,7 +747,10 @@ td{padding:11px 14px;font-size:13px;vertical-align:middle}
         <div style="font-family:var(--fn);font-size:18px;font-weight:900;color:var(--navy)">Gestion des utilisateurs</div>
         <div style="font-size:12px;color:var(--muted);margin-top:2px">Créez et gérez les accès de votre équipe</div>
       </div>
-      <button class="btn btn-pink" onclick="openUserModal()">＋ Nouvel utilisateur</button>
+      <div style="display:flex;gap:8px">
+        <button class="btn btn-ghost btn-sm" onclick="forceSyncUsers()">🔄 Forcer la synchro</button>
+        <button class="btn btn-pink" onclick="openUserModal()">＋ Nouvel utilisateur</button>
+      </div>
     </div>
     <div class="card">
       <div class="card-head"><div class="card-title">👥 Équipe Fermapro</div><span class="card-count" id="users-count"></span></div>
@@ -1270,6 +1276,7 @@ async function syncUsersFromSheets() {
         const local = users.find(u => u.id === ru.id);
         return {
           ...ru,
+          // Photo : priorité locale (plus complète) sinon depuis Sheets
           photo: local?.photo || ru.photo || null,
           perms: ru.perms ? (typeof ru.perms === 'string' ? JSON.parse(ru.perms) : ru.perms) : null,
         };
@@ -1291,12 +1298,16 @@ async function syncUsersFromSheets() {
 async function pushUserToSheets(user) {
   if (!SCRIPT_URL) return;
   try {
-    // Ne pas envoyer la photo (trop lourde pour Sheets)
-    const {photo, ...userWithoutPhoto} = user;
-    if (userWithoutPhoto.perms) {
-      userWithoutPhoto.perms = JSON.stringify(userWithoutPhoto.perms);
+    // Inclure la photo pour synchro cross-device
+    const userToSend = {...user};
+    if (userToSend.perms) {
+      userToSend.perms = JSON.stringify(userToSend.perms);
     }
-    await apiPost({action:'saveUser', user: userWithoutPhoto});
+    // Photo tronquée à 50000 chars max pour Sheets
+    if (userToSend.photo && userToSend.photo.length > 50000) {
+      userToSend.photo = userToSend.photo.substring(0, 50000);
+    }
+    await apiPost({action:'saveUser', user: userToSend});
   } catch(e) {
     console.warn('Push user error:', e);
     toast('Utilisateur sauvegardé localement (erreur synchro Sheets)', 'warn');
@@ -1394,6 +1405,9 @@ function enterApp() {
   applyRoleUI();
   updateUserDisplay();
   renderDepotTabs();
+  // Synchro au login
+  syncDepotsFromSheets();
+  syncUsersFromSheets();
   loadAll();
 }
 
@@ -2552,6 +2566,29 @@ function loadDepots() {
 function saveDepots() {
   localStorage.setItem('fp_depots', JSON.stringify(depots));
   pushDepotsToSheets();
+}
+
+async function forceSyncUsers() {
+  if (!SCRIPT_URL) { toast('Configurez d\'abord la connexion', 'err'); return; }
+  toast('Synchro des utilisateurs en cours…');
+  // Pousser tous les utilisateurs locaux vers Sheets
+  for (const u of users) { await pushUserToSheets(u); }
+  // Puis récupérer depuis Sheets
+  await syncUsersFromSheets();
+  renderUsers();
+  renderUserGrid();
+  toast('Utilisateurs synchronisés ✓ — photos incluses');
+}
+
+async function forceSyncDepots() {
+  if (!SCRIPT_URL) { toast('Configurez d\'abord la connexion', 'err'); return; }
+  toast('Synchro des dépôts en cours…');
+  // D'abord pousser les dépôts locaux vers Sheets
+  await pushDepotsToSheets();
+  // Puis récupérer depuis Sheets
+  await syncDepotsFromSheets();
+  renderDepotsPage();
+  toast('Dépôts synchronisés ✓');
 }
 
 async function pushDepotsToSheets() {
