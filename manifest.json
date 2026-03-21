@@ -1,18 +1,15 @@
 {
   "name": "Fermapro — Gestion des Stocks",
-  "short_name": "Fermapro",
-  "description": "Suivi des stocks de pièces détachées menuiserie",
-  "start_url": "./fermapro-stock.html",
+  "short_name": "Fermapro Stock",
+  "description": "Application de gestion des stocks Fermapro",
+  "start_url": "https://fermapro.github.io/fermapro/fermapro-stock.html",
   "display": "standalone",
   "background_color": "#2D3580",
   "theme_color": "#2D3580",
   "orientation": "portrait-primary",
-  "lang": "fr",
   "icons": [
-    { "src": "icon-152.png", "sizes": "152x152", "type": "image/png", "purpose": "any maskable" },
-    { "src": "icon-167.png", "sizes": "167x167", "type": "image/png", "purpose": "any maskable" },
-    { "src": "icon-180.png", "sizes": "180x180", "type": "image/png", "purpose": "any maskable" },
     { "src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
-    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" },
+    { "src": "icon-180.png", "sizes": "180x180", "type": "image/png" }
   ]
 }
