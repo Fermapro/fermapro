@@ -1298,14 +1298,14 @@ async function syncUsersFromSheets() {
 async function pushUserToSheets(user) {
   if (!SCRIPT_URL) return;
   try {
-    // Inclure la photo pour synchro cross-device
     const userToSend = {...user};
     if (userToSend.perms) {
       userToSend.perms = JSON.stringify(userToSend.perms);
     }
-    // Photo tronquée à 50000 chars max pour Sheets
-    if (userToSend.photo && userToSend.photo.length > 50000) {
-      userToSend.photo = userToSend.photo.substring(0, 50000);
+    // Envoyer la photo séparément si présente (trop grosse pour la feuille principale)
+    if (userToSend.photo) {
+      // Tronquer à 30000 chars pour rester dans les limites Sheets
+      userToSend.photo = userToSend.photo.substring(0, 30000);
     }
     await apiPost({action:'saveUser', user: userToSend});
   } catch(e) {
@@ -2568,6 +2568,24 @@ function saveDepots() {
   pushDepotsToSheets();
 }
 
+async function forceSyncDepots() {
+  if (!SCRIPT_URL) { toast('Configurez d\'abord la connexion', 'err'); return; }
+  setSyncStatus('syncing', 'Synchro dépôts…');
+  try {
+    // Pousser les dépôts LOCAUX vers Sheets (écrase tout)
+    await pushDepotsToSheets();
+    // Puis relire depuis Sheets pour confirmer
+    await syncDepotsFromSheets();
+    renderDepotTabs();
+    renderDepotsPage();
+    setSyncStatus('ok', 'Synchronisé');
+    toast(`✓ ${depots.length} dépôts synchronisés`);
+  } catch(e) {
+    setSyncStatus('error', 'Erreur');
+    toast('Erreur synchro : ' + e.message, 'err');
+  }
+}
+
 async function forceSyncUsers() {
   if (!SCRIPT_URL) { toast('Configurez d\'abord la connexion', 'err'); return; }
   toast('Synchro des utilisateurs en cours…');
@@ -2604,10 +2622,19 @@ async function syncDepotsFromSheets() {
     const timeoutPromise = new Promise((_,reject) => setTimeout(()=>reject(new Error('timeout')),5000));
     const remote = await Promise.race([apiGet('getDepots'), timeoutPromise]);
     if (remote && Array.isArray(remote) && remote.length > 0) {
-      depots = remote;
-      localStorage.setItem('fp_depots', JSON.stringify(depots));
-      renderDepotTabs();
-      if (document.getElementById('page-depots')?.classList.contains('active')) renderDepotsPage();
+      // Dédupliquer par ID — garder uniquement les dépôts avec ID unique
+      const seen = new Set();
+      const deduped = remote.filter(d => {
+        if (!d.id || seen.has(d.id)) return false;
+        seen.add(d.id);
+        return d.name; // ignorer les lignes vides
+      });
+      if (deduped.length > 0) {
+        depots = deduped;
+        localStorage.setItem('fp_depots', JSON.stringify(depots));
+        renderDepotTabs();
+        if (document.getElementById('page-depots')?.classList.contains('active')) renderDepotsPage();
+      }
     }
   } catch(e) { console.warn('Sync depots:', e.message); }
 }
