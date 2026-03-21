@@ -950,6 +950,12 @@ td{padding:11px 14px;font-size:13px;vertical-align:middle}
     <div class="qr-title">📷 Scanner un QR Code</div>
     <button class="qr-close" onclick="closeQrScanner()">✕</button>
   </div>
+  <!-- Sélecteur de caméra -->
+  <div id="qr-cam-selector" style="display:none;padding:8px 16px;background:rgba(0,0,0,0.5)">
+    <select id="qr-cam-select" onchange="switchCamera(this.value)"
+      style="width:100%;padding:8px 12px;border-radius:8px;border:1.5px solid rgba(255,255,255,0.3);background:rgba(255,255,255,0.1);color:#fff;font-family:var(--fn);font-size:13px;font-weight:700;cursor:pointer">
+    </select>
+  </div>
   <div class="qr-video-wrap">
     <div id="qr-reader" style="width:100%;border-radius:8px;overflow:hidden"></div>
     <div class="qr-result" id="qr-result">
@@ -2968,38 +2974,78 @@ function qrDisplay(piece) {
 }
 
 // ══════════════════════════════════════════════════════════════
-//  QR SCANNER — html5-qrcode (fiable iPhone Safari)
+//  QR SCANNER — html5-qrcode avec sélecteur de caméra
 // ══════════════════════════════════════════════════════════════
-let qrScanner = null, qrFoundPiece = null;
+let qrScanner = null, qrFoundPiece = null, qrCurrentCamId = null;
 
 async function openQrScanner() {
   if (!currentUser) return;
   document.getElementById('qr-overlay').classList.add('open');
   document.getElementById('qr-result').classList.remove('show');
-  document.getElementById('qr-hint').textContent = 'Pointez la caméra vers le QR code d\'une pièce';
+  document.getElementById('qr-hint').textContent = 'Chargement de la caméra…';
   qrFoundPiece = null;
 
-  // Nettoyer si déjà existant
   if (qrScanner) {
     try { await qrScanner.stop(); } catch(e) {}
+    try { qrScanner.clear(); } catch(e) {}
     qrScanner = null;
   }
 
   try {
-    qrScanner = new Html5Qrcode('qr-reader');
-    await qrScanner.start(
-      { facingMode: 'environment' },
-      {
-        fps: 10,
-        qrbox: { width: 220, height: 220 },
-        aspectRatio: 1.0,
-        disableFlip: false,
-      },
-      onQrSuccess,
-      onQrError
-    );
+    // Lister toutes les caméras disponibles
+    const cameras = await Html5Qrcode.getCameras();
+    const selector = document.getElementById('qr-cam-selector');
+    const select   = document.getElementById('qr-cam-select');
+
+    if (cameras && cameras.length > 1) {
+      // Plusieurs caméras — afficher le sélecteur
+      selector.style.display = 'block';
+      select.innerHTML = cameras.map((c, i) => {
+        const label = c.label || `Caméra ${i+1}`;
+        // Mettre l'iPhone en premier / marquer les caméras arrière
+        const isBack = label.toLowerCase().includes('back') || label.toLowerCase().includes('arrière') || label.toLowerCase().includes('environment') || label.toLowerCase().includes('iphone');
+        return `<option value="${c.id}" ${isBack ? 'selected' : ''}>${isBack ? '📱 ' : '💻 '}${label}</option>`;
+      }).join('');
+      // Préférer la caméra iPhone ou arrière
+      const preferred = cameras.find(c => {
+        const l = c.label.toLowerCase();
+        return l.includes('iphone') || l.includes('back') || l.includes('arrière') || l.includes('continuity');
+      });
+      qrCurrentCamId = preferred ? preferred.id : cameras[cameras.length-1].id;
+      if (preferred) select.value = preferred.id;
+    } else {
+      selector.style.display = 'none';
+      qrCurrentCamId = cameras && cameras.length ? cameras[0].id : null;
+    }
+
+    await startQrCamera(qrCurrentCamId);
+
   } catch(e) {
     document.getElementById('qr-hint').textContent = '⚠️ ' + (e.message || 'Accès caméra refusé — autorisez dans les réglages');
+  }
+}
+
+async function startQrCamera(cameraId) {
+  if (qrScanner) {
+    try { await qrScanner.stop(); } catch(e) {}
+    try { qrScanner.clear(); } catch(e) {}
+  }
+  qrScanner = new Html5Qrcode('qr-reader');
+  const config = { fps: 10, qrbox: { width: 220, height: 220 }, disableFlip: false };
+  const constraint = cameraId ? { deviceId: { exact: cameraId } } : { facingMode: 'environment' };
+  await qrScanner.start(constraint, config, onQrSuccess, onQrError);
+  document.getElementById('qr-hint').textContent = 'Pointez la caméra vers le QR code d\'une pièce';
+}
+
+async function switchCamera(cameraId) {
+  qrCurrentCamId = cameraId;
+  qrFoundPiece = null;
+  document.getElementById('qr-result').classList.remove('show');
+  document.getElementById('qr-hint').textContent = 'Changement de caméra…';
+  try {
+    await startQrCamera(cameraId);
+  } catch(e) {
+    document.getElementById('qr-hint').textContent = '⚠️ Impossible de changer de caméra : ' + e.message;
   }
 }
 
