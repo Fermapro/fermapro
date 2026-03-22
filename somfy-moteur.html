@@ -1,0 +1,659 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#0f1a3e">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Moteurs Somfy">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="application-name" content="Moteurs Somfy">
+<meta name="msapplication-TileColor" content="#0f1a3e">
+<meta name="msapplication-TileImage" content="data:image/png;base64,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">
+<meta name="description" content="Sélecteur de puissance moteur Somfy — Fermapro / Reparpro">
+<link rel="icon" type="image/x-icon" href="data:image/x-icon;base64,AAABAAMAEBAAAAAAIAD8AAAANgAAACAgAAAAACAAmwEAADIBAAAwMAAAAAAgAE8CAADNAgAAiVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAw0lEQVR4nGNkgAJ+Kbv/DCSAj88OMTIwMDAwkaMZWQ8jOZqRARMlmqliAAsy5+O6VQw2GiJbCWk6cuONN39QGKYBDB/ff2T4yEzY2o/vPzIwMPBjMeDjG4aPrEQY8PENNQxQJsmATRP3eAvuamV471bNIORuAA8nlFiw0RDBqxkG3u284I3VgMtpDd4MJAIWdAGshmjbMDAwMDC8d6vGkCI6Kd+HGsLAwMCgePUIwgAGBvIyEwMDJEcywRjkaGZgYGAAANzcSC/tfp65AAAAAElFTkSuQmCCiVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAABYklEQVR4nMVXO2rDQBAdyU4tBKrSmTSCXEG4dGNwEUNO4cqtIUXAB8g1AnFhUGNSGd0gBNS5c7Ug5gR2ZaMd7YwdZbR65ewy7+2+/cwE4ED0OD654v8FHvcBjVmBroglIaFvcsoV+ianIsJbE7tG0Mfq6+h9B3oXMOQGcPMJWZrkWkRFaabRy2sjzu6AJrmUjxVQlGaqKYDLx1oAWCHgQE8BVggAEQ1LFhR67Hw+yYJMUwCXT7AADeCDngJEA3+0oNRj5/NJFqSaArh8vi14ultAliamLdf2/atx52dv8/zHMVeyINEil+Lid4zLRZ6l9+vYfnxbJPFuDdVkZc0Z/drPgfgbapMDABye7edAFFCUrY/BVUS8W4tz1Cqi+srqpK5dqNvQSUFSTVZOYhc6q4i4M0ChWpTSA+ZC4xa42qW2oMlvjeNxH6hbwIng4tfV++4PLjsf0oBPcgDSHV/gsz0/A5W2knk3yFmQAAAAAElFTkSuQmCCiVBORw0KGgoAAAANSUhEUgAAADAAAAAwCAYAAABXAvmHAAACFklEQVR4nO2Zv0vDQBTHX6KdQ8WlbuIils5dgoJDl24OdXZycVAHlw7qkMXBH+Cig84WdBAEKSK0BKRzUbqIW6fSkr9Ap0BI78f32jR3AT/j3Qvv++7dt3dNLBLgLK3/iubTIui3Ld4cc8IU4XFYhdjxAVPFE7G12bIA04hrtHkTJhPVascHskKoecwDWcPK4upHyXwH/gvQTeYLmEeCSl/vL7MWwqK7tlmVxUg7oEs8mltagN8bSFdhViC5oXMgeGoko0gRZ6smjYE84Bbm9HiAKAEPfDzq8wCQG/GAm4wcdZDcmAfub4JkJKnh7Ow6shjQAzl/ejnqJOOB1zt9HgByIx5YTUaOOkhuzAOXZ9/JSFLD2T9akcXAf2hKDxepbqXu9gF0A4Buo2mLV8kJFeD3BovTyVEHzQlvoeC03plOEptho1WOjy3UNjrOsTc2zgI6B4iI3EJuoCJMxvPVG3ePDxutMhVdWv6UHz+YB25PEvWASHyUn6L8FoN6AAmD4InPNz1mvKwIaAs559dV/3BP24ksItUXW7zVzDc9GlXqwmd5fjDmrUS+6XG3kQjtBURFy7rAQnsBo0p9IuEh2gsgwjzAI9UCkINJ9TkjOpCpLaTaBVm8lg6gRSBxFpHeb2Ssww0tMOi3Lfg2OismNXaITST+lG8qoWY7PpAFolpt3oSpxDWO/QqZXARLm1CsKd+QRYv6B+tmvWOYJXZkAAAAAElFTkSuQmCC">
+<link rel="icon" type="image/png" sizes="192x192" href="data:image/png;base64,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">
+<link rel="icon" type="image/png" sizes="512x512" href="data:image/png;base64,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">
+<link rel="apple-touch-icon" sizes="180x180" href="data:image/png;base64,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">
+<link rel="manifest" href="data:application/json;base64,eyJuYW1lIjoiTW90ZXVycyBTb21meSDigJQgRmVybWFwcm8iLCJzaG9ydF9uYW1lIjoiU29tZnkiLCJkZXNjcmlwdGlvbiI6IlPDqWxlY3RldXIgZGUgcHVpc3NhbmNlIG1vdGV1ciBTb21meSIsInN0YXJ0X3VybCI6Ii4iLCJkaXNwbGF5Ijoic3RhbmRhbG9uZSIsImJhY2tncm91bmRfY29sb3IiOiIjMGYxYTNlIiwidGhlbWVfY29sb3IiOiIjMGYxYTNlIiwib3JpZW50YXRpb24iOiJhbnkiLCJpY29ucyI6W3sic3JjIjoiZGF0YTppbWFnZS9wbmc7YmFzZTY0LGlWQk9SdzBLR2dvQUFBQU5TVWhFVWdBQUFNQUFBQURBQ0FZQUFBQlMzR3dIQUFBR3JFbEVRVlI0bk8zZHZZc2tWUlRHNFRPRGVhT2htWmdwRTRzZ0NnWWltQ21zc1FhYUdLaUJ5UWF1d1NZR2ZvQ0pCaHE3b0lFZ3FJamdJb2laTUdnbVpoT3U5Ritnd1ZwTDcweDNkWDNjZTg5Nzd2azk2YkxUdDd2ZTk1NnE2dTZaRXhPemVmanBmNzNYZ0hxMkY3ZFB2TmV3eTNVeGhCMW12cVZvL3NDRUhtTmFsNkhaZ3hGOHpOR3FDTlVmaE9CampkcEZxUGJEQ1Q1S3FsV0U0aitVNEtPbTBrVTRMZm5EQ0Q5cUs1MnhJbTBpK1BCUVlocXNuZ0NFSDE1S1pHOVZBUWcvdkszTjRPSUNFSDZvV0pQRlJRVWcvRkN6TkpPekMwRDRvV3BKTm1jVmdQQkQzZHlNVGk0QTRVY1VjN0k2cVFDRUg5Rk16ZXpSQWhCK1JEVWx1MFUvQ2dGRU0xb0FkbjlFZHl6REJ3dEErTkdMc1N4ekNvVFU5aGFBM1IrOU9aUnBKZ0JTdTFJQWRuLzBhbCsybVFCSTdiNENzUHVqZDVjenpnUkFhdmNLd082UExIYXp6Z1JBYWhRQXFaMmFjZnFEZkliTU13R1FHZ1ZBYWhRQXFWRUFwSGJDQlRBeVl3SWdOUXFBMUNnQVVxTUFTSTBDSUxVSHZCZXc2K3pQbjc3MVhnUGFPSC9zMlJlODEyQW1OQUVJZnk0cXgxdW1BQ283QXRwUU9kNHliNFJ0djc3bHZRUTB0bm54bXZjU2RDWUE0SUVDSURVS2dOUW9BRktqQUVpTkFpQTFDb0RVWkFxZ2NFOFk3YWdjYjVrQ21PbThLS2hMNlRoTEZjQk02OFZCZVdySFYrYWpFSUFIdVFrQXRFUUJrQm9GUUdvVUFLbEpmU1hTek96czE2OGt2aW1FZXM2ZmZFbml5ekJtWWhPQThPZWdkSnlsQ3FDME02QWVwZU1zOVQ3QTlvdFB0OTVyUUJ1YlYxN2ZlSy9CVEd3Q0FLMVJBS1JHQVpBYUJVQnFGQUNwVVFDa1JnR1FtbFFCVk80Tm95Nmw0eXhWQURPdEZ3ZmxxUjFmdVFLWTZiMUlLRVB4dUVwOUZBSm9UWElDQUsxUUFLUkdBWkFhQlVCcWNsK0pISng5OTduTXQ0WlF4dm56cjhwOEVXWWdPUUVJZjU4VWo2dGtBUlIzQ3F5bmVGd2wzd2ZZZnZUK1g5NXJRQjJiTjk5NTFIc051eVFuQU5BS0JVQnFGQUNwVVFDa1JnR1FHZ1ZBYWhRQXFVa1dRTzFlTWNwUVBLNlNCVERUZkxHd25PcnhsQzJBbWU2TGhubVVqNlBrUnlHQVZxUW5BRkFiQlVCcUZBQ3BVUUNrSnZ1VnlNSFpseC9LZllzSTg1eS8vSmJjRjJFRzBoT0E4UGRCK1RoS0YwQjU1OEIweXNkUituMkE3WHZYZi9OZUE4cll2SHZ6Q2U4MTdDTTlBWURhS0FCU293QklUZjQyS05xN2Mrdm55ZWZyRDExN0p2UjFHZ1hBck1BZis3L1JDa0VCa2xvVCtxay9OMElaS0VBeXRZSS85bGpLUlpCK0g4Q005d0pLYVJuOFF4NzU0eGZ2SlZ3aGZ4ZEk5UTJVU0JUQ2IyYjI5K05QZVMvaEN2a0pNR0FTektjUy9IMVVwa0dZQW1BZXhkMzJNb1VTeUo4Q1liNEk0VGZUV0NjRjZJeENxT2J3WGk4RjZJaDNtSmJ5WERjRjZFVFU4QSs4MWgvbUl2anNzeHV5M3lyeTlzM0hQOHArNFdTdTFoZkdJU1lBNFQrc3AvQ2J0WjhFSVFwdy90cU5yZzR5ZElRNEJkcSsvUVlUWUk4NzMvL2U3Y2JRNmxRb3hBVEFWVDJIMzZ6ZHFSQUZ3R1FQL25EVGV3bkZVWUNBUEhaL2ovQzNtQUlVQUtsUmdHQ3k3UDZEMmxPQUFtQ3lmNTY3N3IyRTRpZ0FSdlY0NGJzclJBRTJIM3pTOVMyL3FYcS85WGxJemRPZ0VBVXdvd1FlZXQvOXpRSVZ3SXdTb0x4d3Z4WWxkUWthZmxBc3crNXZGbXdDWk5ieVU1S0s0YS8xL0NrQUp1bnhGcWdaQmNBbGlydC9UUlFBcTBVdVRiaUxZTlF6RnVTeGY0dDhlc1FFUUdwTUFKalozUjErYkNjL05BRWk3LzVtVEFEOEwzcVFsNklBV0t5SDBsQUFIQlg1THM4eEZBQ0w5TEQ3bTFHQU1CUitsZmpBSS95MW5qOEZRR29VQUxQMGN1b3pvQUJJalFJRTRuMGQ0TFg3MTN6ZUZBQ2plcjRGYWtZQk1GRnY1LzREQ2hDTTkybFFhN1dmTHdYQVViM3UvbVpCL2o0QXJvcitOOEdtYURIdG1BQklqUUlFMWZ1MVFMTy9FTE85dUgzUzVKRlFYSzhsYVBXOHRoZTNUNWdBU0kwQ0JOZmJGT0R2QkdPMlhrcmc4VHdvUUNlaWw4QnIvYWRtZHk4R1hCNGRSVVV0Z2NlNmg4d3pBVG9UclFUZTY2VUFIZklPMVZRSzY3eFhBRTZEK3FJUXJqR2U2OXZOT3I4WnJtTkR5SlErTjZSV3pQdE9nWmdDZlZJSm5jSTZMbWVjQ1pDRTV6UlFDUDRoZTNkOFBpTGR2eFpGVUF2K3ZqTWNKa0JTdStFc1dRYTEwQjl6OEp5ZktaRFhuRUpFQ2Z5aDYxc21BSzZJRXVvU0RyNFJ4aDBoOUdJc3k2UHZCRk1DUkhjc3czd1VBcWtkTFFCVEFGRk55ZTZrQ1VBSkVNM1V6RTQrQmFJRWlHSk9WbWRkQTFBQ3FKdWIwZGtYd1pRQXFwWmtjOUZkSUVvQU5Vc3p1ZmcyS0NXQWlqVlpYUFUrQUNXQXQ3VVpYUDFHR0NXQWx4TFpLeHBlUGtHS0ZrcHV1a1UvQ3NFMFFHMmxNMVl0c0V3RGxGUnJjNjIrWTFNRXJGSDdyS0xaS1F0RndCeXRUcWVibjdOVEJJeHBmUjNwZXRGS0dXRG1lL05FN3E0TnBlaWIycDNDL3dDZ3JRQTdZQ1lLWFFBQUFBQkpSVTVFcmtKZ2dnPT0iLCJzaXplcyI6IjE5MngxOTIiLCJ0eXBlIjoiaW1hZ2UvcG5nIiwicHVycG9zZSI6ImFueSBtYXNrYWJsZSJ9LHsic3JjIjoiZGF0YTppbWFnZS9wbmc7YmFzZTY0LGlWQk9SdzBLR2dvQUFBQU5TVWhFVWdBQUFnQUFBQUlBQ0FZQUFBRDBlTlQ2QUFBVEVVbEVRVlI0bk8zZHY0dGsyWGtHNE52TDVJVVVkcllvOHpLeE1Dd3RjR0FNazhtd2p1WEFTaFRJQ3BRb2tCeHNva0NXUVlrY1dMRVhyTUF3WUF0ajBMSWdsQm1HZFNZMjIzQk4vd1h0b05XYW1wbnE2cnEvenZlZDh6M1BQekNuYnQwNjczdStXMTF6TlpIUzRmcm1Mbm9OQUZ1NC9mTFRxK2cxOEM1dlNoQUJEM0JQUVlqaG9qY2c3QUhtVVFyMjV3THZRT0FEYkVzaDJKNEx1Z0dCRDlDV1FyQ2VDN2lRMEFmSVFSbFl4a1diUWVnRDVLWU1YTTZGZW9MUUIraVRNbkNlaS9NSXdROHdCa1hnTkJmbGlOQUhHSnN5OEpvTE1RbCtnR29VZ2VJRlFQQUQxRmE1Q0pSODRZSWZnR01WaTBDcEZ5ejRBVGluVWhFbzhVSUZQd0J6VkNnQzcwVXZZRy9DSDRDNUttVEhzQTJud3BzSHdQNUduUVlNOTZJRVB3QjdHSzBJRFBVSVFQZ0RzSmZSTW1hSU5qUGFtd0pBYmlOTUE3cWZBQWgvQUZvYklYdTZMZ0FqdkFFQTlLbjNET3B5aE5IN1JRZGdMRDArRXVodUFpRDhBY2lteDJ6cXFnRDBlSUVCcUtHM2pPcGlaTkhiUlFXZ3RoNGVDYVNmQUFoL0FIclRRM2FsTGdBOVhFQUFPQ1Y3aHFVdEFOa3ZIQUE4SlhPV3BTd0FtUzhZQU15Uk5kUFNGWUNzRndvQWxzcVliYWtLUU1ZTEJBQmJ5Slp4YVFwQXRnc0RBRnZMbEhVcENrQ21Dd0lBZThxU2VlRUZJTXVGQUlCV01tUmZhQUhJY0FFQUlFSjBCb1lWZ09nWERnRFJJck13cEFBSWZ3QzRGNVdKelF1QThBZUFOMFZrWTlNQ0lQd0I0TFRXR2Rtc0FBaC9BRGl2WlZZMktRRENId0F1MHlvenczOEhBQUJvYi9jQzRQUVBBUE8weU01ZEM0RHdCNEJsOXM3UTNRcUE4QWVBZGZiTVV0OEJBSUNDZGlrQVR2OEFzSTI5TW5YekFpRDhBV0JiZTJUcnBnVkErQVBBUHJiT1dOOEJBSUNDTmlzQVR2OEFzSzh0czNhVEFpRDhBYUNOclRMWEl3QUFLR2gxQVhENkI0QzJ0c2hlRXdBQUtHaFZBWEQ2QjRBWWF6TjRjUUVRL2dBUWEwMFdld1FBQUFVdEtnQk8vd0NRdzlKTU5nRUFnSUptRndDbmZ3RElaVWsybXdBQVFFR3pDb0RUUHdEa05EZWpUUUFBb0tDTEM0RFRQd0RrTmllclRRQUFvS0NMQ29EVFB3RDA0ZExNTmdFQWdJSVVBQUFvNk1rQ1lQd1BBSDI1Skx0TkFBQ2dvTE1Gd09rZkFQcjBWSWFiQUFCQVFRb0FBQlQwYUFFdy9nZUF2cDNMY2hNQUFDaElBUUNBZ2s0V0FPTi9BQmpEWTVsdUFnQUFCU2tBQUZEUU93WEErQjhBeG5JcTIwMEFBS0FnQlFBQUNsSUFBS0NnTndxQTUvOEFNS2EzTTk0RUFBQUtVZ0FBb0NBRkFBQUsrbE1COFB3ZkFNWjJuUFVtQUFCUWtBSUFBQVVwQUFCUWtBSUFBQVc5TjAyK0FBZ0FWVHhrdmdrQUFCU2tBQUJBUVFvQUFCU2tBQUJBUVFvQUFCU2tBQUJBUVFvQUFCUjA1VGNBQUtBZUV3QUFLRWdCQUlDQ0ZBQUFLRWdCQUlDQ0ZBQUFLRWdCQUlDQ25rVXZvSkxuLy92Zkw2UFhBSkRkcXovN2l4ZlJhNmpBQktBUjRROXdHZnRsR3dwQUl4b3R3R1hzbDIzNEpjQmd0Ny8rSkhvSkFHRU8zLzRvZWdsbG1RQUVFdjVBZGZiQk9BcEFFRGM5d0QzN1lRd0ZJSUNiSGVCTjlzWDJGSURHM09RQXA5a2YyMUlBQUtBZ0JhQWg3UmJnUFB0a093b0FBQlNrQUFCQVFRcEFJOFphQUpleFg3YWhBQUJBUVFvQUFCU2tBQUJBUVFvQUFCU2tBQUJBUVFvQUFCU2tBQUJBUVFvQUFCU2tBQUJBUVFvQUFCU2tBQUJBUVFwQUk0ZHZmeFM5QklBdTJDL2JVQUFBb0NBRkFBQUtVZ0FhTXRZQ09NOCsyWTRDQUFBRktRQ05hYmNBcDlrZjIxSUFBcmpKQWQ1a1gyeFBBUWppWmdlNFp6K01vUUFFY3RNRDFka0g0eWdBd2R6OFFGWDJ2MWhYaCt1YnUraEZjTy8yMTU5RUx3RmdkNEkvQndVZ0tXVUFHSW5RejBjQkFJQ0NmQWNBQUFwU0FBQ2dJQVVBQUFwU0FBQ2dJQVVBQUFwU0FBQ2dJQVVBQUFwU0FBQ2dJQVVBQUFwU0FBQ2dJQVVBQUFwU0FBQ2dJQVVBQUFwU0FBQ2dJQVVBQUFwNkZyMkE2cDcvN3Q5ZVJxOEJJTXFyUC8vckY5RnJxTW9FSUpEd0I2cXpEOFpSQUFKcHZrQjE5c0U0VjRmcm03dm9SZkNtMjEvOThqWjZEUUJiTzN6bnU0Zm9OZkNhQ1VBeXdoOFlsZjB0RndVZ0VSOE9ZSFQydVR3VWdDUjhLSUFxN0hjNUtBQUorREFBMWRqMzRpa0FBRkNRQWhCTUN3YXFzdi9GVWdBQW9DQUZBQUFLVWdBQ0dYOEIxZGtINHlnQUFGQ1FBZ0FBQlNrQUFGQ1FBZ0FBQlNrQUFGQ1FBZ0FBQlNrQUFGQ1FBZ0FBQlNrQUFGQ1FBZ0FBQlNrQUFGQ1FBaERvOEozdkhxTFhBQkRKUGhoSEFRQ0FnaFFBQUNoSUFRaG0vQVZVWmYrTHBRQUFRRUVLUUFKYU1GQ05mUytlQXBDRUR3TlFoZjB1QndVZ0VSOEtZSFQydVR3VWdHUjhPSUJSMmQ5eVVRQVM4aUVCUm1OZnkrZnFjSDF6RjcwSUhuZjdxMS9lUnE4QllDbkJuNWNDMEJGbEFPaUIwTytEQWdBQUJma09BQUFVcEFBQVFFRUtBQUFVcEFBQVFFRUtBQUFVcEFBQVFFRUtBQUFVcEFBQVFFRUtBQUFVcEFBQVFFRUtBQUFVcEFBQVFFRUtBQUFVcEFBQVFFRUtBQUFVOUN4NkFienIrWC84eTh2b05RQnM3ZFZmL2UyTDZEWHdtZ2xBTXNJZkdKWDlMUmNGSUJrTkdSaVYvUzJYcThQMXpWMzBJbmphN2M5LytvZm9OUUJjNnZEOUgzNGplZzJjWndMUUFlRVA5TWErbFo4Q2tKd1BFZEFyKzFkdUNrQmlQanhBNyt4amVTa0FTZm5RQUtPd24rV2tBQUJBUVFwQVF0b3lNQnI3V2o0S0FBQVVwQUFBUUVFS1FETEdaTUNvN0crNUtBQUFVSkFDQUFBRktRQUFVSkFDQUFBRktRQUFVSkFDQUFBRktRQUFVSkFDQUFBRktRQUFVSkFDQUFBRktRQUFVSkFDa016aCt6LzhSdlFhQVBaZ2Y4dEZBUUNBZ2hRQUFDaElBVWpJbUF3WWpYMHRId1VBQUFwU0FKTFNsb0ZSMk05eVVnQVM4NkVCZW1jZnkwc0JTTTZIQitpVi9TczNCYUFEUGtSQWIreGIrU2tBbmZCaEFucGh2K3JEMWVINjVpNTZFY3h6Ky9PZi9pRjZEUUJ2RS94OVVRQTZwd3dBa1lSK3Z4UUFBQ2pJZHdBQW9DQUZBQUFLVWdBQW9DQUZBQUFLVWdBQW9DQUZBQUFLVWdBQW9DQUZBQUFLVWdBQW9DQUZBQUFLVWdBQW9DQUZBQUFLVWdBQW9DQUZBQUFLVWdBQW9LQm4wUXZnTXMvLzlSOWZScThCNEZLdi91YnZYMFN2Z2ZOTUFEb2cvSUhlMkxmeVV3QTZvRWtEdmJGdjVYZDF1TDY1aTE0RXk5eit3NDkrSDcwR2dNT1BQLzVtOUJxWXp3U2dVOElmeU1KKzFDY0ZvRU0rYkVBMjlxWCtLQUNkOFNFRHNySS85VVVCNklnUEY1Q2RmYW9mQ2dBQUZLUUFkRUtyQm5waHYrcURBZ0FBQlNrQUFGQ1FBdEFCNHpTZ04vYXQvQlFBQUNoSUFRQ0FnaFFBQUNqb1dmUUNBSGpYVjUvOGRyUC9ZT2ZySDMzTDgzamVvUUFBQk5reTVKZitPOHBCWFFvQVFDT3RBbitPdDlla0VOU2hBQURzSkdQZ1AwVWhxRU1CQU5oUWo2Ri96dkhyVVFiR29nQUFyRFJhNkQ5R0dSaUxBZ0N3VUpYZ1ArWGh0U3NDL1ZJQUFHYW9IUHFubUFyMDYrcHdmWE1YdlFpZTVuZTFJWmJndjl6WFAvclc3dzgvL3RqMVNzNEVBT0FNd1QvZlY1Lzg5cHZUQng5TzczLytXZlJTT0VNQkFEaEI4Sy8zeFFjZlR0TTBLUUpKZVFUUUVZOEJZSCtDZnorS1FDNytNeUNBUHhMKyszcVlDSkNEQ1VCblRBRmdlNEsvUGRPQWVBcEFoNVFBMkliZ2o2Y0l4UEVJb0VQK3ZBYldFLzQ1ZUN3UVJ3SG9sQklBeXduL1hKU0FHQjRCZE03akFMaWM0TS9QSTRGMkZJQkJLQUp3bnZEdmh4TFFoZ0l3SUdVQTNpVDgrNk1FN0U4QkFJYmwyWEwvRklIOStCSWdNQ1RoUHdidjQzNFVBR0E0UW1NczNzOTlLQURBVUlURm1MeXYyMU1BZ0dFSWliRjVmN2VsQUFCREVBNDFlSiszb3dBQTNSTUt0WGkvdDZFQUFGMFRCalY1MzlkVEFJQnVDWUhhdlAvcktBQkFsMnorVEpQN1lBMEZBT2lPVFo5ajdvZGxGQUNnS3paN1RuRmZ6S2NBQUVCQkNnRFFEYWM4em5GL3pLTUFBRjJ3dVhNSjk4bmxGQUFnUFpzNmM3aGZMdk1zZWdFczkveWZmL0l5ZWczUXhELzkxNHZvSmNCb1RBQTZKZnlwNHQrRlB3dVlBanhOQWVqVXE3LzdpVTJSNFFsLzFsQUN6cnM2WE4vY1JTK0M3ZHorNEhzbUF3emhxLy84SCtIUEp0Ny8vTFBvSmFSa0FqQVE0US9BcFJTQVFRaC9SdUwwejVZOENqaE5BUmlBOEFkZ0xnV2djOEtmMFRqOXN3ZFRnSGNwQUVBYXdwODlLUUZ2VWdBNjV2UVB3RklLQUpDQzB6OHRtQUs4cGdBQURPQnJ2L2s0ZWdsMFJnSG9sUEUvSTNINlgwZjR6Mk1LY0U4QkFJQ0NGQUFnbE5QL09rNy95NWdDS0FBQVEvaS92L3hSOUJMb2pBSUFoSEg2WDhmcGY1M3FVd0FGQUFBS1VnQUFPdVQwejFvS0FCREMrSjhNS2o4R1VBQUFPdVAwenhZVUFLQTVwMzh5cVRvRlVBQUFPdUwwejFZVUFJRE8rUTBBbGxBQU9uWDQyUytNVU9tUzhmOXlUdi83cWZnWVFBRUFnSUlVQUlBT09QMnpOUVdnWXg0RDBCdmovMldFZnh2VkhnTW9BQUJRa0FMUU9WTUFHSnZUUDN0UkFBYWdCRUJkL2dTUXBSU0FRU2dCWk9mNS8zeE8vKzFWK2g2QUFqQVFKUUNBU3lrQWcxRUNZQXhPLyt4TkFSalE0V2UvZUtFSUFIRE8xZUg2NWk1NkVlenY5Z2ZmZXhtOUJ1cnkvSCtlT2FkL1h3TGN4L3VmZnhhOWhOMDlpMTRBYlpnSUVLclFGNnVnRng0QkFDVGkyVCt0S0FBQW5UTCtadzBGQUNBSnAzOWFVZ0FBRWhEK3RLWUFBRUJCQ2dDd3Ewby9yYnFVMDM4K0ZlNWJCUUFBQ2xJQUFBSTUvUk5GQVFDQWdoUUFnQ0JyVHY5K0E0QzFGQUFBUElvb3lQOEZBQkNnVmVCZSt1K1lLTlNqQUFCMHlJbWR0VHdDQUdnc1czZzcvZGVrQUFCQVFRb0FRRU5PLzJUaE93QUFDVjBhek5rS0JmMVFBQUFhK2RwdlBrNTE0czYwRnRyekNBQ2dFWUZMSmdvQVFLZjhraUJyS0FBQVVKQUNBRkNNMHovVHBBQUFRRWtLQUVBaFR2ODhVQUNBWGIzLytXZlJTNERaS3R5M0NnQkFFVTcvSEZNQUFBb1EvcnhOQVFEb2tKOEFaaTBGQUdCd1R2K2NvZ0FBUUVFS0FNREFuUDU1akFJQTdLN0NuMVF4amlyM3F3SUFNQ2luZjg1UkFBQ2dJQVVBWUVCTy96eEZBUUNhcVBKY3RRVy9BYkNmU3ZlcEFnQXdHS2QvTHFFQUFFQkJDZ0RBUUp6K3VaUUNBRFJUNmZscUJPRy9Uclg3VXdFQWdJSVVBSUFCT1Awemx3SUFORlZ0ekxvMWZ3SzRqNHIzcFFJQTBEbW5mNVpRQUFDZ0lBVUFhSzdpdUhVdlR2L3JWYjBmRlFBQUtFZ0JBRUpVUFhWdHllbC92Y3Izb1FJQUFBVXBBQUFkY3ZwbkxRVUFDRk41L0xxRTN3RFlWdlg3VHdFQTZJelRQMXRRQUlCUTFVOWh4SERmS1FBQVhYSDZaeXRYaCt1YnUraEZBSHp4d1lmUlM2QUlwLzk3SmdBQVVOQjd0MTkrZWhXOUNBQ25NbHB3bjkyNy9mTFRLeE1BQUNoSUFRRFNjRHBqVCs2dk55a0FRQ28yYWZiZ3ZucVhBZ0FBQlNrQVFEcE9hMnpKL1hTYUFnQUFCU2tBUUVwT2JXekJmZlM0OTZicC91OEJveGNDOERhYk4ydTRmMDU3eUh3VEFDQTFtemhMdUcrZXBnQUFRRUVLQUpDZTB4eHp1Rjh1b3dBQVhiQ3Bjd24zeWVYK1ZBQjhFUkRJenViT09lNlBweDFudlFrQUFCU2tBQUJkY2NyakZQZkZmQW9BMEIyYlBjZmNEOHU4VVFCOER3RG9oVTJmYVhJZnpQRjJ4cHNBQU4yeStkZm0vVjlIQVFDNkpnUnE4cjZ2cHdBQTNSTUd0WGkvdC9GT0FmQTlBS0JIUXFFRzcvTXlwN0xkQkFBWWhuQVltL2QzV3dvQU1CUWhNU2J2Ni9aT0ZnQ1BBWUNlQ1l1eGVEL1hlU3pUVFFDQUlRbU5NWGdmOS9Nc2VnRUFlM2tJank4KytEQjRKY3dsK1BmMzZBVEFZd0JnRk1La0w5NnY3WnpMY284QWdCS0VTaCs4VCsxNEJBQ1U0WkZBWG9LL3ZiTVRBSThCZ0JFSm0xeThIL3Q0S3NNOUFnQktFam81ZUIvaVhIVENQMXpmM08yOUVJQW9IZ20wSi9qM2Rja0UzM2NBZ1BKOE42QWR3WitIUndBQWZ5U2M5dVg2NW5MeGwvdzhCZ0FxTVEzWWp1QnY2OUl2OEhzRUFIQ0N4d0xyQ2Y3Y1p2MlpueWtBVUpVaWNEbkJIMmZPbisrYkFBQmN3RVRnYVlLL0w3Ti82TWNVQU9DZU1pRDBNNW43NDMwbUFBQUxWWjRLQ1A3K0xmcXBYMU1BZ05OR0xnTkNQNjhsUDkxdkFnQ3dvZU9RSEtFTUNQMXhMZjdQZmt3QkFPYnBvUkFJL1A0cy9ZLzdUQUFBR25rN1hETVVBb0ZmMTZyLzd0Y1VBR0FmVzVZRElUK3VwYWYvYVZwWkFLWkpDUUNBQ0d2Q2Y1cjhaMEFBVU5McUFyQzJnUUFBODJ5UnZTWUFBRkRRSmdYQUZBQUEydGdxY3plYkFDZ0JBTEN2TGJQV0l3QUFLR2pUQW1BS0FBRDcyRHBqTjU4QUtBRUFzSzA5c25XWFJ3QktBQUJzWTY5TTlSMEFBQ2hvdHdKZ0NnQUE2K3lacGJ0T0FKUUFBRmhtN3d6ZC9SR0FFZ0FBODdUSVR0OEJBSUNDbWhRQVV3QUF1RXlyekd3MkFWQUNBT0M4bGxuWjlCR0FFZ0FBcDdYT3lPYmZBVkFDQU9CTkVka1k4aVZBSlFBQTdrVmxZdGhmQVNnQkFGUVhtWVdoZndhb0JBQlFWWFFHaHY4T1FQUUZBSURXTW1SZmVBR1lwaHdYQWdCYXlKSjVLUXJBTk9XNUlBQ3dsMHhabDZZQVRGT3VDd01BVzhxV2Nha0t3RFRsdTBBQXNGYkdiRXRYQUtZcDU0VUNnQ1d5WmxyS0FqQk5lUzhZQUZ3cWM1YWxMUURUbFB2Q0FjQTUyVE1zZFFHWXB2d1hFQURlMWtOMnBWL2dzY1AxelYzMEdnRGdNVDBFLzRQMEU0QmpQVjFZQUdycExhTzZLZ0RUMU44RkJtQjhQV1pUZHdzKzVwRUFBSkY2RFA0SDNVMEFqdlY4NFFIb1crOFoxSFVCbUtiKzN3QUErak5DOW5UL0FvNTVKQURBbmtZSS9nZmRUd0NPamZUR0FKRExhQmt6MUlzNVpob0F3QlpHQy80SFE3Nm9ZNG9BQUV1TUd2d1Bobm9FY01yb2J5QUEyNnVRSGNPL3dHT21BUUNjVXlINEg1UjVvY2NVQVFDT1ZRcitCK1ZlOERGRkFLQzJpc0gvb093TFA2WUlBTlJTT2ZnZmxMOEF4eFFCZ0xFSi90ZGNpRWNvQXdCakVQcW51U2hQVUFRQStpVDR6M054WmxBR0FISVQrcGR6b1JaU0JnQnlFUHJMdUdnYlVBWUEyaEw2NjdtQU8xQUlBTFlsOExmbmdqYWdFQURNSS9EMzV3SUhVUW9BN2duN0dDNTZVZ29DTUFvQm45UC9BNXVqV1NxUWJGMytBQUFBQUVsRlRrU3VRbUNDIiwic2l6ZXMiOiI1MTJ4NTEyIiwidHlwZSI6ImltYWdlL3BuZyIsInB1cnBvc2UiOiJhbnkgbWFza2FibGUifV19">
+<title>Moteurs Somfy — Fermapro · Reparpro</title>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@300;400;600;700;800&family=Barlow:wght@300;400;500;600&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --navy-dark:#0f1a3e; --panel:#141d3a; --panel2:#1a2548;
+    --border:rgba(255,255,255,0.08); --text:#e8ecf5; --muted:#7a88b0;
+    --cyan:#00c8e8; --rose:#EE5C8A; --rose-d:#c8416e;
+    --gold:#f5a623; --green:#2ecc71;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:var(--navy-dark);color:var(--text);font-family:'Barlow',sans-serif;min-height:100vh;overflow-x:hidden}
+  body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(rgba(0,200,232,.025) 1px,transparent 1px),linear-gradient(90deg,rgba(0,200,232,.025) 1px,transparent 1px);background-size:40px 40px;pointer-events:none;z-index:0}
+  .wrap{position:relative;z-index:1;max-width:1140px;margin:0 auto;padding:0 18px 60px}
+
+  header{padding:24px 0 18px;display:flex;align-items:flex-start;justify-content:space-between;border-bottom:1px solid var(--border);margin-bottom:26px}
+  .brtop{font-family:'Barlow Condensed',sans-serif;font-size:11px;font-weight:600;letter-spacing:3px;text-transform:uppercase;color:var(--rose)}
+  .brname{font-family:'Barlow Condensed',sans-serif;font-size:26px;font-weight:800;color:#fff;line-height:1}
+  .badge{display:inline-flex;align-items:center;gap:5px;background:rgba(0,200,232,.08);border:1px solid rgba(0,200,232,.22);padding:3px 10px;border-radius:20px;font-size:10px;font-weight:600;letter-spacing:1px;color:var(--cyan);text-transform:uppercase;margin-top:6px}
+  .apptitle{font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:600;letter-spacing:3px;text-transform:uppercase;color:var(--muted);text-align:right}
+  .apptitle small{display:block;color:#3a4a6a;font-size:10px;letter-spacing:2px;margin-top:3px}
+
+  .grid2{display:grid;grid-template-columns:360px 1fr;gap:18px;align-items:start}
+
+  /* INPUT */
+  .inp{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:22px;position:sticky;top:16px}
+  .plbl{font-family:'Barlow Condensed',sans-serif;font-size:10px;font-weight:700;letter-spacing:4px;text-transform:uppercase;color:var(--cyan);margin-bottom:14px;display:flex;align-items:center;gap:8px}
+  .plbl::after{content:'';flex:1;height:1px;background:var(--border)}
+  .fg{margin-bottom:15px}
+  .fl{font-size:11px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin-bottom:7px;display:flex;align-items:center;gap:6px}
+  .fu{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--cyan);background:rgba(0,200,232,.08);padding:2px 6px;border-radius:4px;font-weight:400;letter-spacing:0;text-transform:none}
+
+  .dr{display:grid;grid-template-columns:1fr 14px 1fr;align-items:center;gap:6px}
+  .dsep{text-align:center;color:var(--muted);font-size:16px}
+  .dlbl{font-size:9px;color:var(--muted);text-align:center;margin-top:3px;letter-spacing:1px;text-transform:uppercase}
+
+  input[type=number]{width:100%;background:var(--panel2);border:1px solid rgba(255,255,255,.1);border-radius:8px;color:#fff;font-family:'JetBrains Mono',monospace;font-size:18px;font-weight:600;padding:9px 12px;outline:none;transition:border-color .2s,box-shadow .2s;text-align:center}
+  input[type=number]:focus{border-color:var(--cyan);box-shadow:0 0 0 3px rgba(0,200,232,.1)}
+  input[type=number]::-webkit-outer-spin-button,input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none}
+
+  .bg2{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+  .bg3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px}
+  .bg4{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:5px}
+  .sb{background:var(--panel2);border:1px solid rgba(255,255,255,.08);border-radius:7px;padding:8px 5px;cursor:pointer;text-align:center;transition:all .15s}
+  .sb:hover{border-color:rgba(0,200,232,.35)}
+  .sb.on{border-color:var(--cyan);background:rgba(0,200,232,.1);box-shadow:0 0 0 1px var(--cyan) inset}
+  .sb .bn{font-size:11px;font-weight:600;color:#fff;line-height:1.2}
+  .sb .bs{font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--muted);margin-top:2px}
+  .sb.on .bn{color:var(--cyan)}
+
+  #mat-sec,#tube-sec{display:none}
+
+  .cbtn{width:100%;margin-top:18px;background:linear-gradient(135deg,var(--rose),var(--rose-d));border:none;border-radius:8px;padding:13px;color:#fff;font-family:'Barlow Condensed',sans-serif;font-size:15px;font-weight:700;letter-spacing:3px;text-transform:uppercase;cursor:pointer;transition:all .2s}
+  .cbtn:hover{transform:translateY(-1px);box-shadow:0 8px 20px rgba(238,92,138,.4)}
+
+  /* SYNTHESIS */
+  .syn{background:var(--panel);border:1px solid var(--border);border-left:3px solid var(--cyan);border-radius:8px;padding:11px 15px;margin-bottom:13px;display:none;flex-wrap:wrap;gap:18px}
+  .syn.on{display:flex}
+  .si{display:flex;flex-direction:column;gap:2px}
+  .sl{font-size:9px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted)}
+  .sv{font-family:'JetBrains Mono',monospace;font-size:15px;font-weight:600;color:var(--cyan)}
+  .sv.w{color:var(--gold)}
+
+  /* RESULTS */
+  .rg{display:grid;grid-template-columns:1fr 1fr 1fr;gap:13px}
+  .rc{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:17px;display:none;animation:sup .35s ease both}
+  .rc.on{display:block}
+  .rc.ok{border-color:rgba(46,204,113,.3)}
+  .rc.wn{border-color:rgba(245,166,35,.3)}
+  .rc.er{border-color:rgba(238,92,138,.3)}
+
+  .ch{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:13px}
+  .tb{font-family:'Barlow Condensed',sans-serif;font-size:22px;font-weight:800;letter-spacing:.5px;line-height:1}
+  .tb.fil{color:#7eb3ff}.tb.rts{color:var(--gold)}.tb.io{color:var(--cyan)}.tb.rs1{color:#b67bff}.tb.sol{color:#4ade80}.tb.swf{color:#fbbf24}
+
+  .sp{display:inline-flex;align-items:center;gap:4px;font-size:10px;font-weight:600;letter-spacing:.8px;text-transform:uppercase;padding:3px 8px;border-radius:20px}
+  .sp.ok{background:rgba(46,204,113,.12);color:var(--green)}
+  .sp.wn{background:rgba(245,166,35,.12);color:var(--gold)}
+  .sp.er{background:rgba(238,92,138,.12);color:var(--rose)}
+
+  .mm{font-family:'Barlow Condensed',sans-serif;font-size:19px;font-weight:700;color:#fff;letter-spacing:.3px;line-height:1.15}
+  .ms{font-size:9px;color:var(--muted);margin-top:2px;letter-spacing:.5px}
+  .mr{font-family:'JetBrains Mono',monospace;font-size:10px;color:#4a5a7a;margin-top:3px}
+
+  .bw{margin:11px 0}
+  .bl{display:flex;justify-content:space-between;font-size:10px;color:var(--muted);margin-bottom:4px;font-weight:600}
+  .bb{height:5px;background:rgba(255,255,255,.07);border-radius:3px;overflow:hidden}
+  .bf{height:100%;border-radius:3px;transition:width .75s cubic-bezier(.4,0,.2,1);width:0}
+  .bf.ok{background:linear-gradient(90deg,#2ecc71,#27ae60)}
+  .bf.wn{background:linear-gradient(90deg,var(--gold),#e67e22)}
+  .bf.er{background:linear-gradient(90deg,var(--rose),var(--rose-d))}
+
+  .cs{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:11px;padding-top:11px;border-top:1px solid var(--border)}
+  .ci{display:flex;flex-direction:column;gap:2px}
+  .cl{font-size:9px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted)}
+  .cv{font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:600;color:#fff}
+  .cv.ok{color:var(--green)}.cv.wn{color:var(--gold)}
+
+  .cn{font-size:10px;color:var(--muted);margin-top:9px;padding-top:9px;border-top:1px solid var(--border);line-height:1.5}
+  .cn b{color:var(--gold);font-style:normal}
+  .um{font-size:12px;color:var(--muted);font-style:italic;margin-top:6px;line-height:1.55}
+  .um b{color:var(--gold);font-style:normal}
+
+  .es{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:46px 20px;color:var(--muted);text-align:center;gap:9px}
+  .ei{font-size:38px;opacity:.22}
+  .et{font-family:'Barlow Condensed',sans-serif;font-size:15px;font-weight:600;letter-spacing:2px;text-transform:uppercase;opacity:.35}
+
+  .disc{margin-top:13px;padding:10px 14px;background:rgba(245,166,35,.04);border:1px solid rgba(245,166,35,.12);border-radius:7px;font-size:10px;color:var(--muted);line-height:1.65;display:none}
+  .disc.on{display:block}
+  .disc b{color:var(--gold)}
+
+  @keyframes fadepulse{0%{opacity:.3;transform:scale(.99)}100%{opacity:1;transform:scale(1)}}
+  @keyframes sup{from{opacity:0;transform:translateY(11px)}to{opacity:1;transform:translateY(0)}}
+  @keyframes shk{0%,100%{transform:translateX(0)}25%,75%{transform:translateX(-4px)}50%{transform:translateX(4px)}}
+
+  @media(max-width:1100px){.rg{grid-template-columns:1fr 1fr}}
+  @media(max-width:800px){.grid2{grid-template-columns:1fr}.inp{position:static}.rg{grid-template-columns:1fr}header{flex-direction:column;gap:6px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <div>
+    <div class="brtop">Fermapro — Expert certifié</div>
+    <div class="brname">Moteurs Somfy</div>
+    <div class="badge">⬡ Reparpro · Expert Somfy®</div>
+  </div>
+  <div class="apptitle">Sélecteur de puissance<small>Catalogue 640 · Abaques officiels</small></div>
+</header>
+
+<div class="grid2">
+
+  <!-- INPUT PANEL -->
+  <div class="inp">
+    <div class="plbl">Paramètres tablier</div>
+
+    <div class="fg">
+      <div class="fl">Dimensions <span class="fu">mm</span></div>
+      <div class="dr">
+        <div>
+          <input type="number" id="H" placeholder="1800" min="300" max="3500">
+          <div class="dlbl">Hauteur</div>
+        </div>
+        <div class="dsep">×</div>
+        <div>
+          <input type="number" id="L" placeholder="1200" min="300" max="5000">
+          <div class="dlbl">Largeur</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="fg">
+      <div class="fl">Pas de lame</div>
+      <div class="bg2" id="lame-g">
+        <button class="sb" data-lame="S" onclick="pickLame(this)">
+          <div class="bn">Fines</div><div class="bs">pas 35 / 37 / 40 mm</div>
+        </button>
+        <button class="sb" data-lame="L" onclick="pickLame(this)">
+          <div class="bn">Épaisses</div><div class="bs">pas 55 / 60 mm</div>
+        </button>
+      </div>
+    </div>
+
+    <div class="fg" id="mat-sec">
+      <div class="fl">Matière</div>
+      <div class="bg3" id="mat-g"></div>
+    </div>
+
+    <div class="fg" id="tube-sec">
+      <div class="fl">Axe d'enroulement</div>
+      <div class="bg4" id="tube-g"></div>
+
+    </div>
+
+    <button class="cbtn" onclick="calc()">⚡ Calculer</button>
+  </div>
+
+  <!-- RESULTS PANEL -->
+  <div>
+    <div class="syn" id="syn">
+      <div class="si"><div class="sl">Surface</div><div class="sv" id="s-surf">—</div></div>
+      <div class="si"><div class="sl">Poids tablier</div><div class="sv" id="s-pds">—</div></div>
+      <div class="si"><div class="sl">Gamme hauteur</div><div class="sv" id="s-hr">—</div></div>
+      <div class="si"><div class="sl">Couple abaque</div><div class="sv" id="s-cp">—</div></div>
+    </div>
+
+    <div class="rg" id="rg">
+      <div class="es" id="es" style="grid-column:1/-1">
+        <div class="ei">⚙</div>
+        <div class="et">Renseignez les dimensions<br>et lancez le calcul</div>
+      </div>
+    </div>
+
+    <div class="disc" id="disc">
+      <b>⚠ Méthodologie :</b> Formule officielle Somfy — Guide pro 640 p.220-221 :<br>
+      <b>Poids = Largeur(m) × (Hauteur(m) + 0,20 m) × densité(kg/m²)</b><br>
+      Le couple est lu dans l'abaque selon la gamme de hauteur et le diamètre de tube. Le coefficient de sécurité est déjà intégré dans les abaques Somfy. Vérifier résistance au vent et poids barre de charge avant validation.
+    </div>
+  </div>
+
+</div>
+</div>
+
+<script>
+/* ============================================================
+   DATA — catalogue Somfy 640
+   ============================================================ */
+
+const MAT = {
+  S:[
+    {k:'pvc', n:'PVC',             d:4.0,  s:'4,0 kg/m²'},
+    {k:'alu', n:'Alu double paroi',d:4.5,  s:'4,5 kg/m²'},
+    {k:'boi', n:'Bois',            d:11.0, s:'11 kg/m²'},
+  ],
+  L:[
+    {k:'pvc', n:'PVC',             d:4.5,  s:'4,5 kg/m²'},
+    {k:'alu', n:'Alu double paroi',d:5.5,  s:'5,5 kg/m²'},
+    {k:'boi', n:'Bois',            d:11.0, s:'11 kg/m²'},
+  ],
+};
+
+const TUBE = {
+  S:[
+    {k:'o40',n:'Ø40/45',s:'Ø40 · Ø45',   ak:'T40'},
+    {k:'o54',n:'Ø54',   s:'ZF54 · Octo60',ak:'T54'},
+    {k:'o80',n:'Ø80',   s:'Ø80',          ak:'T80'},
+    {k:'o89',n:'Ø89',   s:'F5039 Ø89',    ak:'T89'},
+  ],
+  L:[
+    {k:'o64', n:'Ø64', s:'Ø64',     ak:'T64'},
+    {k:'o80l',n:'Ø80', s:'Ø80',     ak:'T80L'},
+    {k:'o89l',n:'Ø89', s:'F5039',   ak:'T89L'},
+    {k:'o102',n:'Ø102',s:'Ø102',    ak:'T102'},
+  ],
+};
+
+/* ── Abaques lames 35-40mm ── [maxPoids_kg, Nm_min] ── */
+const AB = {
+  T40:{
+    h1:[[8,4],[18,9],[999,13]],
+    h2:[[8,4],[18,9],[999,13]],
+    h3:[[7,4],[16,9],[999,13]],
+  },
+  T54:{
+    h1:[[9,6],[20,10],[35,15],[50,20],[65,25],[80,30],[95,35],[106,40],[999,50]],
+    h2:[[8,6],[18,10],[30,15],[45,20],[58,25],[72,30],[85,35],[97,40],[999,50]],
+    h3:[[7,6],[15,10],[25,15],[38,20],[50,25],[63,30],[73,35],[83,40],[999,50]],
+  },
+  T80:{
+    h1:[[10,6],[26,10],[44,15],[63,20],[80,25],[97,30],[113,35],[127,40],[142,50],[151,55],[161,60],[175,70],[188,80],[195,85],[208,100],[999,120]],
+    h2:[[9,6],[23,10],[40,15],[57,20],[73,25],[89,30],[104,35],[117,40],[131,50],[140,55],[151,60],[164,70],[178,80],[185,85],[198,100],[999,120]],
+    h3:[[8,6],[19,10],[34,15],[49,20],[63,25],[77,30],[90,35],[102,40],[115,50],[124,55],[134,60],[147,70],[159,80],[166,85],[178,100],[999,120]],
+  },
+  T89:{
+    h1:[[12,6],[30,10],[50,15],[71,20],[90,25],[109,30],[128,35],[144,40],[162,50],[173,55],[185,60],[201,70],[216,80],[224,85],[999,100]],
+    h2:[[10,6],[26,10],[44,15],[63,20],[80,25],[98,30],[115,35],[130,40],[146,50],[157,55],[168,60],[184,70],[197,80],[205,85],[999,100]],
+    h3:[[9,6],[22,10],[38,15],[54,20],[69,25],[85,30],[100,35],[113,40],[128,50],[138,55],[148,60],[162,70],[174,80],[181,85],[999,100]],
+  },
+  /* ── Abaques lames 55-60mm ── */
+  T64:{
+    h1:[[8,6],[18,10],[30,15],[45,20],[58,25],[72,30],[85,35],[98,40],[999,50]],
+    h2:[[7,6],[16,10],[27,15],[40,20],[52,25],[65,30],[77,35],[89,40],[999,50]],
+    h3:[[6,6],[14,10],[23,15],[35,20],[46,25],[57,30],[68,35],[78,40],[999,50]],
+  },
+  T80L:{
+    h1:[[10,6],[25,10],[42,15],[60,20],[78,25],[95,30],[112,35],[128,40],[145,50],[155,55],[167,60],[182,70],[197,80],[205,85],[999,100]],
+    h2:[[9,6],[22,10],[37,15],[53,20],[68,25],[83,30],[98,35],[112,40],[127,50],[138,55],[148,60],[163,70],[177,80],[185,85],[999,100]],
+    h3:[[8,6],[19,10],[32,15],[46,20],[59,25],[72,30],[85,35],[97,40],[110,50],[120,55],[130,60],[143,70],[156,80],[163,85],[999,100]],
+  },
+  T89L:{
+    h1:[[13,6],[30,10],[50,15],[71,20],[90,25],[109,30],[128,35],[146,40],[164,50],[176,55],[188,60],[205,70],[221,80],[230,85],[999,100]],
+    h2:[[11,6],[27,10],[44,15],[63,20],[80,25],[98,30],[114,35],[130,40],[146,50],[157,55],[168,60],[183,70],[197,80],[205,85],[999,100]],
+    h3:[[10,6],[23,10],[38,15],[54,20],[69,25],[84,30],[99,35],[112,40],[127,50],[137,55],[147,60],[160,70],[173,80],[180,85],[999,100]],
+  },
+  T102:{
+    h1:[[15,6],[35,10],[58,15],[82,20],[103,25],[125,30],[147,35],[168,40],[190,50],[203,55],[218,60],[999,70]],
+    h2:[[13,6],[30,10],[51,15],[72,20],[91,25],[111,30],[130,35],[149,40],[168,50],[181,55],[193,60],[999,70]],
+    h3:[[11,6],[25,10],[43,15],[61,20],[78,25],[95,30],[112,35],[128,40],[145,50],[157,55],[168,60],[999,70]],
+  },
+};
+
+/* ── Moteurs par filière ─────────────────────────────── */
+const MOT = {
+  fil:{
+    label:'FILAIRE', col:'fil',
+    tech:'Câblé 230V — LT 50/60 WT · LS 40 WT',
+    o40:[
+      {nm:4,  m:'LS 40 WT 4/16',         r:'1021387',p:'157,12',v:'16'},
+      {nm:9,  m:'LS 40 WT 9/16',         r:'1023336',p:'180,66',v:'16'},
+      {nm:13, m:'LS 40 WT 13/10',        r:'1020137',p:'191,58',v:'10'},
+    ],
+    o50:[
+      {nm:6,  m:'LT 50 Ariane WT 6/17',  r:'1032049',p:'147,26',v:'17'},
+      {nm:10, m:'LT 50 Jet WT 10/17',    r:'1037061',p:'165,46',v:'17'},
+      {nm:20, m:'LT 50 Meteor WT 20/17', r:'1041055',p:'185,10',v:'17'},
+      {nm:25, m:'LT 50 Gemini WT 25/17', r:'1043036',p:'200,87',v:'17'},
+      {nm:35, m:'LT 50 Apollo WT 35/17', r:'1047025',p:'205,70',v:'17'},
+      {nm:40, m:'LT 50 Mariner WT 40/17',r:'1049064',p:'229,37',v:'17'},
+      {nm:50, m:'LT 50 Vectran WT 50/12',r:'1051028',p:'229,59',v:'12'},
+      {nm:55, m:'LT 60 Orion S WT 55/17',r:'1161011',p:'260,79',v:'17'},
+      {nm:60, m:'LT 60 Vega WT 60/12',   r:'1162023',p:'269,50',v:'12'},
+      {nm:70, m:'LT 60 Antares WT 70/17',r:'1163010',p:'279,97',v:'17'},
+      {nm:80, m:'LT 60 Sirius WT 80/12', r:'1164021',p:'291,26',v:'12'},
+      {nm:85, m:'LT 60 Jupiter WT 85/17',r:'1165008',p:'314,52',v:'17'},
+      {nm:120,m:'LT 60 Taurus WT 120/12',r:'1167021',p:'398,40',v:'12'},
+    ],
+    max:120,
+  },
+  rts:{
+    label:'RTS', col:'rts',
+    tech:'Radio 433 MHz — Oximo 50 RTS · Altus 40 RTS',
+    o40:[
+      {nm:4,  m:'Altus 40 RTS 4/16',  r:'1021343',p:'269,94',v:'16'},
+      {nm:9,  m:'Altus 40 RTS 9/16',  r:'1023297',p:'298,22',v:'16'},
+      {nm:13, m:'Altus 40 RTS 13/10', r:'1024179',p:'308,72',v:'10'},
+    ],
+    o50:[
+      {nm:6,  m:'Oximo 50 RTS 6/17',  r:'1032392',p:'278,86',v:'17'},
+      {nm:10, m:'Oximo 50 RTS 10/17', r:'1037389',p:'301,23',v:'17'},
+      {nm:20, m:'Oximo 50 RTS 20/17', r:'1041380',p:'325,38',v:'17'},
+      {nm:30, m:'Oximo 50 RTS 30/17', r:'1045319',p:'368,44',v:'17'},
+      {nm:40, m:'Oximo 50 RTS 40/17', r:'1049434',p:'393,17',v:'17'},
+      {nm:50, m:'Oximo 50 RTS 50/12', r:'1049720',p:'393,17',v:'12'},
+    ],
+    max:50,
+  },
+  io:{
+    label:'IO', col:'io',
+    tech:'io-homecontrol® — RS100 → Oximo 50 → Altus 60 RS',
+    o40:[
+      {nm:9,  m:'Oximo 40 io 9/16',  r:'1038015',p:'271,45',v:'16'},
+      {nm:13, m:'Oximo 40 io 13/10', r:'1039948',p:'281,67',v:'10'},
+    ],
+    o50:[
+      {nm:6,   m:'RS100 io 6/17',          r:'1033114',p:'273,32',v:'17'},
+      {nm:10,  m:'RS100 io 10/17',          r:'1033115',p:'292,56',v:'17'},
+      {nm:15,  m:'RS100 io 15/17',          r:'1033116',p:'302,96',v:'17'},
+      {nm:20,  m:'RS100 io 20/17',          r:'1033117',p:'312,99',v:'17'},
+      {nm:30,  m:'Oximo 50 io 30/17',       r:'1045517',p:'341,28',v:'17'},
+      {nm:40,  m:'Oximo 50 io 40/17',       r:'1049608',p:'363,06',v:'17'},
+      {nm:50,  m:'Oximo 50 io 50/12',       r:'1049732',p:'363,07',v:'12'},
+      {nm:55,  m:'Altus 60 RS io 55/17',    r:'1187012',p:'365,27',v:'17'},
+      {nm:70,  m:'Altus 60 RS io 70/17',    r:'1187013',p:'384,79',v:'17'},
+      {nm:85,  m:'Altus 60 RS io 85/17',    r:'1187014',p:'423,73',v:'17'},
+      {nm:100, m:'Altus 60 RS io 100/12',   r:'1187015',p:'456,46',v:'12'},
+      {nm:120, m:'Altus 60 RS io 120/12',   r:'1187016',p:'515,06',v:'12'},
+    ],
+    max:120,
+  },
+  rs100:{
+    label:'RS100 io', col:'rs1',
+    tech:'Plug & Play · Silencieux · TaHoma® · Bi-vitesse',
+    o40:null,
+    o50:[
+      {nm:6,  m:'RS100 io 6/17',  r:'1033114',p:'273,32',v:'17'},
+      {nm:10, m:'RS100 io 10/17', r:'1033115',p:'292,56',v:'17'},
+      {nm:15, m:'RS100 io 15/17', r:'1033116',p:'302,96',v:'17'},
+      {nm:20, m:'RS100 io 20/17', r:'1033117',p:'312,99',v:'17'},
+    ],
+    max:20,
+  },
+  /* ── Solutions solaires ─────────────────────────────── */
+  solar_io:{
+    label:'SOLAR IO', col:'sol',
+    tech:'RS100 Solar io · Kit autonome · Garantie 7 ans',
+    solar:true,
+    o40:[ // Oximo Solar io Ø40 — kit moteur seul
+      {nm:3,  m:'Oximo Solar io 3/23',  r:'1240463',p:'268,58',v:'23', kit:'1241047', pkitkit:'512,75'},
+      {nm:6,  m:'Oximo Solar io 6/18',  r:'1240464',p:'276,64',v:'18', kit:'1241048', pkitkit:'517,87'},
+      {nm:10, m:'Oximo Solar io 10/12', r:'1240465',p:'287,38',v:'12', kit:'1241049', pkitkit:'523,05'},
+    ],
+    o50:[ // RS100 Solar io Ø50 — kit complet
+      {nm:3,  m:'RS100 Solar io 3/15',  r:'1244692',p:'517,43',v:'15'},
+      {nm:6,  m:'RS100 Solar io 6/15',  r:'1244693',p:'532,96',v:'15'},
+      {nm:10, m:'RS100 Solar io 10/12', r:'1244694',p:'538,68',v:'12'},
+      {nm:15, m:'RS100 Solar io 15/12', r:'1244695',p:'595,59',v:'12'},
+      {nm:20, m:'RS100 Solar io 20/12', r:'1244696',p:'651,25',v:'12'},
+    ],
+    max:20,
+  },
+  solar_rts:{
+    label:'SOLAR RTS', col:'swf',
+    tech:'Oximo 40 WireFree RTS · Kit solaire autonome',
+    solar:true,
+    o40:[ // Oximo 40 WireFree RTS — moteur seul
+      {nm:3,  m:'Oximo WF RTS 3/23',  r:'1030138',p:'269,65',v:'23', kit:'1025188', pkitkit:'514,76'},
+      {nm:6,  m:'Oximo WF RTS 6/18',  r:'1033330',p:'277,74',v:'18', kit:'1025189', pkitkit:'519,91'},
+      {nm:10, m:'Oximo WF RTS 10/12', r:'1038100',p:'288,51',v:'12', kit:'1025190', pkitkit:'525,11'},
+    ],
+    o50:null, // WireFree RTS uniquement Ø40
+    max:10,
+  },
+};
+
+/* ============================================================
+   STATE
+   ============================================================ */
+let sLame=null, sMat=null, sTube=null;
+
+/* ============================================================
+   PICKERS
+   ============================================================ */
+function pickLame(b){
+  qsa('#lame-g .sb').forEach(x=>x.classList.remove('on'));
+  b.classList.add('on');
+  sLame=b.dataset.lame; sMat=null; sTube=null;
+
+  const mg=qs('#mat-g'); mg.className='bg3'; mg.innerHTML='';
+  MAT[sLame].forEach(m=>{
+    const x=mkBtn(m.n,m.s,'mat',m.k,()=>pickMat(x,m));
+    mg.appendChild(x);
+  });
+  qs('#mat-sec').style.display='block';
+
+  const tg=qs('#tube-g'); tg.className='bg4'; tg.innerHTML='';
+  TUBE[sLame].forEach(t=>{
+    const x=mkBtn(t.n,t.s,'tube',t.k,()=>pickTube(x,t));
+    tg.appendChild(x);
+  });
+  qs('#tube-sec').style.display='block';
+}
+
+function pickMat(b,m){ qsa('#mat-g .sb').forEach(x=>x.classList.remove('on')); b.classList.add('on'); sMat=m; }
+function pickTube(b,t){ qsa('#tube-g .sb').forEach(x=>x.classList.remove('on')); b.classList.add('on'); sTube=t; }
+
+function mkBtn(n,s,g,k,fn){
+  const b=document.createElement('button');
+  b.className='sb'; b.dataset[g]=k;
+  b.innerHTML=`<div class="bn">${n}</div><div class="bs">${s}</div>`;
+  b.onclick=fn; return b;
+}
+
+/* ============================================================
+   ABAQUE LOOKUP
+   ============================================================ */
+function getCouple(poids,ak,Hmm){
+  const t=AB[ak]; if(!t) return null;
+  const hk=Hmm<1500?'h1':Hmm<2500?'h2':'h3';
+  for(const[mp,nm] of t[hk]) if(poids<=mp) return nm;
+  return null;
+}
+
+function hLabel(H){ return H<1500?'< 1,5 m':H<2500?'1,5 – 2,5 m':'2,5 – 3,5 m'; }
+
+/* ============================================================
+   CALCULATE
+   ============================================================ */
+function calc(){
+  const H=parseFloat(qs('#H').value);
+  const L=parseFloat(qs('#L').value);
+  if(!H||!L||H<300||L<300){shake();return;}
+  if(!sLame||!sMat||!sTube){alert('Sélectionner : pas de lame + matière + axe');return;}
+  if(H>3500){alert('Hauteur max abaques : 3500 mm');return;}
+
+  /* Formule Somfy officielle p.220 */
+  const Lm=L/1000, Hm=H/1000;
+  const poids=Lm*(Hm+0.20)*sMat.d;
+  const surf=Lm*Hm;
+  const cp=getCouple(poids,sTube.ak,H);
+
+  /* Synthesis */
+  qs('#s-surf').textContent=surf.toFixed(2)+' m²';
+  qs('#s-pds').textContent=poids.toFixed(1)+' kg';
+  qs('#s-hr').textContent=hLabel(H);
+  const scp=qs('#s-cp');
+  scp.textContent=cp?cp+' Nm':'> plage';
+  scp.className=cp?'sv':'sv w';
+  qs('#syn').classList.add('on');
+
+  /* Build cards */
+  const rg=qs('#rg');
+  qs('#es')?.remove();
+  qsa('#rg .rc').forEach(c=>c.remove());
+
+  const isSmall=sTube.k==='o40'||sTube.k==='o45';
+  const ml=isSmall?'o40':'o50';
+
+  ['fil','rts','io','rs100','solar_io','solar_rts'].forEach((key,i)=>{
+    if(key==='solar_io'){
+      const sep=document.createElement('div');
+      sep.style.cssText='grid-column:1/-1;display:flex;align-items:center;gap:10px;margin:4px 0 2px;padding-top:4px;border-top:1px solid rgba(255,255,255,0.06)';
+      sep.innerHTML=`<span style="font-family:Barlow Condensed,sans-serif;font-size:10px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:#4ade80">☀ Solutions solaires / sans alimentation</span><span style="flex:1;height:1px;background:rgba(255,255,255,0.05)"></span>`;
+      rg.appendChild(sep);
+    }
+    const card=mkCard(MOT[key],key,ml,cp,poids,isSmall,i);
+    rg.appendChild(card);
+    setTimeout(()=>{
+      card.classList.add('on');
+      const bf=card.querySelector('.bf');
+      if(bf) bf.style.width=bf.dataset.p+'%';
+    },60+i*70);
+  });
+
+  qs('#disc').classList.add('on');
+}
+
+/* ============================================================
+   BUILD CARD
+   ============================================================ */
+function mkCard(def,key,ml,cp,poids,isSmall,idx){
+  const c=document.createElement('div');
+  c.className='rc'; c.style.animationDelay=(idx*.07)+'s';
+
+  function setErr(msg){c.classList.add('er');c.innerHTML=`<div class="ch"><div class="tb ${def.col}">${def.label}</div><span class="sp er">❌ Non dispo</span></div><div class="um">${msg}</div>`;return c;}
+
+  /* ── SOLAR : logique spécifique ── */
+  if(def.solar){
+    // Solar RTS : Ø50 non dispo
+    if(key==='solar_rts'&&!isSmall) return setErr('Oximo WF RTS disponible uniquement sur axe <b>Ø40/Ø45</b>.<br>→ Compatible lames fines pas 35-40mm seulement.');
+    // Solar io Ø50 : RS100 Solar io
+    // Solar io Ø40 : Oximo Solar io
+    const solarList = list;
+    if(!solarList) return setErr('Pas de moteur solaire pour cette configuration de tube.');
+    if(!cp) return setErr(`Poids tablier (<b>${poids.toFixed(1)} kg</b>) hors abaques.<br>→ Consulter catalogue p.220-221.`);
+    if(cp>def.max){
+      const maxStr = def.max;
+      let alt = key==='solar_io' ? 'Dimensions trop importantes pour la gamme solaire (max 20 Nm).<br>→ Prévoir alimentation 230V : filière <b>IO</b> ou <b>Filaire</b>.' : 'WireFree RTS limité à 10 Nm.<br>→ Prévoir filière <b>Solar io</b> (max 20 Nm) ou alimentation 230V.';
+      return setErr(alt);
+    }
+    const mot = solarList.find(m=>m.nm>=cp);
+    if(!mot) return setErr('Aucun moteur solaire trouvé pour cette configuration.');
+    const ratio=cp/mot.nm;
+    const sc=ratio>=0.5?'ok':'wn';
+    const sl=ratio>=0.5?'☀ Adapté':'☀ Surdim.';
+    const pct=Math.min(96,Math.round(ratio*100));
+    const marge=Math.round((1-ratio)*100);
+    c.classList.add(sc);
+    // kit note
+    let kitNote='';
+    if(mot.kit) kitNote=`<div class="cn"><b>Kit complet disponible :</b> Moteur + panneau + batterie — Réf. <b style="color:#6a7a9a">${mot.kit}</b> · <b>${mot.pkitkit} € HT</b></div>`;
+    else kitNote=`<div class="cn"><b>☀ Kit autonome :</b> Prix kit inclut moteur + panneau solaire + batterie + service · <b>Garantie 7 ans</b> · Autonomie 45 jours</div>`;
+    const alimentNote = key==='solar_rts' ? '433 MHz RTS · Sans fil · Sans habilitation électrique' : 'io-homecontrol® · TaHoma® · Sans fil · Garantie 7 ans';
+    c.innerHTML=`
+<div class="ch">
+  <div>
+    <div class="tb ${def.col}">${def.label}</div>
+    <div class="ms">${def.tech}</div>
+  </div>
+  <span class="sp ${sc}">${sl}</span>
+</div>
+<div class="mm">${mot.m}</div>
+<div class="mr">Réf. Somfy <b style="color:#6a7a9a">${mot.r}</b> · <b>${mot.p} € HT</b></div>
+<div class="bw">
+  <div class="bl"><span>Charge</span><span>${cp} Nm → moteur ${mot.nm} Nm</span></div>
+  <div class="bb"><div class="bf ${sc}" data-p="${pct}" style="width:0%"></div></div>
+</div>
+<div class="cs">
+  <div class="ci"><div class="cl">Couple moteur</div><div class="cv">${mot.nm} Nm</div></div>
+  <div class="ci"><div class="cl">Marge</div><div class="cv ${sc}">+${marge}%</div></div>
+  <div class="ci"><div class="cl">Vitesse</div><div class="cv">${mot.v} tr/min</div></div>
+  <div class="ci"><div class="cl">Protocole</div><div class="cv" style="font-size:10px">${alimentNote.split('·')[0].trim()}</div></div>
+</div>
+${kitNote}`;
+    return c;
+  }
+
+  /* RS100 pas sur Ø40 */
+  if(key==='rs100'&&isSmall) return setErr('RS100 io (Ø50) incompatible avec axe <b>Ø40/Ø45</b>.<br>→ Voir filière <b>IO</b> : Oximo 40 io.');
+
+  /* no list */
+  const list=def[ml];
+  if(!list&&isSmall) return setErr('Aucun moteur de cette filière pour tube Ø40.');
+
+  /* pas de couple abaque */
+  if(!cp) return setErr(`Poids tablier (<b>${poids.toFixed(1)} kg</b>) hors abaques.<br>→ Contacter Somfy pour solution sur mesure.`);
+
+  /* couple > max filière */
+  if(cp>def.max){
+    let msg='';
+    if(key==='rs100') msg=`Couple requis <b>${cp} Nm</b> > RS100 io max (20 Nm).<br>→ Utiliser filière <b>IO</b> : Oximo 50 io ou Altus 60 RS io.`;
+    else if(key==='rts') msg=`Couple requis <b>${cp} Nm</b> > Oximo 50 RTS max (50 Nm).<br>→ Envisager filière <b>Filaire</b> (LT 60 WT jusqu'à 120 Nm).`;
+    else msg=`Couple requis <b>${cp} Nm</b> hors gamme.`;
+    return setErr(msg);
+  }
+
+  /* find motor */
+  const mot=list.find(m=>m.nm>=cp);
+  if(!mot) return setErr('Moteur introuvable pour cette configuration.');
+
+  /* status */
+  const ratio=cp/mot.nm;
+  let sc,sl;
+  if(ratio>=0.85){sc='ok';sl='✓ Adapté';}
+  else if(ratio>=0.5){sc='ok';sl='✓ Adapté';}
+  else{sc='wn';sl='⚡ Surdim.';}
+  const pct=Math.min(96,Math.round(ratio*100));
+  const marge=Math.round((1-ratio)*100);
+
+  /* notes */
+  let note='';
+  if(key==='rs100') note=`<div class="cn"><b>Plug&amp;Play :</b> Réglage auto fins de course · Bi-vitesse · Silencieux · Drive Control™ · Compatible TaHoma® switch</div>`;
+  else if(key==='rts') note=`<div class="cn"><b>Oximo 50 RTS :</b> Détection obstacle · Protection gel · Résistance effraction · TaHoma® compatible</div>`;
+  else if(key==='io'&&mot.m.includes('Altus')) note=`<div class="cn"><b>Altus 60 RS io :</b> Grandes dimensions · Axe Ø60 requis · TaHoma® switch</div>`;
+  else if(key==='fil'&&mot.m.includes('LT 60')) note=`<div class="cn"><b>LT 60 WT :</b> Grande puissance · Axe Ø60 requis — vérifier compatibilité coffre</div>`;
+
+  c.classList.add(sc);
+  c.innerHTML=`
+<div class="ch">
+  <div>
+    <div class="tb ${def.col}">${def.label}</div>
+    <div class="ms">${def.tech}</div>
+  </div>
+  <span class="sp ${sc}">${sl}</span>
+</div>
+<div class="mm">${mot.m}</div>
+<div class="mr">Réf. Somfy <b style="color:#6a7a9a">${mot.r}</b></div>
+<div class="bw">
+  <div class="bl"><span>Charge</span><span>${cp} Nm → moteur ${mot.nm} Nm</span></div>
+  <div class="bb"><div class="bf ${sc}" data-p="${pct}" style="width:0%"></div></div>
+</div>
+<div class="cs">
+  <div class="ci"><div class="cl">Couple moteur</div><div class="cv">${mot.nm} Nm</div></div>
+  <div class="ci"><div class="cl">Marge</div><div class="cv ${sc}">+${marge}%</div></div>
+  <div class="ci"><div class="cl">Vitesse</div><div class="cv">${mot.v} tr/min</div></div>
+  <div class="ci"><div class="cl">Prix HT</div><div class="cv">${mot.p} €</div></div>
+</div>
+${note}`;
+  return c;
+}
+
+/* ============================================================
+   UTILS
+   ============================================================ */
+const qs=s=>document.querySelector(s);
+const qsa=s=>document.querySelectorAll(s);
+
+function shake(){
+  ['H','L'].forEach(id=>{
+    const el=qs('#'+id);
+    if(!el.value||parseFloat(el.value)<300){
+      el.style.borderColor='var(--rose)';el.style.animation='shk .35s';
+      setTimeout(()=>{el.style.borderColor='';el.style.animation='';},500);
+    }
+  });
+}
+
+document.addEventListener('keydown',e=>{if(e.key==='Enter')calc();});
+</script>
+</body>
+</html>
