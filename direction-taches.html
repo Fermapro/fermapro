@@ -2,6 +2,7 @@
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self' https://fonts.googleapis.com https://fonts.gstatic.com https://cdnjs.cloudflare.com; script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; connect-src https://script.google.com https://script.googleusercontent.com; img-src 'self' data:; frame-src 'none'; object-src 'none';">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Tâches Direction — Fermapro</title>
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Nunito:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -234,25 +235,27 @@ main{max-width:1100px;margin:0 auto;padding:24px 18px 100px;}
 .spin-lg{width:38px;height:38px;border:4px solid var(--border);border-top-color:var(--navy);border-radius:50%;animation:spin .7s linear infinite;}
 @keyframes spin{to{transform:rotate(360deg)}}
 .ltxt{font-family:'Syne',sans-serif;font-weight:600;color:var(--navy);font-size:15px;}
-/* PIN */
+/* PASSPHRASE SCREEN */
 .pin-screen{position:fixed;inset:0;background:var(--navy);z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;}
 .pin-screen.hidden{display:none;}
 .pin-logo{width:64px;height:64px;background:var(--pink);border-radius:18px;display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-weight:800;font-size:28px;color:#fff;margin-bottom:16px;}
 .pin-title{font-family:'Syne',sans-serif;font-weight:700;font-size:22px;color:#fff;margin-bottom:4px;}
-.pin-sub{font-size:13px;color:rgba(255,255,255,.5);margin-bottom:36px;text-align:center;}
-.pin-dots{display:flex;gap:16px;margin-bottom:32px;}
-.pin-dot{width:16px;height:16px;border-radius:50%;border:2px solid rgba(255,255,255,.3);transition:all .2s;}
-.pin-dot.filled{background:var(--pink);border-color:var(--pink);}
-.pin-dot.error{background:var(--red);border-color:var(--red);animation:shake .3s ease;}
-@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
-.pin-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;width:100%;max-width:280px;}
-.pin-btn{background:rgba(255,255,255,.1);border:none;border-radius:14px;height:64px;font-family:'Syne',sans-serif;font-weight:700;font-size:22px;color:#fff;cursor:pointer;transition:all .15s;display:flex;align-items:center;justify-content:center;}
-.pin-btn:hover{background:rgba(255,255,255,.2);}
-.pin-btn:active{background:var(--pink);transform:scale(.96);}
-.pin-btn.del{font-size:18px;}
-.pin-btn.empty{background:transparent;cursor:default;}
-.pin-msg{margin-top:20px;font-size:13px;color:rgba(255,255,255,.5);text-align:center;min-height:20px;}
-.pin-change{margin-top:24px;background:none;border:1.5px solid rgba(255,255,255,.2);color:rgba(255,255,255,.5);border-radius:10px;padding:8px 18px;font-family:'Syne',sans-serif;font-size:12px;cursor:pointer;}
+.pin-sub{font-size:13px;color:rgba(255,255,255,.5);margin-bottom:28px;text-align:center;max-width:320px;line-height:1.5;}
+@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-8px)}75%{transform:translateX(8px)}}
+.pp-field-wrap{position:relative;width:100%;max-width:320px;margin-bottom:12px;}
+.pp-input{width:100%;padding:14px 48px 14px 18px;border:2px solid rgba(255,255,255,.2);border-radius:12px;background:rgba(255,255,255,.08);color:#fff;font-family:'Nunito',sans-serif;font-size:16px;outline:none;transition:border-color .2s;letter-spacing:.02em;}
+.pp-input::placeholder{color:rgba(255,255,255,.3);}
+.pp-input:focus{border-color:var(--pink);}
+.pp-input.error{border-color:var(--red);animation:shake .3s ease;}
+.pp-eye{position:absolute;right:14px;top:50%;transform:translateY(-50%);background:none;border:none;color:rgba(255,255,255,.4);cursor:pointer;font-size:18px;padding:4px;transition:color .2s;}
+.pp-eye:hover{color:#fff;}
+.pp-strength{height:4px;border-radius:2px;width:100%;max-width:320px;background:rgba(255,255,255,.1);margin-bottom:16px;overflow:hidden;}
+.pp-strength-bar{height:100%;border-radius:2px;transition:width .3s,background .3s;width:0;}
+.pp-submit{background:var(--pink);color:#fff;border:none;border-radius:12px;padding:14px 40px;font-family:'Syne',sans-serif;font-weight:700;font-size:15px;cursor:pointer;transition:all .2s;box-shadow:0 4px 18px rgba(232,69,122,.35);width:100%;max-width:320px;}
+.pp-submit:hover{background:var(--pink2);transform:translateY(-1px);}
+.pp-submit:active{transform:translateY(0);}
+.pin-msg{margin-top:14px;font-size:13px;color:rgba(255,255,255,.5);text-align:center;min-height:20px;max-width:320px;}
+.pin-change{margin-top:20px;background:none;border:1.5px solid rgba(255,255,255,.15);color:rgba(255,255,255,.4);border-radius:10px;padding:8px 18px;font-family:'Syne',sans-serif;font-size:12px;cursor:pointer;transition:all .2s;}
 .pin-change:hover{border-color:rgba(255,255,255,.4);color:#fff;}
 .btn-logout{background:rgba(255,255,255,.1);border:none;color:rgba(255,255,255,.6);border-radius:7px;padding:5px 11px;font-size:11px;font-family:'Syne',sans-serif;font-weight:600;cursor:pointer;}
 .btn-logout:hover{background:rgba(255,255,255,.2);color:#fff;}
@@ -263,36 +266,23 @@ main{max-width:1100px;margin:0 auto;padding:24px 18px 100px;}
 .btn-secondary{background:var(--navy);color:#fff;border:none;border-radius:8px;padding:8px 16px;font-family:'Syne',sans-serif;font-weight:700;font-size:12px;cursor:pointer;}
 .btn-secondary:hover{background:var(--navy2);}
 </style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.1.6/purify.min.js"></script>
 </head>
 <body>
 
-<!-- PIN SCREEN -->
+<!-- PASSPHRASE SCREEN -->
 <div class="pin-screen" id="pin-screen">
   <div class="pin-logo">F</div>
   <div class="pin-title">Tâches Direction</div>
-  <div class="pin-sub" id="pin-sub">Entrez votre code PIN</div>
-  <div class="pin-dots">
-    <div class="pin-dot" id="pd0"></div>
-    <div class="pin-dot" id="pd1"></div>
-    <div class="pin-dot" id="pd2"></div>
-    <div class="pin-dot" id="pd3"></div>
+  <div class="pin-sub" id="pin-sub">Entrez votre phrase secrète</div>
+  <div class="pp-field-wrap">
+    <input class="pp-input" type="password" id="pp-input" placeholder="Phrase secrète…" autocomplete="current-password" onkeydown="ppKeydown(event)" oninput="ppStrength(this.value)">
+    <button class="pp-eye" onclick="ppToggleEye()" id="pp-eye" tabindex="-1" title="Afficher/masquer">👁</button>
   </div>
-  <div class="pin-grid">
-    <button class="pin-btn" onclick="pinPress(1)">1</button>
-    <button class="pin-btn" onclick="pinPress(2)">2</button>
-    <button class="pin-btn" onclick="pinPress(3)">3</button>
-    <button class="pin-btn" onclick="pinPress(4)">4</button>
-    <button class="pin-btn" onclick="pinPress(5)">5</button>
-    <button class="pin-btn" onclick="pinPress(6)">6</button>
-    <button class="pin-btn" onclick="pinPress(7)">7</button>
-    <button class="pin-btn" onclick="pinPress(8)">8</button>
-    <button class="pin-btn" onclick="pinPress(9)">9</button>
-    <button class="pin-btn empty"></button>
-    <button class="pin-btn" onclick="pinPress(0)">0</button>
-    <button class="pin-btn del" onclick="pinDel()">⌫</button>
-  </div>
+  <div class="pp-strength"><div class="pp-strength-bar" id="pp-bar"></div></div>
+  <button class="pp-submit" onclick="pinSubmit()">🔓 Accéder</button>
   <div class="pin-msg" id="pin-msg"></div>
-  <button class="pin-change" onclick="pinReset()" id="pin-change-btn">Changer le code PIN</button>
+  <button class="pin-change" onclick="pinReset()" id="pin-change-btn">Changer la phrase secrète</button>
 </div>
 
 <div class="loading-screen" id="loading"><div class="spin-lg"></div><div class="ltxt">Chargement…</div></div>
@@ -359,6 +349,7 @@ main{max-width:1100px;margin:0 auto;padding:24px 18px 100px;}
       <div style="display:flex;gap:8px;flex-wrap:wrap;">
         <button class="btn-s" onclick="openModal()">＋ Nouvelle tâche</button>
         <button class="btn-ghost" style="margin:0;" onclick="changeURL()">🔗 URL Sheets</button>
+        <button class="btn-ghost" style="margin:0;border-color:var(--purple);color:var(--purple);" onclick="setupSecret()">🔑 Token API</button>
         <button class="btn-ghost" style="margin:0;border-color:var(--navy);color:var(--navy);" onclick="exportData()">📤 Exporter</button>
         <label class="btn-ghost" style="margin:0;cursor:pointer;border-color:var(--teal);color:var(--teal);">📥 Importer<input type="file" accept=".json" style="display:none;" onchange="importData(this)"></label>
       </div>
@@ -631,9 +622,9 @@ async function loadFromSheets() {
   setSyncStatus('sync');
   try {
     const [r1, r2, r3] = await Promise.all([
-      fetch(GS_URL + '?action=getTasks').then(r => r.json()),
-      fetch(GS_URL + '?action=getDone').then(r => r.json()),
-      fetch(GS_URL + '?action=getTodos').then(r => r.json()),
+      fetch(GS_URL + '?action=getTasks&secret=' + encodeURIComponent(API_SECRET)).then(r => r.json()),
+      fetch(GS_URL + '?action=getDone&secret=' + encodeURIComponent(API_SECRET)).then(r => r.json()),
+      fetch(GS_URL + '?action=getTodos&secret=' + encodeURIComponent(API_SECRET)).then(r => r.json()),
     ]);
     const initialized = localStorage.getItem('fp-dir-initialized');
     if (r1.tasks && r1.tasks.length) {
@@ -667,9 +658,9 @@ async function pushToSheets() {
     setSyncStatus('sync');
     _pendingSync = true;
     const ok = await Promise.all([
-      pushWithRetry(GS_URL, {action:'setTasks', tasks}),
-      pushWithRetry(GS_URL, {action:'setDone', done}),
-      pushWithRetry(GS_URL, {action:'setTodos', todos}),
+      pushWithRetry(GS_URL, {action:'setTasks', tasks, author:'direction'}),
+      pushWithRetry(GS_URL, {action:'setDone', done, author:'direction'}),
+      pushWithRetry(GS_URL, {action:'setTodos', todos, author:'direction'}),
     ]).then(r => r.every(Boolean)).catch(() => false);
     _pendingSync = false;
     if (ok) { setSyncStatus('ok'); }
@@ -759,6 +750,44 @@ function showTab(t) {
 }
 
 // ════════════════════════════════════════════════════════
+//  SÉCURITÉ — SANITISATION & SESSION
+// ════════════════════════════════════════════════════════
+function s(str) {
+  if (!str && str !== 0) return '';
+  if (typeof DOMPurify !== 'undefined') return DOMPurify.sanitize(String(str), {ALLOWED_TAGS:[], ALLOWED_ATTR:[]});
+  // Fallback si DOMPurify non chargé
+  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#x27;');
+}
+function sHtml(str) {
+  // Permet <br> uniquement — pour les commentaires
+  if (!str) return '';
+  const clean = s(str);
+  return clean.replace(/\n/g, '<br>');
+}
+function safeUrl(url) {
+  if (!url) return '#';
+  const u = String(url).trim();
+  if (u.startsWith('http://') || u.startsWith('https://') || u.startsWith('mailto:')) return u;
+  return '#'; // bloque javascript:, data:, etc.
+}
+// Session timeout 30 min
+const SESSION_TIMEOUT_MS = 30 * 60 * 1000;
+let _sessionTimer = null;
+function resetSessionTimer() {
+  clearTimeout(_sessionTimer);
+  _sessionTimer = setTimeout(() => {
+    showToast('⏱️ Session expirée — déconnexion automatique.', 'warn');
+    setTimeout(pinLogout, 1500);
+  }, SESSION_TIMEOUT_MS);
+}
+function startSessionTimer() {
+  resetSessionTimer();
+  ['click','keydown','touchstart','mousemove'].forEach(ev =>
+    document.addEventListener(ev, resetSessionTimer, {passive:true})
+  );
+}
+const API_SECRET = localStorage.getItem('fp-dir-api-secret') || '';
+// ════════════════════════════════════════════════════════
 //  PIN SYSTEM
 // ════════════════════════════════════════════════════════
 const PIN_KEY = 'fp-dir-pin';
@@ -767,6 +796,14 @@ let pinBuffer = '';
 let pinMode = 'login';
 let pinTemp = '';
 let pinFailCount = 0;
+const PP_MIN_LEN = 8;
+function ppCheckStrength(v) {
+  const errs = [];
+  if (v.length < PP_MIN_LEN) errs.push('8 caractères minimum');
+  if (!/[A-Z]/.test(v)) errs.push('1 majuscule');
+  if (!/[0-9]/.test(v)) errs.push('1 chiffre');
+  return errs; // tableau vide = OK
+}
 const LOCKOUT_KEY = 'fp-dir-lockout';
 
 async function hashPin(p) {
@@ -780,10 +817,13 @@ function pinStart() {
   const session = sessionStorage.getItem(SESSION_KEY);
   if (session === 'ok' && stored) { unlockApp(); return; }
   // Vérifier le verrouillage
-  const lockUntil = parseInt(localStorage.getItem(LOCKOUT_KEY) || '0');
+  // Double vérification lockout: localStorage ET sessionStorage
+  const lockLS = parseInt(localStorage.getItem(LOCKOUT_KEY) || '0');
+  const lockSS = parseInt(sessionStorage.getItem(LOCKOUT_KEY) || '0');
+  const lockUntil = Math.max(lockLS, lockSS);
   if (Date.now() < lockUntil) {
-    const s = Math.ceil((lockUntil - Date.now()) / 1000);
-    document.getElementById('pin-sub').textContent = `Trop de tentatives — réessayez dans ${s}s`;
+    const secs = Math.ceil((lockUntil - Date.now()) / 1000);
+    document.getElementById('pin-sub').textContent = `🔒 Trop de tentatives — réessayez dans ${secs}s`; ppClear();
     document.getElementById('pin-screen').style.display = 'flex';
     document.getElementById('pin-screen').classList.remove('hidden');
     setTimeout(pinStart, 1000);
@@ -791,78 +831,124 @@ function pinStart() {
   }
   if (!stored) {
     pinMode = 'set';
-    document.getElementById('pin-sub').textContent = 'Créez votre code PIN à 4 chiffres';
+    document.getElementById('pin-sub').textContent = 'Créez votre phrase secrète (min 8 car. + 1 maj. + 1 chiffre)'; ppClear();
     document.getElementById('pin-change-btn').style.display = 'none';
   } else {
     pinMode = 'login';
-    document.getElementById('pin-sub').textContent = 'Entrez votre code PIN';
+    document.getElementById('pin-sub').textContent = 'Entrez votre phrase secrète'; ppClear();
     document.getElementById('pin-change-btn').style.display = 'block';
   }
   document.getElementById('pin-screen').style.display = 'flex';
   document.getElementById('pin-screen').classList.remove('hidden');
 }
 
-function pinPress(n) {
-  if (pinBuffer.length >= 4) return;
-  pinBuffer += n;
-  updateDots();
-  if (pinBuffer.length === 4) setTimeout(pinSubmit, 120);
+// ── UI helpers passphrase ──────────────────────────────────────
+function ppToggleEye() {
+  const inp = document.getElementById('pp-input');
+  const eye = document.getElementById('pp-eye');
+  if (inp.type === 'password') { inp.type = 'text'; eye.textContent = '🙈'; }
+  else { inp.type = 'password'; eye.textContent = '👁'; }
 }
-
-function pinDel() {
-  pinBuffer = pinBuffer.slice(0, -1);
-  updateDots();
+function ppKeydown(e) {
+  if (e.key === 'Enter') pinSubmit();
   document.getElementById('pin-msg').textContent = '';
 }
-
-function updateDots(error = false) {
-  for (let i = 0; i < 4; i++) {
-    const d = document.getElementById('pd'+i);
-    d.className = 'pin-dot' + (i < pinBuffer.length ? ' filled' : '') + (error ? ' error' : '');
+function ppVal() { return (document.getElementById('pp-input')||{value:''}).value; }
+function ppClear(shake = false) {
+  const inp = document.getElementById('pp-input');
+  if (!inp) return;
+  inp.value = ''; ppStrength('');
+  if (shake) { inp.classList.add('error'); setTimeout(() => inp.classList.remove('error'), 400); }
+  setTimeout(() => inp.focus(), 50);
+}
+function ppStrength(v) {
+  const bar = document.getElementById('pp-bar'); if (!bar) return;
+  const errs = ppCheckStrength(v);
+  let score = 0;
+  if (v.length >= PP_MIN_LEN) score++;
+  if (v.length >= 12) score++;
+  if (/[A-Z]/.test(v)) score++;
+  if (/[0-9]/.test(v)) score++;
+  if (/[^a-zA-Z0-9]/.test(v)) score++;
+  const pct = Math.min(100, score * 20);
+  const color = score <= 1 ? '#ef4444' : score <= 2 ? '#f59e0b' : score <= 3 ? '#3b82f6' : '#10b981';
+  bar.style.width = pct + '%';
+  bar.style.background = color;
+  // Indice si en mode création
+  const msg = document.getElementById('pin-msg');
+  if (msg && v.length > 0 && errs.length > 0) {
+    msg.textContent = '⚠️ Manque : ' + errs.join(', ');
+    msg.style.color = '#f59e0b';
+  } else if (msg && v.length > 0) {
+    msg.textContent = '✅ Phrase valide';
+    msg.style.color = '#10b981';
+  } else if (msg && v.length === 0) {
+    msg.textContent = '';
   }
 }
-
+function ppFocus() { setTimeout(() => { const i = document.getElementById('pp-input'); if(i) i.focus(); }, 150); }
 async function pinSubmit() {
+  const val = ppVal().trim();
+  // En mode création : vérifier la force complète
+  if (pinMode === 'set' || pinMode === 'confirm') {
+    const _errs = ppCheckStrength(val);
+    if (_errs.length > 0) {
+      const m = document.getElementById('pin-msg');
+      m.textContent = '⚠️ Manque : ' + _errs.join(', ');
+      m.style.color = '#f59e0b';
+      ppClear(true); return;
+    }
+  } else if (val.length < 1) {
+    document.getElementById('pin-msg').textContent = '⚠️ Phrase vide.';
+    ppClear(true); return;
+  }
   if (pinMode === 'set') {
-    pinTemp = pinBuffer; pinBuffer = ''; updateDots();
-    document.getElementById('pin-sub').textContent = 'Confirmez votre code PIN';
+    pinTemp = val; ppClear();
+    document.getElementById('pin-sub').textContent = 'Confirmez votre phrase secrète';
     document.getElementById('pin-msg').textContent = '';
-    pinMode = 'confirm';
-  } else if (pinMode === 'confirm') {
-    if (pinBuffer === pinTemp) {
-      const h = await hashPin(pinBuffer);
+    pinMode = 'confirm'; ppFocus(); return;
+  }
+  if (pinMode === 'confirm') {
+    if (val === pinTemp) {
+      const h = await hashPin(val);
       localStorage.setItem(PIN_KEY, h);
-      document.getElementById('pin-msg').textContent = '✅ Code PIN enregistré !';
+      document.getElementById('pin-msg').style.color = '#10b981';
+      document.getElementById('pin-msg').textContent = '✅ Phrase secrète enregistrée !';
+      pinTemp = ''; ppClear();
       setTimeout(unlockApp, 600);
     } else {
-      pinBuffer = ''; pinTemp = ''; updateDots(true);
-      document.getElementById('pin-msg').textContent = '❌ Les codes ne correspondent pas';
-      document.getElementById('pin-sub').textContent = 'Créez votre code PIN à 4 chiffres';
+      pinTemp = ''; ppClear(true);
+      document.getElementById('pin-msg').textContent = '❌ Les phrases ne correspondent pas';
+      document.getElementById('pin-sub').textContent = 'Créez votre phrase secrète';
       pinMode = 'set';
     }
+    return;
+  }
+  // Mode login
+  const stored = localStorage.getItem(PIN_KEY);
+  const h = await hashPin(val);
+  if (h === stored) {
+    pinFailCount = 0;
+    localStorage.removeItem(LOCKOUT_KEY);
+    sessionStorage.removeItem(LOCKOUT_KEY);
+    sessionStorage.setItem(SESSION_KEY, 'ok');
+    document.getElementById('pin-msg').style.color = '';
+    document.getElementById('pin-msg').textContent = '✅ Accès autorisé';
+    ppClear();
+    setTimeout(unlockApp, 400);
   } else {
-    const stored = localStorage.getItem(PIN_KEY);
-    const h = await hashPin(pinBuffer);
-    if (h === stored) {
+    pinFailCount++;
+    ppClear(true);
+    if (pinFailCount >= 5) {
+      const until = Date.now() + 60000;
+      localStorage.setItem(LOCKOUT_KEY, String(until));
+      sessionStorage.setItem(LOCKOUT_KEY, String(until));
       pinFailCount = 0;
-      localStorage.removeItem(LOCKOUT_KEY);
-      sessionStorage.setItem(SESSION_KEY, 'ok');
-      document.getElementById('pin-msg').textContent = '✅ Accès autorisé';
-      setTimeout(unlockApp, 400);
+      document.getElementById('pin-msg').textContent = '🔒 5 erreurs — bloqué 60 secondes';
+      setTimeout(pinStart, 1100);
     } else {
-      pinFailCount++;
-      updateDots(true);
-      if (pinFailCount >= 5) {
-        const until = Date.now() + 60000;
-        localStorage.setItem(LOCKOUT_KEY, String(until));
-        pinFailCount = 0;
-        document.getElementById('pin-msg').textContent = '🔒 5 erreurs — bloqué 60 secondes';
-        setTimeout(pinStart, 1100);
-      } else {
-        document.getElementById('pin-msg').textContent = `❌ Code incorrect (${pinFailCount}/5)`;
-      }
-      pinBuffer = '';
-      setTimeout(() => { updateDots(); document.getElementById('pin-msg').textContent = ''; }, 1400);
+      document.getElementById('pin-msg').textContent = `❌ Phrase incorrecte (${pinFailCount}/5)`;
+      setTimeout(() => { document.getElementById('pin-msg').textContent = ''; }, 2000);
     }
   }
 }
@@ -871,35 +957,38 @@ function unlockApp() {
   const el = document.getElementById('pin-screen');
   el.classList.add('hidden');
   el.style.display = 'none';
-  pinBuffer = '';
+  startSessionTimer();
 }
 
 function pinLogout() {
   sessionStorage.removeItem(SESSION_KEY);
-  pinBuffer = ''; pinMode = 'login';
-  updateDots();
-  document.getElementById('pin-sub').textContent = 'Entrez votre code PIN';
+  clearTimeout(_sessionTimer);
+  ['click','keydown','touchstart','mousemove'].forEach(ev =>
+    document.removeEventListener(ev, resetSessionTimer)
+  );
+  pinMode = 'login';
+  document.getElementById('pin-sub').textContent = 'Entrez votre phrase secrète'; ppClear();
   document.getElementById('pin-msg').textContent = '';
   document.getElementById('pin-change-btn').style.display = 'block';
-  document.getElementById('pin-screen').classList.remove('hidden');
+  const ps = document.getElementById('pin-screen');
+  ps.classList.remove('hidden');
+  ps.style.display = 'flex';
 }
 
 function pinReset() {
   if (!confirm('Changer le code PIN ? Vous devrez en créer un nouveau.')) return;
   localStorage.removeItem(PIN_KEY);
+  localStorage.removeItem(LOCKOUT_KEY);
   sessionStorage.removeItem(SESSION_KEY);
-  pinBuffer = ''; pinMode = 'set';
-  updateDots();
-  document.getElementById('pin-sub').textContent = 'Créez votre code PIN à 4 chiffres';
+  sessionStorage.removeItem(LOCKOUT_KEY);
+  pinFailCount = 0;
+  pinMode = 'set';
+  document.getElementById('pin-sub').textContent = 'Créez votre phrase secrète (min 8 car. + 1 maj. + 1 chiffre)'; ppClear();
   document.getElementById('pin-msg').textContent = '';
   document.getElementById('pin-change-btn').style.display = 'none';
 }
 
-document.addEventListener('keydown', e => {
-  if (document.getElementById('pin-screen').classList.contains('hidden')) return;
-  if (e.key >= '0' && e.key <= '9') pinPress(+e.key);
-  if (e.key === 'Backspace') pinDel();
-});
+
 
 // ════════════════════════════════════════════════════════
 //  HELPERS SÉCURITÉ & STOCKAGE
@@ -937,11 +1026,24 @@ function purgeTodos() {
 async function pushWithRetry(url, body, attempts = 3) {
   for (let i = 0; i < attempts; i++) {
     try {
-      const r = await fetch(url, {method:'POST', body: JSON.stringify(body)});
+      const r = await fetch(url, {method:'POST', body: JSON.stringify({...body, secret: API_SECRET})});
       if (r.ok) return true;
     } catch(e) { if (i < attempts-1) await new Promise(res => setTimeout(res, 800 * Math.pow(2, i))); }
   }
   return false;
+}
+function setupSecret() {
+  const current = localStorage.getItem('fp-dir-api-secret') ? '(déjà configuré)' : '(non configuré)';
+  const val = prompt('Token secret API ' + current + '\nEntrez la même valeur que dans votre Apps Script:\n(laisser vide pour supprimer)');
+  if (val === null) return;
+  if (val.trim() === '') {
+    localStorage.removeItem('fp-dir-api-secret');
+    showToast('🔑 Token supprimé.', 'warn');
+  } else {
+    localStorage.setItem('fp-dir-api-secret', val.trim());
+    showToast('✅ Token API enregistré.');
+  }
+  location.reload();
 }
 function exportData() {
   const payload = {app:'direction', exportedAt: new Date().toISOString(), version: Date.now(), tasks, done, todos};
@@ -981,7 +1083,7 @@ function tCard(t, isToday) {
   return `<div class="tc ${d?'done':''}" onclick="openPanel('${t.id}')">
     <div class="pdot ${t.priority||'medium'}"></div>
     <div class="tinfo">
-      <div class="ttitle">${t.title}</div>
+      <div class="ttitle">${s(t.title)}</div>
       <div class="tmeta">
         <span class="tag ${t.tag}">${TL(t.tag)}</span>
         <span class="rbadge">${recurLabel(t.recur)}</span>
@@ -1148,7 +1250,7 @@ function renderDay() {
     h += '<div class="slbl2">📝 Mes to-dos</div>';
     myTodos.forEach(td => { h += `<div class="todo-item ${td.done?'done-todo':''}">
       <input type="checkbox" class="tcb" ${td.done?'checked':''} onchange="toggleTodo('${selDate}','${td.id}')">
-      <span class="todo-text">${td.text}</span><span class="tag ${td.cat}">${TL(td.cat)}</span>
+      <span class="todo-text">${s(td.text)}</span><span class="tag ${td.cat}">${TL(td.cat)}</span>
       <button class="tdel" onclick="delTodo('${selDate}','${td.id}')">✕</button>
     </div>`; });
   }
@@ -1158,7 +1260,7 @@ function renderDay() {
       const d2 = !!done[t.id];
       h += `<div class="pred-item ${d2?'done-pred':''}" onclick="openPanel('${t.id}')">
         <input type="checkbox" class="tcb" ${d2?'checked':''} onclick="event.stopPropagation()" onchange="toggleDone('${t.id}')">
-        <span class="todo-text">${t.title}</span>
+        <span class="todo-text">${s(t.title)}</span>
         <span class="tag ${t.tag}">${TL(t.tag)}</span>
         <span class="rbadge" style="font-size:9px;">${recurLabel(t.recur)}</span>
       </div>`;
@@ -1197,7 +1299,7 @@ function renderManage() {
     <div class="mcard">
       <div class="pdot ${t.priority||'medium'}"></div>
       <div class="mci">
-        <div class="mct">${t.title}</div>
+        <div class="mct">${s(t.title)}</div>
         <div class="mcm">
           <span class="tag ${t.tag}">${TL(t.tag)}</span>
           <span class="rbadge">${recurLabel(t.recur)}</span>
@@ -1253,7 +1355,7 @@ function renderPanelDetails(id) {
   const d = !!done[id];
   document.getElementById('ps-details').innerHTML = `
     <div class="detail-row"><label>Priorité</label><p>${PRIO_LABEL[t.priority||'medium']}</p></div>
-    <div class="detail-row"><label>Description</label>${t.desc?`<p>${t.desc}</p>`:'<p class="empty">Aucune description</p>'}</div>
+    <div class="detail-row"><label>Description</label>${t.desc?`<p>${s(t.desc)}</p>`:'<p class="empty">Aucune description</p>'}</div>
     <div class="detail-row"><label>Récurrence</label><p>${recurLabel(t.recur)}</p></div>
     ${t.dueDate?`<div class="detail-row"><label>Date butoir</label><p ${isDueSoon(t.dueDate)?'style="color:var(--red);font-weight:700;"':''}>${fmtDate(t.dueDate)}</p></div>`:''}
     <div class="detail-row"><label>Statut</label><p>${d?'✅ Tâche marquée comme faite':'⬜ À réaliser'}</p></div>
@@ -1274,13 +1376,13 @@ function renderPanelComments(id) {
   else cmts.forEach(c => {
     h += `<div class="comment-item">
       <div class="comment-head">
-        <span class="comment-author">👤 ${c.author||'Assistante'}</span>
+        <span class="comment-author">👤 ${s(c.author||'Assistante')}</span>
         <div style="display:flex;align-items:center;gap:8px;">
           <span class="comment-date">${fmtDateTime(c.date)}</span>
           <button class="comment-del" onclick="deleteComment('${id}','${c.id}')">✕</button>
         </div>
       </div>
-      <div class="comment-text">${c.text.replace(/\n/g,'<br>')}</div>
+      <div class="comment-text">${sHtml(c.text)}</div>
     </div>`;
   });
   h += `<div class="comment-add">
@@ -1321,10 +1423,10 @@ function renderPanelAttachments(id) {
     h += `<div class="attach-item">
       <div class="attach-icon">${a.type==='file'?getFileIcon(a.name):'🔗'}</div>
       <div class="attach-info">
-        <div class="attach-name">${a.name}</div>
+        <div class="attach-name">${s(a.name)}</div>
         <div class="attach-size">${a.type==='url'?'Lien externe':a.size||''}</div>
       </div>
-      ${a.type==='url'?`<a class="attach-open" href="${a.url}" target="_blank">Ouvrir</a>`:
+      ${a.type==='url'?`<a class="attach-open" href="${safeUrl(a.url)}" target="_blank" rel="noopener noreferrer">Ouvrir</a>`:
         `<a class="attach-open" href="${a.data}" download="${a.name}">Télécharger</a>`}
       <button class="attach-del" onclick="deleteAttachment('${id}','${a.id}')">✕</button>
     </div>`;
@@ -1351,6 +1453,7 @@ function addUrlAttachment(taskId) {
   const name = document.getElementById('att-name').value.trim();
   const url = document.getElementById('att-url').value.trim();
   if (!url) { alert('URL manquante.'); return; }
+  if (!url.startsWith('http://') && !url.startsWith('https://')) { alert('URL invalide — doit commencer par http:// ou https://'); return; }
   const t = tasks.find(x => x.id === taskId); if (!t) return;
   if (!t.attachments) t.attachments = [];
   t.attachments.push({id:'a'+Date.now(), name: name||url, url, type:'url'});
