@@ -255,8 +255,6 @@ main{max-width:1100px;margin:0 auto;padding:24px 18px 100px;}
 .pp-submit:hover{background:var(--pink2);transform:translateY(-1px);}
 .pp-submit:active{transform:translateY(0);}
 .pin-msg{margin-top:14px;font-size:13px;color:rgba(255,255,255,.5);text-align:center;min-height:20px;max-width:320px;}
-.pin-change{margin-top:20px;background:none;border:1.5px solid rgba(255,255,255,.15);color:rgba(255,255,255,.4);border-radius:10px;padding:8px 18px;font-family:'Syne',sans-serif;font-size:12px;cursor:pointer;transition:all .2s;}
-.pin-change:hover{border-color:rgba(255,255,255,.4);color:#fff;}
 .btn-logout{background:rgba(255,255,255,.1);border:none;color:rgba(255,255,255,.6);border-radius:7px;padding:5px 11px;font-size:11px;font-family:'Syne',sans-serif;font-weight:600;cursor:pointer;}
 .btn-logout:hover{background:rgba(255,255,255,.2);color:#fff;}
 
@@ -282,7 +280,6 @@ main{max-width:1100px;margin:0 auto;padding:24px 18px 100px;}
   <div class="pp-strength"><div class="pp-strength-bar" id="pp-bar"></div></div>
   <button class="pp-submit" onclick="pinSubmit()">🔓 Accéder</button>
   <div class="pin-msg" id="pin-msg"></div>
-  <button class="pin-change" onclick="pinReset()" id="pin-change-btn">Changer la phrase secrète</button>
 </div>
 
 <div class="loading-screen" id="loading"><div class="spin-lg"></div><div class="ltxt">Chargement…</div></div>
@@ -352,6 +349,7 @@ main{max-width:1100px;margin:0 auto;padding:24px 18px 100px;}
         <button class="btn-ghost" style="margin:0;border-color:var(--purple);color:var(--purple);" onclick="setupSecret()">🔑 Token API</button>
         <button class="btn-ghost" style="margin:0;border-color:var(--navy);color:var(--navy);" onclick="exportData()">📤 Exporter</button>
         <label class="btn-ghost" style="margin:0;cursor:pointer;border-color:var(--teal);color:var(--teal);">📥 Importer<input type="file" accept=".json" style="display:none;" onchange="importData(this)"></label>
+        <button class="btn-ghost" style="margin:0;border-color:var(--muted);color:var(--muted);" onclick="pinReset()">🔑 Changer la phrase secrète</button>
       </div>
     </div>
     <!-- FILTER -->
@@ -832,11 +830,9 @@ function pinStart() {
   if (!stored) {
     pinMode = 'set';
     document.getElementById('pin-sub').textContent = 'Créez votre phrase secrète (min 8 car. + 1 maj. + 1 chiffre)'; ppClear();
-    document.getElementById('pin-change-btn').style.display = 'none';
   } else {
     pinMode = 'login';
     document.getElementById('pin-sub').textContent = 'Entrez votre phrase secrète'; ppClear();
-    document.getElementById('pin-change-btn').style.display = 'block';
   }
   document.getElementById('pin-screen').style.display = 'flex';
   document.getElementById('pin-screen').classList.remove('hidden');
@@ -969,7 +965,6 @@ function pinLogout() {
   pinMode = 'login';
   document.getElementById('pin-sub').textContent = 'Entrez votre phrase secrète'; ppClear();
   document.getElementById('pin-msg').textContent = '';
-  document.getElementById('pin-change-btn').style.display = 'block';
   const ps = document.getElementById('pin-screen');
   ps.classList.remove('hidden');
   ps.style.display = 'flex';
@@ -985,7 +980,6 @@ function pinReset() {
   pinMode = 'set';
   document.getElementById('pin-sub').textContent = 'Créez votre phrase secrète (min 8 car. + 1 maj. + 1 chiffre)'; ppClear();
   document.getElementById('pin-msg').textContent = '';
-  document.getElementById('pin-change-btn').style.display = 'none';
 }
 
 
