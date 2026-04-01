@@ -580,8 +580,45 @@ document.addEventListener('DOMContentLoaded', async () => {
   checkStorageQuota();
   pinStart();
   window.addEventListener('beforeunload', e => {
-  if (_pendingSync || syncTO) { e.preventDefault(); e.returnValue = 'Une synchronisation est en cours — quitter maintenant pourrait entraîner une perte de données.'; }
-});
+    if (_pendingSync || syncTO) { e.preventDefault(); e.returnValue = 'Une synchronisation est en cours — quitter maintenant pourrait entraîner une perte de données.'; }
+  });
+
+  // ── Rechargement depuis Sheets au retour sur l'onglet (multi-appareils) ──
+  document.addEventListener('visibilitychange', async () => {
+    if (document.visibilityState === 'visible' && GS_URL) {
+      const lastPush = parseInt(localStorage.getItem('fp-dir-last-push') || '0');
+      const elapsed = Date.now() - lastPush;
+      // Recharger si l'onglet était en arrière-plan depuis plus de 30 secondes
+      if (elapsed > 30000) {
+        showToast('🔄 Rechargement des données depuis Sheets…');
+        await loadFromSheets();
+        renderAll();
+      }
+    }
+  });
+
+  // ── Retour en ligne → resync immédiat ──
+  window.addEventListener('online', async () => {
+    if (GS_URL) {
+      showToast('🌐 Connexion rétablie — synchronisation en cours…');
+      await loadFromSheets();
+      renderAll();
+      // Pousser les modifications locales éventuelles
+      pushToSheets();
+    }
+  });
+  window.addEventListener('offline', () => {
+    setSyncStatus('err');
+    showToast('📵 Hors ligne — modifications sauvegardées localement.', 'warn');
+  });
+
+  // ── Auto-sync périodique toutes les 2 minutes (multi-appareils) ──
+  setInterval(async () => {
+    if (GS_URL && !_pendingSync && document.visibilityState === 'visible' && navigator.onLine) {
+      await loadFromSheets();
+      renderAll();
+    }
+  }, 2 * 60 * 1000);
 });
 
 // ════════════════════════════════════════════════════════
@@ -648,21 +685,33 @@ async function loadFromSheets() {
 }
 
 let _pendingSync = false;
+let _localVersion = 0; // incrémenté à chaque modification locale
+
 async function pushToSheets() {
+  _localVersion++;
+  const myVersion = _localVersion;
   saveLocal();
   if (!GS_URL) return;
   clearTimeout(syncTO);
   syncTO = setTimeout(async () => {
+    // Si une modification plus récente est arrivée, annuler ce push
+    if (myVersion < _localVersion) return;
     setSyncStatus('sync');
     _pendingSync = true;
+    const ts = Date.now();
     const ok = await Promise.all([
-      pushWithRetry(GS_URL, {action:'setTasks', tasks, author:'direction'}),
-      pushWithRetry(GS_URL, {action:'setDone', done, author:'direction'}),
-      pushWithRetry(GS_URL, {action:'setTodos', todos, author:'direction'}),
+      pushWithRetry(GS_URL, {action:'setTasks', tasks, author:'direction', _updatedAt: ts}),
+      pushWithRetry(GS_URL, {action:'setDone',  done,  author:'direction', _updatedAt: ts}),
+      pushWithRetry(GS_URL, {action:'setTodos', todos, author:'direction', _updatedAt: ts}),
     ]).then(r => r.every(Boolean)).catch(() => false);
     _pendingSync = false;
-    if (ok) { setSyncStatus('ok'); }
-    else { setSyncStatus('err'); showToast('❌ Synchro Sheets échouée après 3 tentatives.', 'err'); }
+    if (ok) {
+      setSyncStatus('ok');
+      safeLocalSet('fp-dir-last-push', String(ts));
+    } else {
+      setSyncStatus('err');
+      showToast('❌ Synchro Sheets échouée — données sauvegardées localement.', 'err');
+    }
   }, 900);
 }
 
