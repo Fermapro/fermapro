@@ -1064,6 +1064,7 @@ async function pinSubmit() {
   } else {
     pinFailCount++;
     ppClear(true);
+    var _bf=document.getElementById('btn-forgot'); if(_bf && pinFailCount>=2) _bf.style.display='block';
     if (pinFailCount >= 5) {
       const until = Date.now() + 60000;
       localStorage.setItem(LOCKOUT_KEY, String(until));
