@@ -924,30 +924,46 @@ function pinStart() {
   const stored = localStorage.getItem(PIN_KEY);
   const session = sessionStorage.getItem(SESSION_KEY);
   if (session === 'ok' && stored) { unlockApp(); return; }
-  // Vérifier le verrouillage
-  // Double vérification lockout: localStorage ET sessionStorage
-  const lockLS = parseInt(localStorage.getItem(LOCKOUT_KEY) || '0');
-  const lockSS = parseInt(sessionStorage.getItem(LOCKOUT_KEY) || '0');
-  const lockUntil = Math.max(lockLS, lockSS);
-  if (Date.now() < lockUntil) {
-    const secs = Math.ceil((lockUntil - Date.now()) / 1000);
-    document.getElementById('pin-sub').textContent = `🔒 Trop de tentatives — réessayez dans ${secs}s`; ppClear();
+
+  // Auto-migration : ancien hash incompatible (djb2) -> SHA-256 (64 hex)
+  if (stored && stored.length !== 64) {
+    localStorage.removeItem(PIN_KEY);
+    localStorage.removeItem(LOCKOUT_KEY);
+    localStorage.removeItem(BIO_KEY);
+    localStorage.removeItem(BIO_ENABLED);
+    sessionStorage.removeItem(SESSION_KEY);
+    sessionStorage.removeItem(LOCKOUT_KEY);
+    pinFailCount = 0;
     document.getElementById('pin-screen').style.display = 'flex';
     document.getElementById('pin-screen').classList.remove('hidden');
-    setTimeout(pinStart, 1000);
-    return;
+    document.getElementById('pin-sub').textContent = 'Mise à jour — créez votre nouvelle phrase secrète';
+    var fb2=document.getElementById('btn-forgot'); if(fb2) fb2.style.display='none';
+    var bs2=document.getElementById('bio-sep'); if(bs2) bs2.classList.add('hidden');
+    var bb2=document.getElementById('bio-btn'); if(bb2) bb2.classList.add('hidden');
+    pinMode='set'; ppClear(); return;
+  }
+
+  var lockLS=parseInt(localStorage.getItem(LOCKOUT_KEY)||'0');
+  var lockSS=parseInt(sessionStorage.getItem(LOCKOUT_KEY)||'0');
+  var lockUntil=Math.max(lockLS,lockSS);
+  if (Date.now() < lockUntil) {
+    var secs=Math.ceil((lockUntil-Date.now())/1000);
+    document.getElementById('pin-sub').textContent='🔒 Trop de tentatives — réessayez dans '+secs+'s'; ppClear();
+    document.getElementById('pin-screen').style.display='flex';
+    document.getElementById('pin-screen').classList.remove('hidden');
+    setTimeout(pinStart,1000); return;
   }
   if (!stored) {
-    pinMode = 'set';
-    document.getElementById('pin-sub').textContent = 'Créez votre phrase secrète (min 8 car. + 1 maj. + 1 chiffre)'; ppClear();
-    const fb = document.getElementById('btn-forgot'); if(fb) fb.style.display = 'none';
+    pinMode='set';
+    document.getElementById('pin-sub').textContent='Créez votre phrase secrète (min 8 car. + 1 maj. + 1 chiffre)'; ppClear();
+    var fb=document.getElementById('btn-forgot'); if(fb) fb.style.display='none';
   } else {
-    pinMode = 'login';
-    document.getElementById('pin-sub').textContent = 'Entrez votre phrase secrète'; ppClear();
-    bioInit(); // afficher le bouton biométrique si disponible
-    document.getElementById('btn-forgot').style.display = 'block';
+    pinMode='login';
+    document.getElementById('pin-sub').textContent='Entrez votre phrase secrète'; ppClear();
+    bioInit();
+    document.getElementById('btn-forgot').style.display='block';
   }
-  document.getElementById('pin-screen').style.display = 'flex';
+  document.getElementById('pin-screen').style.display='flex';
   document.getElementById('pin-screen').classList.remove('hidden');
 }
 
