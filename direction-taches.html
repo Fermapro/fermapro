@@ -346,6 +346,7 @@ main{max-width:1100px;margin:0 auto;padding:24px 18px 100px;}
       <div style="display:flex;gap:8px;flex-wrap:wrap;">
         <button class="btn-s" onclick="openModal()">＋ Nouvelle tâche</button>
         <button class="btn-ghost" style="margin:0;" onclick="changeURL()">🔗 URL Sheets</button>
+        <button class="btn-ghost" style="margin:0;border-color:var(--green);color:var(--green);" onclick="forceSyncNow()">🔄 Forcer synchro</button>
         <button class="btn-ghost" style="margin:0;border-color:var(--purple);color:var(--purple);" onclick="setupSecret()">🔑 Token API</button>
         <button class="btn-ghost" style="margin:0;border-color:var(--navy);color:var(--navy);" onclick="exportData()">📤 Exporter</button>
         <label class="btn-ghost" style="margin:0;cursor:pointer;border-color:var(--teal);color:var(--teal);">📥 Importer<input type="file" accept=".json" style="display:none;" onchange="importData(this)"></label>
@@ -615,7 +616,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   // ── Auto-sync périodique toutes les 2 minutes (multi-appareils) ──
   setInterval(async () => {
     if (GS_URL && !_pendingSync && document.visibilityState === 'visible' && navigator.onLine) {
-      await loadFromSheets();
+      await loadFromSheets(true); // silent=true
       renderAll();
     }
   }, 2 * 60 * 1000);
@@ -652,34 +653,68 @@ function saveLocal() {
 // ════════════════════════════════════════════════════════
 function setSyncStatus(s) { document.getElementById('sdot').className = 'sdot ' + s; }
 
-async function loadFromSheets() {
+async function loadFromSheets(silent = false) {
   if (!GS_URL) { loadFromLocal(); return; }
-  setSyncStatus('sync');
+  if (!silent) setSyncStatus('sync');
   try {
     const [r1, r2, r3] = await Promise.all([
       fetch(GS_URL + '?action=getTasks&secret=' + encodeURIComponent(API_SECRET)).then(r => r.json()),
       fetch(GS_URL + '?action=getDone&secret=' + encodeURIComponent(API_SECRET)).then(r => r.json()),
       fetch(GS_URL + '?action=getTodos&secret=' + encodeURIComponent(API_SECRET)).then(r => r.json()),
     ]);
-    const initialized = localStorage.getItem('fp-dir-initialized');
+
+    // ── Comparaison version Sheets vs version locale ──────────────────────
+    const sheetsVersion  = r1._syncVersion || 0;
+    const localVersion   = parseInt(localStorage.getItem('fp-dir-syncVersion') || '0');
+    const sheetsUpdated  = r1._updatedAt || 0;
+    const localUpdated   = parseInt(localStorage.getItem('fp-dir-last-push') || '0');
+
+    const sheetsIsNewer = sheetsVersion > localVersion || sheetsUpdated > localUpdated;
+
     if (r1.tasks && r1.tasks.length) {
-      tasks = r1.tasks;
-    } else if (!initialized) {
+      if (sheetsIsNewer || !localStorage.getItem('fp-dir-initialized')) {
+        // Sheets est plus récent → prendre ses données
+        tasks = r1.tasks;
+        done  = r2.done  || {};
+        todos = r3.todos || {};
+        safeLocalSet('fp-dir-syncVersion', String(sheetsVersion));
+        saveLocal();
+        if (!silent && sheetsIsNewer && localVersion > 0) {
+          showToast('🔄 Données mises à jour depuis un autre appareil.');
+        }
+      } else {
+        // Local est plus récent → garder local MAIS repousser vers Sheets
+        console.log('[Sync] Local plus récent (v' + localVersion + ' > v' + sheetsVersion + ') — push en cours');
+        if (!_pendingSync) {
+          _pendingSync = true;
+          const ts = Date.now();
+          await Promise.all([
+            pushWithRetry(GS_URL, {action:'setTasks', tasks, author:'direction', _updatedAt: ts, _syncVersion: localVersion}),
+            pushWithRetry(GS_URL, {action:'setDone',  done,  author:'direction', _updatedAt: ts}),
+            pushWithRetry(GS_URL, {action:'setTodos', todos, author:'direction', _updatedAt: ts}),
+          ]);
+          _pendingSync = false;
+        }
+      }
+    } else if (!localStorage.getItem('fp-dir-initialized')) {
       tasks = JSON.parse(JSON.stringify(DEFAULT_TASKS));
       safeLocalSet('fp-dir-initialized', '1');
+      saveLocal();
     } else {
+      // Sheets vide mais local a des données — garder local
       tasks = safeParse(localStorage.getItem('fp-dir-tasks'), []);
+      done  = safeParse(localStorage.getItem('fp-dir-done'),  {});
+      todos = safeParse(localStorage.getItem('fp-dir-todos'), {});
     }
-    done = r2.done || {};
-    todos = r3.todos || {};
+
     safeLocalSet('fp-dir-initialized', '1');
-    saveLocal();
     setSyncStatus('ok');
+    document.getElementById('sdot').title = 'Synchro OK — ' + new Date().toLocaleTimeString('fr-FR');
   } catch(e) {
     console.warn('[Sheets] Chargement échoué, cache local utilisé.', e);
     loadFromLocal();
     setSyncStatus('err');
-    showToast('⚠️ Synchro Sheets impossible — données locales chargées.', 'warn');
+    if (!silent) showToast('⚠️ Sheets inaccessible — données locales chargées.', 'warn');
   }
   document.getElementById('loading').classList.add('hidden');
 }
@@ -699,15 +734,19 @@ async function pushToSheets() {
     setSyncStatus('sync');
     _pendingSync = true;
     const ts = Date.now();
+    _localVersion++;
+    const sv = _localVersion;
+    safeLocalSet('fp-dir-syncVersion', String(sv));
+    safeLocalSet('fp-dir-last-push', String(ts));
     const ok = await Promise.all([
-      pushWithRetry(GS_URL, {action:'setTasks', tasks, author:'direction', _updatedAt: ts}),
-      pushWithRetry(GS_URL, {action:'setDone',  done,  author:'direction', _updatedAt: ts}),
-      pushWithRetry(GS_URL, {action:'setTodos', todos, author:'direction', _updatedAt: ts}),
+      pushWithRetry(GS_URL, {action:'setTasks', tasks, author:'direction', _updatedAt: ts, _syncVersion: sv}),
+      pushWithRetry(GS_URL, {action:'setDone',  done,  author:'direction', _updatedAt: ts, _syncVersion: sv}),
+      pushWithRetry(GS_URL, {action:'setTodos', todos, author:'direction', _updatedAt: ts, _syncVersion: sv}),
     ]).then(r => r.every(Boolean)).catch(() => false);
     _pendingSync = false;
     if (ok) {
       setSyncStatus('ok');
-      safeLocalSet('fp-dir-last-push', String(ts));
+      document.getElementById('sdot').title = 'Dernière synchro : ' + new Date().toLocaleTimeString('fr-FR');
     } else {
       setSyncStatus('err');
       showToast('❌ Synchro Sheets échouée — données sauvegardées localement.', 'err');
@@ -1087,6 +1126,16 @@ function setupSecret() {
     showToast('✅ Token API enregistré.');
   }
   location.reload();
+}
+function forceSyncNow() {
+  if (!GS_URL) { showToast('⚠️ Aucune URL Sheets configurée.', 'warn'); return; }
+  showToast('🔄 Synchronisation forcée en cours…');
+  setSyncStatus('sync');
+  // Comparer local vs sheets et prendre le plus récent
+  loadFromSheets(false).then(() => {
+    renderAll();
+    showToast('✅ Synchronisation terminée.');
+  });
 }
 function exportData() {
   const payload = {app:'direction', exportedAt: new Date().toISOString(), version: Date.now(), tasks, done, todos};
