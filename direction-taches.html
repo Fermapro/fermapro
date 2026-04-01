@@ -275,6 +275,8 @@ main{max-width:1100px;margin:0 auto;padding:24px 18px 100px;}
 .bio-sep::before,.bio-sep::after{content:'';flex:1;height:1px;background:rgba(255,255,255,.15);}
 .bio-sep.hidden{display:none!important;}
 .bio-status{font-size:12px;color:rgba(255,255,255,.5);margin-top:6px;text-align:center;min-height:18px;}
+.pin-forgot{margin-top:18px;background:none;border:none;color:rgba(255,255,255,.35);font-size:12px;cursor:pointer;font-family:'Nunito',sans-serif;text-decoration:underline;transition:color .2s;}
+.pin-forgot:hover{color:rgba(255,255,255,.7);}
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.1.6/purify.min.js"></script>
 </head>
@@ -298,6 +300,7 @@ main{max-width:1100px;margin:0 auto;padding:24px 18px 100px;}
     <span id="bio-label">Face ID / Touch ID</span>
   </button>
   <div class="bio-status" id="bio-status"></div>
+  <button class="pin-forgot" id="btn-forgot" onclick="pinForgot()" style="display:none;">Phrase secrète oubliée ?</button>
 </div>
 
 <div class="loading-screen" id="loading"><div class="spin-lg"></div><div class="ltxt">Chargement…</div></div>
@@ -937,10 +940,12 @@ function pinStart() {
   if (!stored) {
     pinMode = 'set';
     document.getElementById('pin-sub').textContent = 'Créez votre phrase secrète (min 8 car. + 1 maj. + 1 chiffre)'; ppClear();
+    const fb = document.getElementById('btn-forgot'); if(fb) fb.style.display = 'none';
   } else {
     pinMode = 'login';
     document.getElementById('pin-sub').textContent = 'Entrez votre phrase secrète'; ppClear();
     bioInit(); // afficher le bouton biométrique si disponible
+    document.getElementById('btn-forgot').style.display = 'block';
   }
   document.getElementById('pin-screen').style.display = 'flex';
   document.getElementById('pin-screen').classList.remove('hidden');
@@ -1852,6 +1857,26 @@ async function bioAuth() {
 }
 
 // ── Réinitialiser la biométrie (ex: changement de phrase secrète) ─────────
+function pinForgot() {
+  if (!confirm('Réinitialiser la phrase secrète ?\n\nVous devrez en créer une nouvelle.\nVos données restent intactes.')) return;
+  localStorage.removeItem(PIN_KEY);
+  localStorage.removeItem(LOCKOUT_KEY);
+  localStorage.removeItem(BIO_KEY);
+  localStorage.removeItem(BIO_ENABLED);
+  sessionStorage.removeItem(SESSION_KEY);
+  sessionStorage.removeItem(LOCKOUT_KEY);
+  pinFailCount = 0;
+  pinMode = 'set';
+  ppClear();
+  document.getElementById('pin-sub').textContent = 'Créez votre nouvelle phrase secrète';
+  document.getElementById('pin-msg').textContent = '';
+  document.getElementById('pin-msg').style.color = '';
+  document.getElementById('btn-forgot').style.display = 'none';
+  const bioSep = document.getElementById('bio-sep');
+  const bioBtn = document.getElementById('bio-btn');
+  if (bioSep) bioSep.classList.add('hidden');
+  if (bioBtn) bioBtn.classList.add('hidden');
+}
 function bioReset() {
   localStorage.removeItem(BIO_KEY);
   localStorage.removeItem(BIO_ENABLED);
