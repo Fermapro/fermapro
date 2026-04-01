@@ -263,6 +263,18 @@ main{max-width:1100px;margin:0 auto;padding:24px 18px 100px;}
 .btn-primary:hover{background:var(--pink2);}
 .btn-secondary{background:var(--navy);color:#fff;border:none;border-radius:8px;padding:8px 16px;font-family:'Syne',sans-serif;font-weight:700;font-size:12px;cursor:pointer;}
 .btn-secondary:hover{background:var(--navy2);}
+
+/* ── BIOMÉTRIE ── */
+.bio-btn{width:100%;max-width:320px;margin-top:8px;padding:13px;background:rgba(255,255,255,.08);border:1.5px solid rgba(255,255,255,.2);border-radius:12px;color:#fff;font-family:'Syne',sans-serif;font-weight:700;font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;transition:all .2s;}
+.bio-btn:hover{background:rgba(255,255,255,.16);border-color:rgba(255,255,255,.4);}
+.bio-btn:active{transform:scale(.97);}
+.bio-btn.hidden{display:none!important;}
+.bio-icon{font-size:22px;line-height:1;}
+.bio-sep{display:flex;align-items:center;gap:10px;width:100%;max-width:320px;margin:10px 0;}
+.bio-sep span{color:rgba(255,255,255,.3);font-size:11px;white-space:nowrap;}
+.bio-sep::before,.bio-sep::after{content:'';flex:1;height:1px;background:rgba(255,255,255,.15);}
+.bio-sep.hidden{display:none!important;}
+.bio-status{font-size:12px;color:rgba(255,255,255,.5);margin-top:6px;text-align:center;min-height:18px;}
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.1.6/purify.min.js"></script>
 </head>
@@ -280,6 +292,12 @@ main{max-width:1100px;margin:0 auto;padding:24px 18px 100px;}
   <div class="pp-strength"><div class="pp-strength-bar" id="pp-bar"></div></div>
   <button class="pp-submit" onclick="pinSubmit()">🔓 Accéder</button>
   <div class="pin-msg" id="pin-msg"></div>
+  <div class="bio-sep hidden" id="bio-sep"><span>ou</span></div>
+  <button class="bio-btn hidden" id="bio-btn" onclick="bioAuth()">
+    <span class="bio-icon" id="bio-icon">🔬</span>
+    <span id="bio-label">Face ID / Touch ID</span>
+  </button>
+  <div class="bio-status" id="bio-status"></div>
 </div>
 
 <div class="loading-screen" id="loading"><div class="spin-lg"></div><div class="ltxt">Chargement…</div></div>
@@ -351,6 +369,7 @@ main{max-width:1100px;margin:0 auto;padding:24px 18px 100px;}
         <button class="btn-ghost" style="margin:0;border-color:var(--navy);color:var(--navy);" onclick="exportData()">📤 Exporter</button>
         <label class="btn-ghost" style="margin:0;cursor:pointer;border-color:var(--teal);color:var(--teal);">📥 Importer<input type="file" accept=".json" style="display:none;" onchange="importData(this)"></label>
         <button class="btn-ghost" style="margin:0;border-color:var(--muted);color:var(--muted);" onclick="pinReset()">🔑 Changer la phrase secrète</button>
+        <button class="btn-ghost" style="margin:0;border-color:var(--muted);color:var(--muted);" onclick="bioReset()">🪪 Réinitialiser biométrie</button>
       </div>
     </div>
     <!-- FILTER -->
@@ -921,6 +940,7 @@ function pinStart() {
   } else {
     pinMode = 'login';
     document.getElementById('pin-sub').textContent = 'Entrez votre phrase secrète'; ppClear();
+    bioInit(); // afficher le bouton biométrique si disponible
   }
   document.getElementById('pin-screen').style.display = 'flex';
   document.getElementById('pin-screen').classList.remove('hidden');
@@ -1666,6 +1686,180 @@ function saveTask() {
   pushToSheets(); closeModal(); renderAll();
   if (panelTaskId === editingId) { renderPanelDetails(editingId); }
 }
+
+// ════════════════════════════════════════════════════════
+//  BIOMÉTRIE — WebAuthn (Face ID / Touch ID / Windows Hello)
+// ════════════════════════════════════════════════════════
+const BIO_KEY        = 'fp-dir-bio-credId';   // credentialId enregistré
+const BIO_ENABLED    = 'fp-dir-bio-enabled';   // biométrie activée ?
+const BIO_RP_ID      = location.hostname || 'fermapro.github.io';
+const BIO_RP_NAME    = 'Fermapro Direction';
+
+// ── Détection support biométrie ────────────────────────────────────────────
+async function bioIsAvailable() {
+  if (!window.PublicKeyCredential) return false;
+  try {
+    return await PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable();
+  } catch(e) { return false; }
+}
+
+// ── Initialiser le bouton biométrique ─────────────────────────────────────
+async function bioInit() {
+  const available = await bioIsAvailable();
+  if (!available) return; // navigateur ne supporte pas
+  const sep  = document.getElementById('bio-sep');
+  const btn  = document.getElementById('bio-btn');
+  const icon = document.getElementById('bio-icon');
+  const lbl  = document.getElementById('bio-label');
+  if (!sep || !btn) return;
+  sep.classList.remove('hidden');
+  btn.classList.remove('hidden');
+  // Icône selon plateforme
+  const ua = navigator.userAgent;
+  if (/iPhone|iPad|Mac/.test(ua)) {
+    icon.textContent = '⬛'; // Face ID / Touch ID
+    lbl.textContent  = localStorage.getItem(BIO_ENABLED)
+      ? 'Se connecter avec Face ID / Touch ID'
+      : 'Activer Face ID / Touch ID';
+  } else if (/Android/.test(ua)) {
+    icon.textContent = '🫆';
+    lbl.textContent  = localStorage.getItem(BIO_ENABLED)
+      ? 'Se connecter avec l'empreinte digitale'
+      : 'Activer l'empreinte digitale';
+  } else {
+    icon.textContent = '🔐';
+    lbl.textContent  = localStorage.getItem(BIO_ENABLED)
+      ? 'Se connecter avec Windows Hello'
+      : 'Activer Windows Hello';
+  }
+}
+
+// ── Enregistrer un credential biométrique (1ère fois) ─────────────────────
+async function bioRegister() {
+  const bioStatus = document.getElementById('bio-status');
+  bioStatus.textContent = '⏳ Configuration biométrique en cours…';
+  try {
+    const challenge = crypto.getRandomValues(new Uint8Array(32));
+    const userId    = crypto.getRandomValues(new Uint8Array(16));
+    const cred = await navigator.credentials.create({
+      publicKey: {
+        challenge,
+        rp: { id: BIO_RP_ID, name: BIO_RP_NAME },
+        user: { id: userId, name: 'direction', displayName: 'Direction Fermapro' },
+        pubKeyCredParams: [
+          { type: 'public-key', alg: -7  },   // ES256
+          { type: 'public-key', alg: -257 },   // RS256
+        ],
+        authenticatorSelection: {
+          authenticatorAttachment: 'platform',      // Face ID / Touch ID / Windows Hello
+          userVerification: 'required',             // exige biométrie réelle
+          residentKey: 'preferred',
+        },
+        timeout: 60000,
+        attestation: 'none',
+      }
+    });
+    // Stocker l'ID du credential en base64
+    const credIdB64 = btoa(String.fromCharCode(...new Uint8Array(cred.rawId)));
+    localStorage.setItem(BIO_KEY, credIdB64);
+    localStorage.setItem(BIO_ENABLED, '1');
+    bioStatus.textContent = '✅ Biométrie enregistrée !';
+    bioStatus.style.color = '#10b981';
+    setTimeout(() => { bioStatus.textContent = ''; bioStatus.style.color = ''; }, 2000);
+    await bioInit(); // mettre à jour le label
+    return true;
+  } catch(e) {
+    if (e.name === 'NotAllowedError') {
+      bioStatus.textContent = '❌ Biométrie refusée ou annulée.';
+    } else if (e.name === 'InvalidStateError') {
+      // Déjà enregistré sur cet appareil
+      bioStatus.textContent = '⚠️ Déjà enregistré sur cet appareil.';
+    } else {
+      bioStatus.textContent = '❌ ' + e.message;
+    }
+    bioStatus.style.color = '#ef4444';
+    setTimeout(() => { bioStatus.textContent = ''; bioStatus.style.color = ''; }, 3000);
+    return false;
+  }
+}
+
+// ── Vérifier l'identité biométrique ──────────────────────────────────────
+async function bioVerify() {
+  const credIdB64 = localStorage.getItem(BIO_KEY);
+  if (!credIdB64) return false;
+  const bioStatus = document.getElementById('bio-status');
+  bioStatus.textContent = '⏳ Vérification biométrique…';
+  try {
+    const challenge   = crypto.getRandomValues(new Uint8Array(32));
+    const credIdBytes = Uint8Array.from(atob(credIdB64), c => c.charCodeAt(0));
+    const assertion = await navigator.credentials.get({
+      publicKey: {
+        challenge,
+        rpId:    BIO_RP_ID,
+        timeout: 60000,
+        userVerification: 'required',
+        allowCredentials: [{
+          type: 'public-key',
+          id:   credIdBytes,
+          transports: ['internal'],
+        }],
+      }
+    });
+    // Vérification client uniquement (même architecture que la phrase secrète)
+    // Le credential existe et la biométrie a été validée par le système
+    if (assertion) {
+      bioStatus.textContent = '';
+      return true;
+    }
+    return false;
+  } catch(e) {
+    if (e.name === 'NotAllowedError') {
+      bioStatus.textContent = '❌ Biométrie annulée.';
+    } else {
+      bioStatus.textContent = '❌ Erreur : ' + e.message;
+    }
+    bioStatus.style.color = '#ef4444';
+    setTimeout(() => { bioStatus.textContent = ''; bioStatus.style.color = ''; }, 2500);
+    return false;
+  }
+}
+
+// ── Point d'entrée — clic sur le bouton biométrique ───────────────────────
+async function bioAuth() {
+  const stored = localStorage.getItem(PIN_KEY); // phrase secrète configurée ?
+  if (!stored) {
+    document.getElementById('bio-status').textContent = '⚠️ Configurez d'abord une phrase secrète.';
+    return;
+  }
+  const enabled = localStorage.getItem(BIO_ENABLED);
+  const credId  = localStorage.getItem(BIO_KEY);
+  if (!enabled || !credId) {
+    // Premier enregistrement
+    await bioRegister();
+  } else {
+    // Vérification
+    const ok = await bioVerify();
+    if (ok) {
+      pinFailCount = 0;
+      localStorage.removeItem(LOCKOUT_KEY);
+      sessionStorage.removeItem(LOCKOUT_KEY);
+      sessionStorage.setItem(SESSION_KEY, 'ok');
+      document.getElementById('pin-msg').style.color = '#10b981';
+      document.getElementById('pin-msg').textContent = '✅ Biométrie validée !';
+      setTimeout(unlockApp, 500);
+    }
+  }
+}
+
+// ── Réinitialiser la biométrie (ex: changement de phrase secrète) ─────────
+function bioReset() {
+  localStorage.removeItem(BIO_KEY);
+  localStorage.removeItem(BIO_ENABLED);
+  document.getElementById('bio-status').textContent = '🗑️ Biométrie supprimée.';
+  bioInit();
+  setTimeout(() => { document.getElementById('bio-status').textContent = ''; }, 2000);
+}
+
 </script>
 </body>
 </html>
