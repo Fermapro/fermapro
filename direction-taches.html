@@ -245,28 +245,23 @@ main{max-width:1100px;margin:0 auto;padding:24px 18px 100px;}
 .pin-title{font-family:'Syne',sans-serif;font-weight:700;font-size:22px;color:#fff;margin-bottom:4px;}
 .pin-sub{font-size:13px;color:rgba(255,255,255,.5);margin-bottom:28px;text-align:center;max-width:320px;line-height:1.5;}
 @keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-8px)}75%{transform:translateX(8px)}}
-.pp-field-wrap{position:relative;width:100%;max-width:320px;margin-bottom:12px;}
-.pp-input{width:100%;padding:14px 48px 14px 18px;border:2px solid rgba(255,255,255,.2);border-radius:12px;background:rgba(255,255,255,.08);color:#fff;font-family:'Nunito',sans-serif;font-size:16px;outline:none;transition:border-color .2s;letter-spacing:.02em;}
-.pp-input::placeholder{color:rgba(255,255,255,.3);}
-.pp-input:focus{border-color:var(--pink);}
-.pp-input.error{border-color:var(--red);animation:shake .3s ease;}
-.pp-eye{position:absolute;right:14px;top:50%;transform:translateY(-50%);background:none;border:none;color:rgba(255,255,255,.4);cursor:pointer;font-size:18px;padding:4px;transition:color .2s;}
-.pp-eye:hover{color:#fff;}
-.pp-strength{height:4px;border-radius:2px;width:100%;max-width:320px;background:rgba(255,255,255,.1);margin-bottom:16px;overflow:hidden;}
-.pp-strength-bar{height:100%;border-radius:2px;transition:width .3s,background .3s;width:0;}
-.pp-submit{background:var(--pink);color:#fff;border:none;border-radius:12px;padding:14px 40px;font-family:'Syne',sans-serif;font-weight:700;font-size:15px;cursor:pointer;transition:all .2s;box-shadow:0 4px 18px rgba(232,69,122,.35);width:100%;max-width:320px;}
-.pp-submit:hover{background:var(--pink2);transform:translateY(-1px);}
-.pp-submit:active{transform:translateY(0);}
-.pin-msg{margin-top:14px;font-size:13px;color:rgba(255,255,255,.5);text-align:center;min-height:20px;max-width:320px;}
-.btn-logout{background:rgba(255,255,255,.1);border:none;color:rgba(255,255,255,.6);border-radius:7px;padding:5px 11px;font-size:11px;font-family:'Syne',sans-serif;font-weight:600;cursor:pointer;}
-.btn-logout:hover{background:rgba(255,255,255,.2);color:#fff;}
-
-/* UTILS */
-.btn-primary{background:var(--pink);color:#fff;border:none;border-radius:8px;padding:8px 16px;font-family:'Syne',sans-serif;font-weight:700;font-size:12px;cursor:pointer;box-shadow:0 3px 10px rgba(232,69,122,.25);}
-.btn-primary:hover{background:var(--pink2);}
-.btn-secondary{background:var(--navy);color:#fff;border:none;border-radius:8px;padding:8px 16px;font-family:'Syne',sans-serif;font-weight:700;font-size:12px;cursor:pointer;}
-.btn-secondary:hover{background:var(--navy2);}
-
+.pin-dots{display:flex;gap:14px;margin-bottom:32px;}
+.pin-dot{width:14px;height:14px;border-radius:50%;border:2px solid rgba(255,255,255,.3);transition:all .2s;}
+.pin-dot.filled{background:var(--pink);border-color:var(--pink);}
+.pin-dot.error{background:var(--red);border-color:var(--red);animation:shake .3s ease;}
+.pin-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;width:100%;max-width:260px;}
+.pin-btn{background:rgba(255,255,255,.1);border:none;border-radius:16px;height:68px;font-family:'Syne',sans-serif;font-weight:700;font-size:24px;color:#fff;cursor:pointer;transition:all .15s;display:flex;align-items:center;justify-content:center;-webkit-tap-highlight-color:transparent;}
+.pin-btn:hover{background:rgba(255,255,255,.18);}
+.pin-btn:active{background:var(--pink);transform:scale(.94);}
+.pin-btn.empty{background:transparent;cursor:default;pointer-events:none;}
+.pin-btn.del{font-size:20px;}
+.bio-sep{display:flex;align-items:center;gap:10px;width:100%;max-width:260px;margin:16px 0 10px;}
+.bio-sep span{color:rgba(255,255,255,.3);font-size:11px;white-space:nowrap;}
+.bio-sep::before,.bio-sep::after{content:'';flex:1;height:1px;background:rgba(255,255,255,.15);}
+.bio-sep.hidden,.bio-btn.hidden{display:none!important;}
+.bio-btn{width:100%;max-width:260px;padding:13px;background:rgba(255,255,255,.08);border:1.5px solid rgba(255,255,255,.2);border-radius:14px;color:#fff;font-family:'Syne',sans-serif;font-weight:700;font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;transition:all .2s;}
+.bio-btn:hover{background:rgba(255,255,255,.15);border-color:rgba(255,255,255,.4);}
+.bio-btn:active{transform:scale(.97);}
 .pin-forgot{margin-top:18px;background:none;border:none;color:rgba(255,255,255,.4);font-size:12px;cursor:pointer;font-family:'Nunito',sans-serif;text-decoration:underline;transition:color .2s;}
 .pin-forgot:hover{color:rgba(255,255,255,.7);}
 </style>
@@ -278,14 +273,34 @@ main{max-width:1100px;margin:0 auto;padding:24px 18px 100px;}
 <div class="pin-screen" id="pin-screen">
   <div class="pin-logo">F</div>
   <div class="pin-title">Tâches Direction</div>
-  <div class="pin-sub" id="pin-sub">Entrez votre phrase secrète</div>
-  <div class="pp-field-wrap">
-    <input class="pp-input" type="password" id="pp-input" placeholder="Phrase secrète…" autocomplete="current-password" onkeydown="ppKeydown(event)" oninput="ppStrength(this.value)">
-    <button class="pp-eye" onclick="ppToggleEye()" id="pp-eye" tabindex="-1" title="Afficher/masquer">👁</button>
+  <div class="pin-sub" id="pin-sub">Entrez votre code PIN</div>
+  <div class="pin-dots">
+    <div class="pin-dot" id="pd0"></div>
+    <div class="pin-dot" id="pd1"></div>
+    <div class="pin-dot" id="pd2"></div>
+    <div class="pin-dot" id="pd3"></div>
   </div>
-  <div class="pp-strength"><div class="pp-strength-bar" id="pp-bar"></div></div>
-  <button class="pp-submit" onclick="pinSubmit()">🔓 Accéder</button>
+  <div class="pin-grid">
+    <button class="pin-btn" onclick="pinPress(1)">1</button>
+    <button class="pin-btn" onclick="pinPress(2)">2</button>
+    <button class="pin-btn" onclick="pinPress(3)">3</button>
+    <button class="pin-btn" onclick="pinPress(4)">4</button>
+    <button class="pin-btn" onclick="pinPress(5)">5</button>
+    <button class="pin-btn" onclick="pinPress(6)">6</button>
+    <button class="pin-btn" onclick="pinPress(7)">7</button>
+    <button class="pin-btn" onclick="pinPress(8)">8</button>
+    <button class="pin-btn" onclick="pinPress(9)">9</button>
+    <button class="pin-btn empty"></button>
+    <button class="pin-btn" onclick="pinPress(0)">0</button>
+    <button class="pin-btn del" onclick="pinDel()">⌫</button>
+  </div>
   <div class="pin-msg" id="pin-msg"></div>
+  <div class="bio-sep hidden" id="bio-sep"><span>ou</span></div>
+  <button class="bio-btn hidden" id="bio-btn" onclick="bioAuth()">
+    <span id="bio-icon">🔑</span>
+    <span id="bio-label">Face ID / Touch ID</span>
+  </button>
+  <button class="pin-forgot" id="btn-forgot" onclick="pinForgot()" style="margin-top:20px;">Code PIN oublié ?</button>
 </div>
 
 <div class="loading-screen" id="loading"><div class="spin-lg"></div><div class="ltxt">Chargement…</div></div>
@@ -357,7 +372,7 @@ main{max-width:1100px;margin:0 auto;padding:24px 18px 100px;}
         <button class="btn-ghost" style="margin:0;border-color:var(--purple);color:var(--purple);" onclick="setupSecret()">🔑 Token API</button>
         <button class="btn-ghost" style="margin:0;border-color:var(--navy);color:var(--navy);" onclick="exportData()">📤 Exporter</button>
         <label class="btn-ghost" style="margin:0;cursor:pointer;border-color:var(--teal);color:var(--teal);">📥 Importer<input type="file" accept=".json" style="display:none;" onchange="importData(this)"></label>
-        <button class="btn-ghost" style="margin:0;border-color:var(--muted);color:var(--muted);" onclick="pinReset()">🔑 Changer la phrase secrète</button>
+        <button class="btn-ghost" style="margin:0;border-color:var(--muted);color:var(--muted);" onclick="pinReset()">🔑 Changer le code PIN</button>
       </div>
     </div>
     <!-- FILTER -->
@@ -913,177 +928,160 @@ let pinBuffer = '';
 let pinMode = 'login';
 let pinTemp = '';
 let pinFailCount = 0;
-const PP_MIN_LEN = 8;
-function ppCheckStrength(v) {
-  const errs = [];
-  if (v.length < PP_MIN_LEN) errs.push('8 caractères minimum');
-  if (!/[A-Z]/.test(v)) errs.push('1 majuscule');
-  if (!/[0-9]/.test(v)) errs.push('1 chiffre');
-  return errs; // tableau vide = OK
-}
-const LOCKOUT_KEY = 'fp-dir-lockout';
+let pinBuffer    = '';
+let pinMode      = 'login';
+let pinTemp      = '';
+let pinFailCount = 0;
+var BIO_KEY      = 'fp-dir-bio-credId';
+var BIO_ENABLED  = 'fp-dir-bio-enabled';
+var BIO_RP_ID    = location.hostname || 'fermapro.github.io';
+
 
 async function hashPin(p) {
   const enc = new TextEncoder();
   const buf = await crypto.subtle.digest('SHA-256', enc.encode('fp-dir-salt-' + p));
   return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2,'0')).join('');
 }
-
-function pinForgot() {
-  if (!confirm('Reinitialiser la phrase secrete ?\nVos donnees restent intactes.')) return;
-  localStorage.removeItem(PIN_KEY);
-  localStorage.removeItem(LOCKOUT_KEY);
-  sessionStorage.removeItem(SESSION_KEY);
-  sessionStorage.removeItem(LOCKOUT_KEY);
-  pinFailCount = 0; pinMode = 'set';
-  ppClear();
-  document.getElementById('pin-sub').textContent = 'Creez votre nouvelle phrase secrete';
-  document.getElementById('pin-msg').textContent = '';
-  var fb = document.getElementById('btn-forgot'); if(fb) fb.style.display='none';
+// ── PIN numpad ────────────────────────────────────────────────────
+function pinPress(n) {
+  if (pinBuffer.length >= 4) return;
+  pinBuffer += n; updateDots();
+  if (pinBuffer.length === 4) setTimeout(pinSubmit, 120);
 }
-function pinStart() {
-  const stored = localStorage.getItem(PIN_KEY);
-  // Auto-migration : ancien hash incompatible (pas 64 hex) -> reset
-  if (stored && stored.length !== 64) {
-    localStorage.removeItem(PIN_KEY);
-    localStorage.removeItem(LOCKOUT_KEY);
-    sessionStorage.removeItem(SESSION_KEY);
-    pinFailCount = 0;
-  }
-  const storedNew = localStorage.getItem(PIN_KEY);
-  const session = sessionStorage.getItem(SESSION_KEY);
-  if (session === 'ok' && storedNew) { unlockApp(); return; }
-  var lockLS = parseInt(localStorage.getItem(LOCKOUT_KEY)||'0');
-  var lockSS = parseInt(sessionStorage.getItem(LOCKOUT_KEY)||'0');
-  var lockUntil = Math.max(lockLS, lockSS);
-  if (Date.now() < lockUntil) {
-    var secs = Math.ceil((lockUntil-Date.now())/1000);
-    document.getElementById('pin-sub').textContent='Trop de tentatives - reessayez dans '+secs+'s'; ppClear();
-    document.getElementById('pin-screen').style.display='flex';
-    document.getElementById('pin-screen').classList.remove('hidden');
-    setTimeout(pinStart,1000); return;
-  }
-  if (!storedNew) {
-    pinMode='set';
-    document.getElementById('pin-sub').textContent='Creez votre phrase secrete (min 8 car. + 1 maj. + 1 chiffre)'; ppClear();
-    var fb1=document.getElementById('btn-forgot'); if(fb1) fb1.style.display='none';
-  } else {
-    pinMode='login';
-    document.getElementById('pin-sub').textContent='Entrez votre phrase secrete'; ppClear();
-    var fb2=document.getElementById('btn-forgot'); if(fb2) fb2.style.display='block';
-  }
-  document.getElementById('pin-screen').style.display='flex';
-  document.getElementById('pin-screen').classList.remove('hidden');
-}
-
-// ── UI helpers passphrase ──────────────────────────────────────
-function ppToggleEye() {
-  const inp = document.getElementById('pp-input');
-  const eye = document.getElementById('pp-eye');
-  if (inp.type === 'password') { inp.type = 'text'; eye.textContent = '🙈'; }
-  else { inp.type = 'password'; eye.textContent = '👁'; }
-}
-function ppKeydown(e) {
-  if (e.key === 'Enter') pinSubmit();
+function pinDel() {
+  pinBuffer = pinBuffer.slice(0,-1); updateDots();
   document.getElementById('pin-msg').textContent = '';
 }
-function ppVal() { return (document.getElementById('pp-input')||{value:''}).value; }
-function ppClear(shake = false) {
-  const inp = document.getElementById('pp-input');
-  if (!inp) return;
-  inp.value = ''; ppStrength('');
-  if (shake) { inp.classList.add('error'); setTimeout(() => inp.classList.remove('error'), 400); }
-  setTimeout(() => inp.focus(), 50);
-}
-function ppStrength(v) {
-  const bar = document.getElementById('pp-bar'); if (!bar) return;
-  const errs = ppCheckStrength(v);
-  let score = 0;
-  if (v.length >= PP_MIN_LEN) score++;
-  if (v.length >= 12) score++;
-  if (/[A-Z]/.test(v)) score++;
-  if (/[0-9]/.test(v)) score++;
-  if (/[^a-zA-Z0-9]/.test(v)) score++;
-  const pct = Math.min(100, score * 20);
-  const color = score <= 1 ? '#ef4444' : score <= 2 ? '#f59e0b' : score <= 3 ? '#3b82f6' : '#10b981';
-  bar.style.width = pct + '%';
-  bar.style.background = color;
-  // Indice si en mode création
-  const msg = document.getElementById('pin-msg');
-  if (msg && v.length > 0 && errs.length > 0) {
-    msg.textContent = '⚠️ Manque : ' + errs.join(', ');
-    msg.style.color = '#f59e0b';
-  } else if (msg && v.length > 0) {
-    msg.textContent = '✅ Phrase valide';
-    msg.style.color = '#10b981';
-  } else if (msg && v.length === 0) {
-    msg.textContent = '';
+function updateDots(err) {
+  for (var i=0; i<4; i++) {
+    var d = document.getElementById('pd'+i); if(!d) continue;
+    d.className = 'pin-dot' + (i<pinBuffer.length?' filled':'') + (err?' error':'');
   }
 }
-function ppFocus() { setTimeout(() => { const i = document.getElementById('pp-input'); if(i) i.focus(); }, 150); }
+function clearPin(err) {
+  pinBuffer = ''; updateDots(err);
+  if (err) setTimeout(function(){ updateDots(false); document.getElementById('pin-msg').textContent=''; }, 1400);
+}
+document.addEventListener('keydown', function(e) {
+  if (document.getElementById('pin-screen').classList.contains('hidden')) return;
+  if (e.key>='0' && e.key<='9') pinPress(+e.key);
+  if (e.key==='Backspace') pinDel();
+});
+// ── Soumission PIN ────────────────────────────────────────────────
 async function pinSubmit() {
-  const val = ppVal().trim();
-  // En mode création : vérifier la force complète
-  if (pinMode === 'set' || pinMode === 'confirm') {
-    const _errs = ppCheckStrength(val);
-    if (_errs.length > 0) {
-      const m = document.getElementById('pin-msg');
-      m.textContent = '⚠️ Manque : ' + _errs.join(', ');
-      m.style.color = '#f59e0b';
-      ppClear(true); return;
-    }
-  } else if (val.length < 1) {
-    document.getElementById('pin-msg').textContent = '⚠️ Phrase vide.';
-    ppClear(true); return;
-  }
+  if (pinBuffer.length < 4) return;
+  var val = pinBuffer;
+  var msgEl = document.getElementById('pin-msg');
+
   if (pinMode === 'set') {
-    pinTemp = val; ppClear();
-    document.getElementById('pin-sub').textContent = 'Confirmez votre phrase secrète';
-    document.getElementById('pin-msg').textContent = '';
-    pinMode = 'confirm'; ppFocus(); return;
+    pinTemp = val; clearPin();
+    document.getElementById('pin-sub').textContent = 'Confirmez votre code PIN';
+    msgEl.textContent = ''; pinMode = 'confirm'; return;
   }
   if (pinMode === 'confirm') {
     if (val === pinTemp) {
-      const h = await hashPin(val);
+      var h = await hashPin(val);
       localStorage.setItem(PIN_KEY, h);
-      document.getElementById('pin-msg').style.color = '#10b981';
-      document.getElementById('pin-msg').textContent = '✅ Phrase secrète enregistrée !';
-      pinTemp = ''; ppClear();
-      setTimeout(unlockApp, 600);
+      localStorage.removeItem(BIO_KEY); localStorage.removeItem(BIO_ENABLED);
+      msgEl.style.color='#10b981'; msgEl.textContent='✅ Code PIN enregistré !';
+      setTimeout(function(){ bioOfferActivation(); setTimeout(unlockApp,400); }, 300);
     } else {
-      pinTemp = ''; ppClear(true);
-      document.getElementById('pin-msg').textContent = '❌ Les phrases ne correspondent pas';
-      document.getElementById('pin-sub').textContent = 'Créez votre phrase secrète';
-      pinMode = 'set';
+      pinTemp=''; clearPin(true);
+      msgEl.textContent='❌ Les codes ne correspondent pas';
+      document.getElementById('pin-sub').textContent='Créez votre code PIN :';
+      pinMode='set';
     }
     return;
   }
-  // Mode login
-  const stored = localStorage.getItem(PIN_KEY);
-  const h = await hashPin(val);
+  var stored = localStorage.getItem(PIN_KEY);
+  var h = await hashPin(val);
   if (h === stored) {
-    pinFailCount = 0;
-    localStorage.removeItem(LOCKOUT_KEY);
-    sessionStorage.removeItem(LOCKOUT_KEY);
-    sessionStorage.setItem(SESSION_KEY, 'ok');
-    document.getElementById('pin-msg').style.color = '';
-    document.getElementById('pin-msg').textContent = '✅ Accès autorisé';
-    ppClear();
-    setTimeout(unlockApp, 400);
+    pinFailCount=0;
+    localStorage.removeItem(LOCKOUT_KEY); sessionStorage.removeItem(LOCKOUT_KEY);
+    sessionStorage.setItem(SESSION_KEY,'ok');
+    msgEl.style.color='#10b981'; msgEl.textContent='✅ Accès autorisé';
+    setTimeout(unlockApp, 350);
   } else {
     pinFailCount++;
-    ppClear(true);
-    if (pinFailCount >= 5) {
-      const until = Date.now() + 60000;
-      localStorage.setItem(LOCKOUT_KEY, String(until));
-      sessionStorage.setItem(LOCKOUT_KEY, String(until));
-      pinFailCount = 0;
-      document.getElementById('pin-msg').textContent = '🔒 5 erreurs — bloqué 60 secondes';
-      setTimeout(pinStart, 1100);
+    clearPin(true);
+    if (pinFailCount>=5) {
+      var until=Date.now()+60000;
+      localStorage.setItem(LOCKOUT_KEY,String(until));
+      sessionStorage.setItem(LOCKOUT_KEY,String(until));
+      pinFailCount=0;
+      msgEl.textContent='🔒 5 erreurs — bloqué 60s';
+      setTimeout(pinStart,1100);
     } else {
-      document.getElementById('pin-msg').textContent = `❌ Phrase incorrecte (${pinFailCount}/5)`;
-      setTimeout(() => { document.getElementById('pin-msg').textContent = ''; }, 2000);
+      msgEl.textContent='❌ Code incorrect ('+pinFailCount+'/5)';
     }
+  }
+}
+// ── Biométrie WebAuthn ─────────────────────────────────────────────
+async function bioAvailable() {
+  if (!window.PublicKeyCredential) return false;
+  try { return await PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable(); }
+  catch(e) { return false; }
+}
+async function bioInit() {
+  if (!await bioAvailable()) return;
+  var sep=document.getElementById('bio-sep'), btn=document.getElementById('bio-btn');
+  var lbl=document.getElementById('bio-label'), ico=document.getElementById('bio-icon');
+  if (!sep||!btn) return;
+  var enabled=localStorage.getItem(BIO_ENABLED);
+  var ua=navigator.userAgent;
+  if (/iPhone|iPad/.test(ua)){ ico.textContent='🦷'; lbl.textContent=enabled?'Face ID / Touch ID':'Activer Face ID / Touch ID'; }
+  else if (/Mac/.test(ua))   { ico.textContent='💻'; lbl.textContent=enabled?'Touch ID':'Activer Touch ID'; }
+  else if (/Android/.test(ua)){ ico.textContent='🪶'; lbl.textContent=enabled?'Empreinte digitale':'Activer l'empreinte'; }
+  else                         { ico.textContent='🔑'; lbl.textContent=enabled?'Windows Hello':'Activer Windows Hello'; }
+  sep.classList.remove('hidden'); btn.classList.remove('hidden');
+}
+function bioOfferActivation() {
+  bioAvailable().then(function(avail){
+    if (!avail) return;
+    setTimeout(function(){
+      if (confirm('Activer Face ID / Touch ID pour les prochaines connexions ?')) bioRegister();
+    }, 300);
+  });
+}
+async function bioRegister() {
+  try {
+    var chal=crypto.getRandomValues(new Uint8Array(32));
+    var uid=crypto.getRandomValues(new Uint8Array(16));
+    var cred=await navigator.credentials.create({publicKey:{
+      challenge:chal, rp:{id:BIO_RP_ID,name:'Fermapro Direction'},
+      user:{id:uid,name:'direction',displayName:'Direction'},
+      pubKeyCredParams:[{type:'public-key',alg:-7},{type:'public-key',alg:-257}],
+      authenticatorSelection:{authenticatorAttachment:'platform',userVerification:'required',residentKey:'preferred'},
+      timeout:60000, attestation:'none'
+    }});
+    var b64=btoa(String.fromCharCode.apply(null,new Uint8Array(cred.rawId)));
+    localStorage.setItem(BIO_KEY,b64); localStorage.setItem(BIO_ENABLED,'1');
+    showToast('✅ Biométrie activée !'); bioInit(); return true;
+  } catch(e){ if(e.name!=='NotAllowedError') console.warn('[Bio]',e.message); return false; }
+}
+async function bioAuth() {
+  var stored=localStorage.getItem(PIN_KEY);
+  if (!stored) { document.getElementById('pin-msg').textContent='Créez d'abord un code PIN.'; return; }
+  var credIdB64=localStorage.getItem(BIO_KEY);
+  if (!credIdB64) { await bioRegister(); return; }
+  try {
+    var chal=crypto.getRandomValues(new Uint8Array(32));
+    var bytes=Uint8Array.from(atob(credIdB64),function(c){return c.charCodeAt(0);});
+    var assertion=await navigator.credentials.get({publicKey:{
+      challenge:chal, rpId:BIO_RP_ID, timeout:60000, userVerification:'required',
+      allowCredentials:[{type:'public-key',id:bytes,transports:['internal']}]
+    }});
+    if (assertion) {
+      pinFailCount=0;
+      localStorage.removeItem(LOCKOUT_KEY); sessionStorage.removeItem(LOCKOUT_KEY);
+      sessionStorage.setItem(SESSION_KEY,'ok');
+      var m=document.getElementById('pin-msg');
+      m.style.color='#10b981'; m.textContent='✅ Identité vérifiée';
+      setTimeout(unlockApp,350);
+    }
+  } catch(e){
+    if (e.name==='NotAllowedError') document.getElementById('pin-msg').textContent='Biométrie annulée — entrez votre PIN';
+    else console.warn('[Bio]',e.message);
   }
 }
 
@@ -1094,30 +1092,64 @@ function unlockApp() {
   startSessionTimer();
 }
 
+function pinStart() {
+  var stored = localStorage.getItem(PIN_KEY);
+  // Auto-migration ancien hash incompatible -> reset
+  if (stored && stored.length !== 64) {
+    localStorage.removeItem(PIN_KEY); localStorage.removeItem(LOCKOUT_KEY);
+    sessionStorage.removeItem(SESSION_KEY); pinFailCount=0; stored=null;
+  }
+  var session = sessionStorage.getItem(SESSION_KEY);
+  if (session === 'ok' && stored) { unlockApp(); return; }
+  var lockLS = parseInt(localStorage.getItem(LOCKOUT_KEY)||'0');
+  var lockSS = parseInt(sessionStorage.getItem(LOCKOUT_KEY)||'0');
+  var lockUntil = Math.max(lockLS, lockSS);
+  if (Date.now() < lockUntil) {
+    var secs = Math.ceil((lockUntil-Date.now())/1000);
+    document.getElementById('pin-sub').textContent = 'Trop de tentatives — '+secs+'s';
+    document.getElementById('pin-screen').style.display = 'flex';
+    document.getElementById('pin-screen').classList.remove('hidden');
+    setTimeout(pinStart, 1000); return;
+  }
+  clearPin(); pinBuffer = '';
+  document.getElementById('pin-msg').textContent = '';
+  document.getElementById('pin-msg').style.color = '';
+  if (!stored) {
+    pinMode = 'set';
+    document.getElementById('pin-sub').textContent = 'Créez votre code PIN à 4 chiffres';
+    document.getElementById('btn-forgot').style.display = 'none';
+    document.getElementById('bio-sep').classList.add('hidden');
+    document.getElementById('bio-btn').classList.add('hidden');
+  } else {
+    pinMode = 'login';
+    document.getElementById('pin-sub').textContent = 'Entrez votre code PIN';
+    document.getElementById('btn-forgot').style.display = 'block';
+    bioInit();
+  }
+  document.getElementById('pin-screen').style.display = 'flex';
+  document.getElementById('pin-screen').classList.remove('hidden');
+}
+
 function pinLogout() {
   sessionStorage.removeItem(SESSION_KEY);
   clearTimeout(_sessionTimer);
-  ['click','keydown','touchstart','mousemove'].forEach(ev =>
-    document.removeEventListener(ev, resetSessionTimer)
-  );
-  pinMode = 'login';
-  document.getElementById('pin-sub').textContent = 'Entrez votre phrase secrète'; ppClear();
-  document.getElementById('pin-msg').textContent = '';
-  const ps = document.getElementById('pin-screen');
-  ps.classList.remove('hidden');
-  ps.style.display = 'flex';
+  ['click','keydown','touchstart','mousemove'].forEach(function(ev){
+    document.removeEventListener(ev,resetSessionTimer);
+  });
+  clearPin(); pinBuffer=''; pinMode='login';
+  document.getElementById('pin-msg').textContent='';
+  document.getElementById('pin-msg').style.color='';
+  var ps=document.getElementById('pin-screen');
+  ps.classList.remove('hidden'); ps.style.display='flex';
+  setTimeout(pinStart,50);
 }
 
 function pinReset() {
-  if (!confirm('Changer le code PIN ? Vous devrez en créer un nouveau.')) return;
-  localStorage.removeItem(PIN_KEY);
-  localStorage.removeItem(LOCKOUT_KEY);
-  sessionStorage.removeItem(SESSION_KEY);
-  sessionStorage.removeItem(LOCKOUT_KEY);
-  pinFailCount = 0;
-  pinMode = 'set';
-  document.getElementById('pin-sub').textContent = 'Créez votre phrase secrète (min 8 car. + 1 maj. + 1 chiffre)'; ppClear();
-  document.getElementById('pin-msg').textContent = '';
+  if (!confirm('Changer le code PIN ?')) return;
+  localStorage.removeItem(PIN_KEY); localStorage.removeItem(LOCKOUT_KEY);
+  localStorage.removeItem(BIO_KEY); localStorage.removeItem(BIO_ENABLED);
+  sessionStorage.removeItem(SESSION_KEY); sessionStorage.removeItem(LOCKOUT_KEY);
+  pinFailCount=0; pinStart();
 }
 
 
