@@ -691,7 +691,9 @@ async function loadFromSheets(silent = false) {
       setSyncStatus('err');
       if (!silent) {
         if (r1.error.includes('autoris')) {
-          showToast('Token API invalide - configurer via Gerer > Token API', 'warn');
+          showToast('Token API invalide - aller dans Gerer > Token API', 'warn');
+        } else if (r1.error.includes('inconnue')) {
+          showToast('Apps Script pas a jour - redeploy necessaire', 'warn');
         } else {
           showToast('Erreur Sheets: ' + r1.error, 'warn');
         }
@@ -726,10 +728,21 @@ async function loadFromSheets(silent = false) {
       setTimeout(function(){ pushToSheets(); }, 1000);
       if (!silent) showToast('Premier lancement - taches par defaut chargees.');
     } else {
-      // Sheets vide mais app deja utilisee -> Sheets a un probleme, garder local
+      // Sheets vide mais app deja utilisee -> garder local silencieusement
+      // (Apps Script pas encore deploye ou token manquant)
       loadFromLocal();
       setSyncStatus('err');
-      if (!silent) showToast('Sheets vide - verifier Apps Script. Donnees locales conservees.', 'warn');
+      // Toast discret seulement si pas silent
+      if (!silent) showToast('Sync indisponible - donnees locales.', 'warn');
+      // Proposer de pousser les donnees locales vers Sheets
+      if (!silent && tasks && tasks.length > 0) {
+        setTimeout(function(){
+          if (confirm('Sheets semble vide. Pousser vos donnees locales (' + tasks.length + ' taches) vers Sheets ?')) {
+            pushToSheets();
+            showToast('Envoi en cours...');
+          }
+        }, 500);
+      }
     }
 
     setSyncStatus('ok');
