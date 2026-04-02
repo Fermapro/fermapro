@@ -1028,7 +1028,7 @@ async function bioInit() {
   var ua=navigator.userAgent;
   if (/iPhone|iPad/.test(ua)){ ico.textContent='🦷'; lbl.textContent=enabled?'Face ID / Touch ID':'Activer Face ID / Touch ID'; }
   else if (/Mac/.test(ua))   { ico.textContent='💻'; lbl.textContent=enabled?'Touch ID':'Activer Touch ID'; }
-  else if (/Android/.test(ua)){ ico.textContent='🪶'; lbl.textContent=enabled?'Empreinte digitale':'Activer l'empreinte'; }
+  else if (/Android/.test(ua)){ ico.textContent='🪶'; lbl.textContent=enabled?'Empreinte digitale':'Activer l\'empreinte'; }
   else                         { ico.textContent='🔑'; lbl.textContent=enabled?'Windows Hello':'Activer Windows Hello'; }
   sep.classList.remove('hidden'); btn.classList.remove('hidden');
 }
@@ -1058,7 +1058,7 @@ async function bioRegister() {
 }
 async function bioAuth() {
   var stored=localStorage.getItem(PIN_KEY);
-  if (!stored) { document.getElementById('pin-msg').textContent='Créez d'abord un code PIN.'; return; }
+  if (!stored) { document.getElementById('pin-msg').textContent='Créez d\'abord un code PIN.'; return; }
   var credIdB64=localStorage.getItem(BIO_KEY);
   if (!credIdB64) { await bioRegister(); return; }
   try {
