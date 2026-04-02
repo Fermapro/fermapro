@@ -659,113 +659,77 @@ function setSyncStatus(s) { document.getElementById('sdot').className = 'sdot ' 
 
 async function loadFromSheets(silent = false) {
   if (!GS_URL) { loadFromLocal(); return; }
-  if (!silent) setSyncStatus('sync');
+  setSyncStatus('sync');
   try {
+    // Sheets = source de verite absolue. Local = cache hors-ligne seulement.
     const [r1, r2, r3] = await Promise.all([
       fetch(GS_URL + '?action=getTasks&secret=' + encodeURIComponent(API_SECRET)).then(r => r.json()),
       fetch(GS_URL + '?action=getDone&secret=' + encodeURIComponent(API_SECRET)).then(r => r.json()),
       fetch(GS_URL + '?action=getTodos&secret=' + encodeURIComponent(API_SECRET)).then(r => r.json()),
     ]);
-    const sheetsVersion = r1._syncVersion || 0;
-    const localVersion  = parseInt(localStorage.getItem('fp-dir-syncVersion') || '0');
-    const sheetsUpdated = r1._updatedAt || 0;
-    const localUpdated  = parseInt(localStorage.getItem('fp-dir-last-push') || '0');
-    const sheetsDone    = r2.done  || {};
-    const localDone     = safeParse(localStorage.getItem('fp-dir-done'),  {});
-    const localTodos    = safeParse(localStorage.getItem('fp-dir-todos'), {});
-    const sheetsTodos   = r3.todos || {};
 
-    // FUSION done : UNION des 2 appareils - tache faite reste faite
-    const mergedDone = Object.assign({}, localDone, sheetsDone);
+    const sheetsTasks = (r1.tasks && r1.tasks.length) ? r1.tasks : null;
+    const sheetsDone  = r2.done  || {};
+    const sheetsTodos = r3.todos || {};
 
-    // FUSION todos : concat + dedup par id
-    const mergedTodos = Object.assign({}, localTodos);
-    Object.keys(sheetsTodos).forEach(function(date) {
-      if (!mergedTodos[date]) {
-        mergedTodos[date] = sheetsTodos[date];
-      } else {
-        const ids = new Set(mergedTodos[date].map(function(t){ return t.id; }));
-        sheetsTodos[date].forEach(function(t){ if (!ids.has(t.id)) mergedTodos[date].push(t); });
-      }
-    });
-
-    const sheetsIsNewer = sheetsVersion > localVersion || sheetsUpdated > localUpdated;
-
-    if (r1.tasks && r1.tasks.length) {
-      if (sheetsIsNewer || !localStorage.getItem('fp-dir-initialized')) {
-        tasks = r1.tasks;
-        done  = mergedDone;
-        todos = mergedTodos;
-        safeLocalSet('fp-dir-syncVersion', String(sheetsVersion));
-        saveLocal();
-        if (!silent && sheetsIsNewer && localVersion > 0) {
-          showToast('Donnees mises a jour depuis un autre appareil.');
-        }
-      } else {
-        // Local plus recent : merge done/todos puis push
-        done  = mergedDone;
-        todos = mergedTodos;
-        saveLocal();
-        if (!_pendingSync) {
-          _pendingSync = true;
-          var ts = Date.now(), sv = _localVersion;
-          safeLocalSet('fp-dir-syncVersion', String(sv));
-          safeLocalSet('fp-dir-last-push', String(ts));
-          Promise.all([
-            pushWithRetry(GS_URL, {action:'setTasks', tasks:tasks, author:'direction', _updatedAt:ts, _syncVersion:sv}),
-            pushWithRetry(GS_URL, {action:'setDone',  done:done,   author:'direction', _updatedAt:ts, _syncVersion:sv}),
-            pushWithRetry(GS_URL, {action:'setTodos', todos:todos, author:'direction', _updatedAt:ts, _syncVersion:sv}),
-          ]).then(function(){ _pendingSync = false; setSyncStatus('ok'); });
-        }
+    if (sheetsTasks) {
+      // CAS NORMAL : Sheets a des donnees -> on les prend telles quelles
+      tasks = sheetsTasks;
+      done  = sheetsDone;
+      todos = sheetsTodos;
+      safeLocalSet('fp-dir-initialized', '1');
+      saveLocal();
+      if (!silent) {
+        var st = document.getElementById('sync-time');
+        if (st) st.textContent = 'Sync ' + new Date().toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'});
       }
     } else if (!localStorage.getItem('fp-dir-initialized')) {
+      // PREMIER LANCEMENT : Sheets vide, charger les taches par defaut
       tasks = JSON.parse(JSON.stringify(DEFAULT_TASKS));
-      done  = mergedDone; todos = mergedTodos;
-      safeLocalSet('fp-dir-initialized', '1'); saveLocal();
+      done  = {};
+      todos = {};
+      safeLocalSet('fp-dir-initialized', '1');
+      saveLocal();
+      // Pousser les defauts vers Sheets
+      setTimeout(function(){ pushToSheets(); }, 500);
     } else {
-      tasks = safeParse(localStorage.getItem('fp-dir-tasks'), []);
-      done  = mergedDone; todos = mergedTodos; saveLocal();
+      // Sheets vide mais deja initialise -> Sheets a un probleme, garder local
+      loadFromLocal();
+      if (!silent) showToast('Sheets vide - donnees locales conservees.', 'warn');
     }
-    safeLocalSet('fp-dir-initialized', '1');
+
     setSyncStatus('ok');
-    document.getElementById('sdot').title = 'Synchro OK';
+    document.getElementById('sdot').title = 'Synchro OK ' + new Date().toLocaleTimeString('fr-FR');
   } catch(e) {
-    console.warn('[Sheets] erreur:', e);
+    console.warn('[Sheets] Erreur chargement:', e.message);
     loadFromLocal();
     setSyncStatus('err');
-    if (!silent) showToast('Sheets inaccessible.', 'warn');
+    if (!silent) showToast('Hors ligne - donnees locales.', 'warn');
   }
   document.getElementById('loading').classList.add('hidden');
 }
 
 let _pendingSync = false;
-let _localVersion = 0; // incrémenté à chaque modification locale
 
 async function pushToSheets() {
-  _localVersion++;
-  const myVersion = _localVersion;
   saveLocal();
   if (!GS_URL) return;
   clearTimeout(syncTO);
   syncTO = setTimeout(async () => {
-    // Si une modification plus récente est arrivée, annuler ce push
-    if (myVersion < _localVersion) return;
     setSyncStatus('sync');
     _pendingSync = true;
     const ts = Date.now();
-    _localVersion++;
-    const sv = _localVersion;
-    safeLocalSet('fp-dir-syncVersion', String(sv));
     safeLocalSet('fp-dir-last-push', String(ts));
     const ok = await Promise.all([
-      pushWithRetry(GS_URL, {action:'setTasks', tasks, author:'direction', _updatedAt: ts, _syncVersion: sv}),
-      pushWithRetry(GS_URL, {action:'setDone',  done,  author:'direction', _updatedAt: ts, _syncVersion: sv}),
-      pushWithRetry(GS_URL, {action:'setTodos', todos, author:'direction', _updatedAt: ts, _syncVersion: sv}),
+      pushWithRetry(GS_URL, {action:'setTasks', tasks, author:'direction', _updatedAt: ts}),
+      pushWithRetry(GS_URL, {action:'setDone',  done,  author:'direction', _updatedAt: ts}),
+      pushWithRetry(GS_URL, {action:'setTodos', todos, author:'direction', _updatedAt: ts}),
     ]).then(r => r.every(Boolean)).catch(() => false);
     _pendingSync = false;
     if (ok) {
       setSyncStatus('ok');
-      document.getElementById('sdot').title = 'Dernière synchro : ' + new Date().toLocaleTimeString('fr-FR');
+      var st = document.getElementById('sync-time');
+      if (st) st.textContent = 'Sync ' + new Date().toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'});
     } else {
       setSyncStatus('err');
       showToast('❌ Synchro Sheets échouée — données sauvegardées localement.', 'err');
