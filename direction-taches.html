@@ -657,23 +657,55 @@ function saveLocal() {
 // ════════════════════════════════════════════════════════
 function setSyncStatus(s) { document.getElementById('sdot').className = 'sdot ' + s; }
 
+// Fetch avec timeout configurable
+function fetchTimeout(url, opts, ms) {
+  var ctrl = new AbortController();
+  var timer = setTimeout(function(){ ctrl.abort(); }, ms);
+  var options = Object.assign({}, opts || {}, { signal: ctrl.signal });
+  return fetch(url, options).then(function(r){
+    clearTimeout(timer);
+    return r;
+  }).catch(function(e){
+    clearTimeout(timer);
+    throw e;
+  });
+}
+
 async function loadFromSheets(silent = false) {
-  if (!GS_URL) { loadFromLocal(); return; }
+  if (!GS_URL) { loadFromLocal(); document.getElementById('loading').classList.add('hidden'); return; }
   setSyncStatus('sync');
   try {
-    // Sheets = source de verite absolue. Local = cache hors-ligne seulement.
+    var secret = encodeURIComponent(API_SECRET);
+    var base   = GS_URL + '?secret=' + secret;
+    // Timeout 8s par requete - evite le chargement infini
     const [r1, r2, r3] = await Promise.all([
-      fetch(GS_URL + '?action=getTasks&secret=' + encodeURIComponent(API_SECRET)).then(r => r.json()),
-      fetch(GS_URL + '?action=getDone&secret=' + encodeURIComponent(API_SECRET)).then(r => r.json()),
-      fetch(GS_URL + '?action=getTodos&secret=' + encodeURIComponent(API_SECRET)).then(r => r.json()),
+      fetchTimeout(base + '&action=getTasks', null, 8000).then(function(r){ return r.json(); }),
+      fetchTimeout(base + '&action=getDone',  null, 8000).then(function(r){ return r.json(); }),
+      fetchTimeout(base + '&action=getTodos', null, 8000).then(function(r){ return r.json(); }),
     ]);
 
-    const sheetsTasks = (r1.tasks && r1.tasks.length) ? r1.tasks : null;
-    const sheetsDone  = r2.done  || {};
-    const sheetsTodos = r3.todos || {};
+    // Detecter une reponse d'erreur (token invalide, Apps Script non deploye, etc.)
+    if (r1.error) {
+      console.warn('[Sheets] Erreur API:', r1.error);
+      loadFromLocal();
+      setSyncStatus('err');
+      if (!silent) {
+        if (r1.error.includes('autoris')) {
+          showToast('Token API invalide - configurer via Gerer > Token API', 'warn');
+        } else {
+          showToast('Erreur Sheets: ' + r1.error, 'warn');
+        }
+      }
+      document.getElementById('loading').classList.add('hidden');
+      return;
+    }
+
+    var sheetsTasks = (r1.tasks && r1.tasks.length > 0) ? r1.tasks : null;
+    var sheetsDone  = r2.done  || {};
+    var sheetsTodos = r3.todos || {};
 
     if (sheetsTasks) {
-      // CAS NORMAL : Sheets a des donnees -> on les prend telles quelles
+      // CAS NORMAL : Sheets a des donnees -> source de verite
       tasks = sheetsTasks;
       done  = sheetsDone;
       todos = sheetsTodos;
@@ -684,27 +716,30 @@ async function loadFromSheets(silent = false) {
         if (st) st.textContent = 'Sync ' + new Date().toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'});
       }
     } else if (!localStorage.getItem('fp-dir-initialized')) {
-      // PREMIER LANCEMENT : Sheets vide, charger les taches par defaut
+      // PREMIER LANCEMENT : Sheets vide -> charger les taches par defaut
       tasks = JSON.parse(JSON.stringify(DEFAULT_TASKS));
       done  = {};
       todos = {};
       safeLocalSet('fp-dir-initialized', '1');
       saveLocal();
-      // Pousser les defauts vers Sheets
-      setTimeout(function(){ pushToSheets(); }, 500);
+      // Pousser les defauts vers Sheets immediatement
+      setTimeout(function(){ pushToSheets(); }, 1000);
+      if (!silent) showToast('Premier lancement - taches par defaut chargees.');
     } else {
-      // Sheets vide mais deja initialise -> Sheets a un probleme, garder local
+      // Sheets vide mais app deja utilisee -> Sheets a un probleme, garder local
       loadFromLocal();
-      if (!silent) showToast('Sheets vide - donnees locales conservees.', 'warn');
+      setSyncStatus('err');
+      if (!silent) showToast('Sheets vide - verifier Apps Script. Donnees locales conservees.', 'warn');
     }
 
     setSyncStatus('ok');
     document.getElementById('sdot').title = 'Synchro OK ' + new Date().toLocaleTimeString('fr-FR');
   } catch(e) {
-    console.warn('[Sheets] Erreur chargement:', e.message);
+    var msg = e.name === 'AbortError' ? 'Timeout - Apps Script trop lent' : e.message;
+    console.warn('[Sheets]', msg);
     loadFromLocal();
     setSyncStatus('err');
-    if (!silent) showToast('Hors ligne - donnees locales.', 'warn');
+    if (!silent) showToast('Hors ligne ou timeout - donnees locales.', 'warn');
   }
   document.getElementById('loading').classList.add('hidden');
 }
