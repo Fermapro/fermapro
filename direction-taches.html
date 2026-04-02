@@ -4,6 +4,9 @@
 <meta charset="UTF-8">
 <meta http-equiv="Content-Security-Policy" content="default-src 'self' https://fonts.googleapis.com https://fonts.gstatic.com https://cdnjs.cloudflare.com; script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; connect-src https://script.google.com https://script.googleusercontent.com; img-src 'self' data:; frame-src 'none'; object-src 'none';">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
 <title>Tâches Direction — Fermapro</title>
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Nunito:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <style>
@@ -296,7 +299,8 @@ main{max-width:1100px;margin:0 auto;padding:24px 18px 100px;}
   <div class="hright">
     <button class="btn-logout" onclick="pinLogout()">🔒</button>
     <div class="sdot" id="sdot" title="Statut synchro"></div>
-    <div class="hdate" id="hdate"></div>
+    <div class="hdate" id="hdate" style="cursor:pointer;" onclick="forceSyncNow()" title="Cliquer pour forcer la synchro"></div>
+    <div id="sync-time" style="font-size:9px;color:rgba(255,255,255,.4);"></div>
   </div>
 </header>
 <div class="pbar"><div class="pbar-fill" id="pfill"></div></div>
@@ -589,16 +593,17 @@ document.addEventListener('DOMContentLoaded', async () => {
   });
 
   // ── Rechargement depuis Sheets au retour sur l'onglet (multi-appareils) ──
+  document  // iOS Safari : TOUJOURS recharger depuis Sheets au retour sur l'önglet
+  let _lastVisible = Date.now();
   document.addEventListener('visibilitychange', async () => {
     if (document.visibilityState === 'visible' && GS_URL) {
-      const lastPush = parseInt(localStorage.getItem('fp-dir-last-push') || '0');
-      const elapsed = Date.now() - lastPush;
-      // Recharger si l'onglet était en arrière-plan depuis plus de 30 secondes
-      if (elapsed > 30000) {
-        showToast('🔄 Rechargement des données depuis Sheets…');
-        await loadFromSheets();
+      const _away = Date.now() - _lastVisible;
+      if (_away > 5000) { // absent > 5s = recharger
+        await loadFromSheets(true);
         renderAll();
       }
+    } else {
+      _lastVisible = Date.now();
     }
   });
 
@@ -623,7 +628,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       await loadFromSheets(true); // silent=true
       renderAll();
     }
-  }, 2 * 60 * 1000);
+  }, 30 * 1000); // toutes les 30s pour multi-appareils
 });
 
 // ════════════════════════════════════════════════════════
@@ -655,7 +660,13 @@ function saveLocal() {
 // ════════════════════════════════════════════════════════
 //  STORAGE — GOOGLE SHEETS
 // ════════════════════════════════════════════════════════
-function setSyncStatus(s) { document.getElementById('sdot').className = 'sdot ' + s; }
+function setSyncStatus(s) {
+  document.getElementById('sdot').className = 'sdot ' + s;
+  if (s === 'ok') {
+    const st = document.getElementById('sync-time');
+    if (st) st.textContent = 'Synchro ' + new Date().toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'});
+  }
+}
 
 async function loadFromSheets(silent = false) {
   if (!GS_URL) { loadFromLocal(); return; }
