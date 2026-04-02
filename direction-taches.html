@@ -267,7 +267,7 @@ main{max-width:1100px;margin:0 auto;padding:24px 18px 100px;}
 .btn-secondary{background:var(--navy);color:#fff;border:none;border-radius:8px;padding:8px 16px;font-family:'Syne',sans-serif;font-weight:700;font-size:12px;cursor:pointer;}
 .btn-secondary:hover{background:var(--navy2);}
 
-.pin-forgot{margin-top:18px;background:none;border:none;color:rgba(255,255,255,.35);font-size:12px;cursor:pointer;font-family:'Nunito',sans-serif;text-decoration:underline;transition:color .2s;}
+.pin-forgot{margin-top:18px;background:none;border:none;color:rgba(255,255,255,.4);font-size:12px;cursor:pointer;font-family:'Nunito',sans-serif;text-decoration:underline;transition:color .2s;}
 .pin-forgot:hover{color:rgba(255,255,255,.7);}
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.1.6/purify.min.js"></script>
@@ -286,7 +286,6 @@ main{max-width:1100px;margin:0 auto;padding:24px 18px 100px;}
   <div class="pp-strength"><div class="pp-strength-bar" id="pp-bar"></div></div>
   <button class="pp-submit" onclick="pinSubmit()">🔓 Accéder</button>
   <div class="pin-msg" id="pin-msg"></div>
-  <button class="pin-forgot" id="btn-forgot" onclick="pinForgot()">Phrase secrète oubliée ?</button>
 </div>
 
 <div class="loading-screen" id="loading"><div class="spin-lg"></div><div class="ltxt">Chargement…</div></div>
@@ -297,10 +296,10 @@ main{max-width:1100px;margin:0 auto;padding:24px 18px 100px;}
     <div class="htitle">Tâches Direction <span>— Fermapro</span></div>
   </div>
   <div class="hright">
+    <button onclick="forceSyncNow()" style="background:none;border:none;cursor:pointer;font-size:18px;padding:4px 6px;color:rgba(255,255,255,.7);" title="Synchroniser maintenant">🔄</button>
     <button class="btn-logout" onclick="pinLogout()">🔒</button>
     <div class="sdot" id="sdot" title="Statut synchro"></div>
-    <div class="hdate" id="hdate" style="cursor:pointer;" onclick="forceSyncNow()" title="Cliquer pour forcer la synchro"></div>
-    <div id="sync-time" style="font-size:9px;color:rgba(255,255,255,.4);"></div>
+    <div class="hdate" id="hdate"></div>
   </div>
 </header>
 <div class="pbar"><div class="pbar-fill" id="pfill"></div></div>
@@ -593,18 +592,14 @@ document.addEventListener('DOMContentLoaded', async () => {
   });
 
   // ── Rechargement depuis Sheets au retour sur l'onglet (multi-appareils) ──
-  document  // iOS Safari : TOUJOURS recharger depuis Sheets au retour sur l'önglet
   let _lastVisible = Date.now();
   document.addEventListener('visibilitychange', async () => {
     if (document.visibilityState === 'visible' && GS_URL) {
-      const _away = Date.now() - _lastVisible;
-      if (_away > 5000) { // absent > 5s = recharger
+      if (Date.now() - _lastVisible > 5000) {
         await loadFromSheets(true);
         renderAll();
       }
-    } else {
-      _lastVisible = Date.now();
-    }
+    } else { _lastVisible = Date.now(); }
   });
 
   // ── Retour en ligne → resync immédiat ──
@@ -628,7 +623,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       await loadFromSheets(true); // silent=true
       renderAll();
     }
-  }, 30 * 1000); // toutes les 30s pour multi-appareils
+  }, 30 * 1000);
 });
 
 // ════════════════════════════════════════════════════════
@@ -660,13 +655,7 @@ function saveLocal() {
 // ════════════════════════════════════════════════════════
 //  STORAGE — GOOGLE SHEETS
 // ════════════════════════════════════════════════════════
-function setSyncStatus(s) {
-  document.getElementById('sdot').className = 'sdot ' + s;
-  if (s === 'ok') {
-    const st = document.getElementById('sync-time');
-    if (st) st.textContent = 'Synchro ' + new Date().toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'});
-  }
-}
+function setSyncStatus(s) { document.getElementById('sdot').className = 'sdot ' + s; }
 
 async function loadFromSheets(silent = false) {
   if (!GS_URL) { loadFromLocal(); return; }
@@ -677,59 +666,74 @@ async function loadFromSheets(silent = false) {
       fetch(GS_URL + '?action=getDone&secret=' + encodeURIComponent(API_SECRET)).then(r => r.json()),
       fetch(GS_URL + '?action=getTodos&secret=' + encodeURIComponent(API_SECRET)).then(r => r.json()),
     ]);
+    const sheetsVersion = r1._syncVersion || 0;
+    const localVersion  = parseInt(localStorage.getItem('fp-dir-syncVersion') || '0');
+    const sheetsUpdated = r1._updatedAt || 0;
+    const localUpdated  = parseInt(localStorage.getItem('fp-dir-last-push') || '0');
+    const sheetsDone    = r2.done  || {};
+    const localDone     = safeParse(localStorage.getItem('fp-dir-done'),  {});
+    const localTodos    = safeParse(localStorage.getItem('fp-dir-todos'), {});
+    const sheetsTodos   = r3.todos || {};
 
-    // ── Comparaison version Sheets vs version locale ──────────────────────
-    const sheetsVersion  = r1._syncVersion || 0;
-    const localVersion   = parseInt(localStorage.getItem('fp-dir-syncVersion') || '0');
-    const sheetsUpdated  = r1._updatedAt || 0;
-    const localUpdated   = parseInt(localStorage.getItem('fp-dir-last-push') || '0');
+    // FUSION done : UNION des 2 appareils - tache faite reste faite
+    const mergedDone = Object.assign({}, localDone, sheetsDone);
+
+    // FUSION todos : concat + dedup par id
+    const mergedTodos = Object.assign({}, localTodos);
+    Object.keys(sheetsTodos).forEach(function(date) {
+      if (!mergedTodos[date]) {
+        mergedTodos[date] = sheetsTodos[date];
+      } else {
+        const ids = new Set(mergedTodos[date].map(function(t){ return t.id; }));
+        sheetsTodos[date].forEach(function(t){ if (!ids.has(t.id)) mergedTodos[date].push(t); });
+      }
+    });
 
     const sheetsIsNewer = sheetsVersion > localVersion || sheetsUpdated > localUpdated;
 
     if (r1.tasks && r1.tasks.length) {
       if (sheetsIsNewer || !localStorage.getItem('fp-dir-initialized')) {
-        // Sheets est plus récent → prendre ses données
         tasks = r1.tasks;
-        done  = r2.done  || {};
-        todos = r3.todos || {};
+        done  = mergedDone;
+        todos = mergedTodos;
         safeLocalSet('fp-dir-syncVersion', String(sheetsVersion));
         saveLocal();
         if (!silent && sheetsIsNewer && localVersion > 0) {
-          showToast('🔄 Données mises à jour depuis un autre appareil.');
+          showToast('Donnees mises a jour depuis un autre appareil.');
         }
       } else {
-        // Local est plus récent → garder local MAIS repousser vers Sheets
-        console.log('[Sync] Local plus récent (v' + localVersion + ' > v' + sheetsVersion + ') — push en cours');
+        // Local plus recent : merge done/todos puis push
+        done  = mergedDone;
+        todos = mergedTodos;
+        saveLocal();
         if (!_pendingSync) {
           _pendingSync = true;
-          const ts = Date.now();
-          await Promise.all([
-            pushWithRetry(GS_URL, {action:'setTasks', tasks, author:'direction', _updatedAt: ts, _syncVersion: localVersion}),
-            pushWithRetry(GS_URL, {action:'setDone',  done,  author:'direction', _updatedAt: ts}),
-            pushWithRetry(GS_URL, {action:'setTodos', todos, author:'direction', _updatedAt: ts}),
-          ]);
-          _pendingSync = false;
+          var ts = Date.now(), sv = _localVersion;
+          safeLocalSet('fp-dir-syncVersion', String(sv));
+          safeLocalSet('fp-dir-last-push', String(ts));
+          Promise.all([
+            pushWithRetry(GS_URL, {action:'setTasks', tasks:tasks, author:'direction', _updatedAt:ts, _syncVersion:sv}),
+            pushWithRetry(GS_URL, {action:'setDone',  done:done,   author:'direction', _updatedAt:ts, _syncVersion:sv}),
+            pushWithRetry(GS_URL, {action:'setTodos', todos:todos, author:'direction', _updatedAt:ts, _syncVersion:sv}),
+          ]).then(function(){ _pendingSync = false; setSyncStatus('ok'); });
         }
       }
     } else if (!localStorage.getItem('fp-dir-initialized')) {
       tasks = JSON.parse(JSON.stringify(DEFAULT_TASKS));
-      safeLocalSet('fp-dir-initialized', '1');
-      saveLocal();
+      done  = mergedDone; todos = mergedTodos;
+      safeLocalSet('fp-dir-initialized', '1'); saveLocal();
     } else {
-      // Sheets vide mais local a des données — garder local
       tasks = safeParse(localStorage.getItem('fp-dir-tasks'), []);
-      done  = safeParse(localStorage.getItem('fp-dir-done'),  {});
-      todos = safeParse(localStorage.getItem('fp-dir-todos'), {});
+      done  = mergedDone; todos = mergedTodos; saveLocal();
     }
-
     safeLocalSet('fp-dir-initialized', '1');
     setSyncStatus('ok');
-    document.getElementById('sdot').title = 'Synchro OK — ' + new Date().toLocaleTimeString('fr-FR');
+    document.getElementById('sdot').title = 'Synchro OK';
   } catch(e) {
-    console.warn('[Sheets] Chargement échoué, cache local utilisé.', e);
+    console.warn('[Sheets] erreur:', e);
     loadFromLocal();
     setSyncStatus('err');
-    if (!silent) showToast('⚠️ Sheets inaccessible — données locales chargées.', 'warn');
+    if (!silent) showToast('Sheets inaccessible.', 'warn');
   }
   document.getElementById('loading').classList.add('hidden');
 }
@@ -914,21 +918,20 @@ async function hashPin(p) {
 }
 
 function pinForgot() {
-  if (!confirm('Réinitialiser la phrase secrète ?\n\nVos données restent intactes.')) return;
+  if (!confirm('Reinitialiser la phrase secrete ?\nVos donnees restent intactes.')) return;
   localStorage.removeItem(PIN_KEY);
   localStorage.removeItem(LOCKOUT_KEY);
   sessionStorage.removeItem(SESSION_KEY);
   sessionStorage.removeItem(LOCKOUT_KEY);
   pinFailCount = 0; pinMode = 'set';
   ppClear();
-  document.getElementById('pin-sub').textContent = 'Créez votre nouvelle phrase secrète';
+  document.getElementById('pin-sub').textContent = 'Creez votre nouvelle phrase secrete';
   document.getElementById('pin-msg').textContent = '';
-  document.getElementById('btn-forgot').style.display = 'none';
+  var fb = document.getElementById('btn-forgot'); if(fb) fb.style.display='none';
 }
-
 function pinStart() {
   const stored = localStorage.getItem(PIN_KEY);
-  // Auto-migration ancien hash (djb2 court) -> SHA-256 (64 hex)
+  // Auto-migration : ancien hash incompatible (pas 64 hex) -> reset
   if (stored && stored.length !== 64) {
     localStorage.removeItem(PIN_KEY);
     localStorage.removeItem(LOCKOUT_KEY);
@@ -938,24 +941,24 @@ function pinStart() {
   const storedNew = localStorage.getItem(PIN_KEY);
   const session = sessionStorage.getItem(SESSION_KEY);
   if (session === 'ok' && storedNew) { unlockApp(); return; }
-  var lockLS=parseInt(localStorage.getItem(LOCKOUT_KEY)||'0');
-  var lockSS=parseInt(sessionStorage.getItem(LOCKOUT_KEY)||'0');
-  var lockUntil=Math.max(lockLS,lockSS);
+  var lockLS = parseInt(localStorage.getItem(LOCKOUT_KEY)||'0');
+  var lockSS = parseInt(sessionStorage.getItem(LOCKOUT_KEY)||'0');
+  var lockUntil = Math.max(lockLS, lockSS);
   if (Date.now() < lockUntil) {
-    var secs=Math.ceil((lockUntil-Date.now())/1000);
-    document.getElementById('pin-sub').textContent='Trop de tentatives — réessayez dans '+secs+'s'; ppClear();
+    var secs = Math.ceil((lockUntil-Date.now())/1000);
+    document.getElementById('pin-sub').textContent='Trop de tentatives - reessayez dans '+secs+'s'; ppClear();
     document.getElementById('pin-screen').style.display='flex';
     document.getElementById('pin-screen').classList.remove('hidden');
     setTimeout(pinStart,1000); return;
   }
   if (!storedNew) {
     pinMode='set';
-    document.getElementById('pin-sub').textContent='Créez votre phrase secrète (min 8 car. + 1 maj. + 1 chiffre)'; ppClear();
-    document.getElementById('btn-forgot').style.display='none';
+    document.getElementById('pin-sub').textContent='Creez votre phrase secrete (min 8 car. + 1 maj. + 1 chiffre)'; ppClear();
+    var fb1=document.getElementById('btn-forgot'); if(fb1) fb1.style.display='none';
   } else {
     pinMode='login';
-    document.getElementById('pin-sub').textContent='Entrez votre phrase secrète'; ppClear();
-    document.getElementById('btn-forgot').style.display='block';
+    document.getElementById('pin-sub').textContent='Entrez votre phrase secrete'; ppClear();
+    var fb2=document.getElementById('btn-forgot'); if(fb2) fb2.style.display='block';
   }
   document.getElementById('pin-screen').style.display='flex';
   document.getElementById('pin-screen').classList.remove('hidden');
