@@ -356,16 +356,28 @@ function dropFiles(e, type) {
   addFiles(type, e.dataTransfer.files);
 }
 
+const MAX_PDF_BYTES = 3 * 1024 * 1024;
+
 function addFiles(type, files) {
   if (type === 'devis') {
-    state.devis = files[0] || null;
+    const f = files[0];
+    if (f && f.type === 'application/pdf' && f.size > MAX_PDF_BYTES) {
+      showError('Le devis PDF depasse 3 Mo (' + (f.size/1024/1024).toFixed(1) + ' Mo). Utilisez une version allegee ou une image du devis.'); return;
+    }
+    state.devis = f || null;
     renderChips('devis');
   } else if (type === 'photos') {
     state.photos = [...state.photos, ...Array.from(files)].slice(0, 6);
     document.getElementById('count-photos').textContent = state.photos.length + '/6';
     renderChips('photos');
   } else if (type === 'cats') {
-    state.cats = [...state.cats, ...Array.from(files)].slice(0, 4);
+    const valid = Array.from(files).filter(f => {
+      if (f.size > MAX_PDF_BYTES) {
+        showError('"' + f.name + '" depasse 3 Mo — catalogue ignore. Extrayez les pages pertinentes (2-3 pages max).'); return false;
+      }
+      return true;
+    });
+    state.cats = [...state.cats, ...valid].slice(0, 4);
     document.getElementById('count-cats').textContent = state.cats.length + '/4';
     renderChips('cats');
   }
