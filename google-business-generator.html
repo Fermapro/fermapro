@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Posts Google Business — Fermapro / Reparpro</title>
+<style>
+:root {
+  --pink: #F06691; --blue: #2D3D74; --blue2: #3d52a0;
+  --bg: #f7f8fc; --card: #fff; --text: #1a1a2e; --muted: #6b7280; --faint: #9ca3af;
+  --border: #e5e7eb; --radius: 10px; --radius-sm: 6px;
+  --rp-green: #1a7a4a; --rp-green2: #22a060;
+  --success: #16a34a; --error: #dc2626;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,sans-serif;font-size:14px;line-height:1.6;min-height:100vh}
+
+.topbar{background:var(--blue);color:#fff;padding:12px 24px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;box-shadow:0 2px 8px rgba(45,61,116,.25)}
+.tl{display:flex;align-items:center;gap:12px}
+.logo-dot{width:32px;height:32px;background:var(--pink);border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.logo-dot svg{width:16px;height:16px;fill:#fff}
+.logo-name{font-size:16px;font-weight:700}
+.logo-sub{font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--pink);margin-top:1px}
+.btn-key{background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.25);color:#fff;padding:6px 14px;border-radius:20px;cursor:pointer;font-size:12px;display:flex;align-items:center;gap:6px;transition:.2s}
+.btn-key:hover{background:rgba(255,255,255,.25)}
+.key-status{font-size:11px;padding:3px 10px;border-radius:20px;display:inline-flex;align-items:center;gap:4px}
+.key-ok{background:#dcfce7;color:#166534}.key-missing{background:#fef3c7;color:#92400e}
+
+.main{max-width:980px;margin:0 auto;padding:28px 20px}
+
+/* BRAND TABS */
+.brand-tabs{display:flex;gap:8px;margin-bottom:20px}
+.brand-tab{flex:1;padding:12px;border-radius:var(--radius);border:2px solid var(--border);background:var(--card);cursor:pointer;text-align:center;transition:.2s;font-size:14px;font-weight:600}
+.brand-tab.fp{color:var(--blue)}.brand-tab.fp.active{border-color:var(--blue);background:#f0f2fa}
+.brand-tab.rp{color:var(--rp-green)}.brand-tab.rp.active{border-color:var(--rp-green);background:#f0faf5}
+
+.grid{display:grid;grid-template-columns:360px 1fr;gap:20px;align-items:start}
+@media(max-width:760px){.grid{grid-template-columns:1fr}}
+
+.card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:18px;margin-bottom:14px}
+.card:last-child{margin-bottom:0}
+.sec{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:var(--blue);margin-bottom:10px}
+
+/* CONTROLS */
+.pill-group{display:flex;flex-wrap:wrap;gap:6px}
+.pill{padding:5px 12px;border-radius:20px;border:1.5px solid var(--border);background:#fff;cursor:pointer;font-size:12px;font-weight:500;color:var(--muted);transition:.15s}
+.pill:hover{border-color:var(--blue);color:var(--blue)}
+.pill.active{background:var(--blue);color:#fff;border-color:var(--blue)}
+.pill.rp-mode.active{background:var(--rp-green);border-color:var(--rp-green)}
+
+textarea,input[type=text]{width:100%;padding:9px 12px;border:1px solid var(--border);border-radius:var(--radius-sm);font-family:inherit;font-size:13px;color:var(--text);background:#fff;outline:none;transition:.15s}
+textarea:focus,input[type=text]:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(45,61,116,.08)}
+textarea{resize:vertical;min-height:80px}
+.hint{font-size:11px;color:var(--faint);margin-top:4px}
+
+.btn-gen{width:100%;padding:12px;border:none;border-radius:var(--radius-sm);background:var(--blue);color:#fff;font-size:14px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;transition:.2s;margin-top:4px}
+.btn-gen.rp-mode{background:var(--rp-green)}.btn-gen:hover:not(:disabled){opacity:.88}.btn-gen:disabled{opacity:.55;cursor:not-allowed}
+
+.error-box{background:#fef2f2;border:1px solid #fecaca;border-radius:var(--radius-sm);padding:9px 12px;font-size:12px;color:var(--error);display:flex;gap:7px;margin-top:10px}
+
+/* OUTPUT */
+.out-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:20px;min-height:320px}
+.out-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;padding-bottom:12px;border-bottom:1px solid var(--border)}
+.out-title{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:var(--blue);display:flex;align-items:center;gap:6px}
+.out-title.rp-mode{color:var(--rp-green)}
+.btn-copy{display:flex;align-items:center;gap:5px;padding:6px 14px;font-size:12px;font-weight:500;border-radius:20px;cursor:pointer;background:#fff;color:var(--blue);border:1.5px solid var(--blue);transition:.15s}
+.btn-copy:hover{background:#f0f2fa}.btn-copy.rp-mode{color:var(--rp-green);border-color:var(--rp-green)}
+.btn-copy.rp-mode:hover{background:#f0faf5}.btn-copy.done{color:var(--success);border-color:var(--success)}
+
+.preview-wrap{background:#f9fafb;border:1px solid var(--border);border-radius:var(--radius-sm);padding:16px;margin-bottom:14px}
+.preview-brand{display:flex;align-items:center;gap:8px;margin-bottom:10px;padding-bottom:10px;border-bottom:1px solid var(--border)}
+.preview-avatar{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#fff;flex-shrink:0}
+.preview-name{font-size:13px;font-weight:600}.preview-type{font-size:11px;color:var(--muted)}
+.preview-text{font-size:13px;line-height:1.8;color:var(--text);white-space:pre-wrap}
+
+.kw-row{display:flex;flex-wrap:wrap;gap:5px;margin-top:10px}
+.kw{background:#f0f2fa;color:var(--blue);border-radius:12px;padding:3px 10px;font-size:11px}
+.kw.rp{background:#f0faf5;color:var(--rp-green)}
+
+.char-count{font-size:11px;color:var(--faint);text-align:right;margin-top:6px}
+
+.empty-state{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:240px;gap:12px;color:var(--faint)}
+.empty-icon{opacity:.2}
+
+.loading-state{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:240px;gap:14px}
+.spinner{width:36px;height:36px;border:3px solid #F0669122;border-top:3px solid var(--pink);border-radius:50%;animation:spin 1s linear infinite}
+.spinner.rp{border-top-color:var(--rp-green)}
+.loading-msg{font-size:13px;color:var(--muted);font-weight:500}
+
+/* MODAL */
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:200;display:flex;align-items:center;justify-content:center;padding:20px}
+.modal{background:#fff;border-radius:var(--radius);padding:28px;max-width:440px;width:100%;box-shadow:0 20px 60px rgba(0,0,0,.2)}
+.modal-title{font-size:16px;font-weight:700;color:var(--blue);margin-bottom:5px}
+.modal-sub{font-size:12px;color:var(--muted);margin-bottom:18px}
+.modal label{display:block;font-size:12px;font-weight:600;margin-bottom:5px}
+.modal-input{width:100%;padding:9px 12px;border:1.5px solid var(--border);border-radius:var(--radius-sm);font-size:13px;font-family:monospace;outline:none;transition:.15s}
+.modal-input:focus{border-color:var(--blue)}
+.modal-hint{font-size:11px;color:var(--faint);margin-top:4px}
+.modal-hint a{color:var(--blue)}
+.modal-actions{display:flex;gap:8px;margin-top:18px}
+.btn-save{flex:1;padding:10px;background:var(--blue);color:#fff;border:none;border-radius:var(--radius-sm);font-size:13px;font-weight:600;cursor:pointer}
+.btn-cancel{padding:10px 14px;background:#fff;color:var(--muted);border:1px solid var(--border);border-radius:var(--radius-sm);font-size:13px;cursor:pointer}
+
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="tl">
+    <div class="logo-dot"><svg viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg></div>
+    <div>
+      <div class="logo-name">Générateur Google Business</div>
+      <div class="logo-sub">Fermapro · Reparpro · IA</div>
+    </div>
+  </div>
+  <div style="display:flex;align-items:center;gap:10px">
+    <span id="key-status" class="key-status key-missing">⚠ Clé API</span>
+    <button class="btn-key" onclick="openSettings()">🔑 Clé API</button>
+  </div>
+</div>
+
+<div class="main">
+
+  <!-- BRAND SELECTOR -->
+  <div class="brand-tabs">
+    <div class="brand-tab fp active" id="tab-fp" onclick="setBrand('fp')">
+      ⬡ Fermapro<br><span style="font-size:11px;font-weight:400;color:#9ca3af">Menuiserie · Fermetures · Domotique</span>
+    </div>
+    <div class="brand-tab rp" id="tab-rp" onclick="setBrand('rp')">
+      ⬡ Reparpro<br><span style="font-size:11px;font-weight:400;color:#9ca3af">SAV · Dépannage · Réparation</span>
+    </div>
+  </div>
+
+  <div class="grid">
+    <!-- LEFT -->
+    <div>
+      <div class="card">
+        <div class="sec">Type de post</div>
+        <div class="pill-group" id="types">
+          <div class="pill active" data-val="conseil" onclick="setPill('types',this)">Conseil pratique</div>
+          <div class="pill" data-val="offre" onclick="setPill('types',this)">Offre / Promo</div>
+          <div class="pill" data-val="realisation" onclick="setPill('types',this)">Réalisation client</div>
+          <div class="pill" data-val="actualite" onclick="setPill('types',this)">Actualité</div>
+          <div class="pill" data-val="sav" onclick="setPill('types',this)">SAV / Urgence</div>
+          <div class="pill" data-val="saisonnier" onclick="setPill('types',this)">Saisonnier</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="sec">Ton du post</div>
+        <div class="pill-group" id="tons">
+          <div class="pill active" data-val="chaleureux" onclick="setPill('tons',this)">Chaleureux</div>
+          <div class="pill" data-val="professionnel" onclick="setPill('tons',this)">Professionnel</div>
+          <div class="pill" data-val="dynamique" onclick="setPill('tons',this)">Dynamique</div>
+          <div class="pill" data-val="urgent" onclick="setPill('tons',this)">Urgent</div>
+          <div class="pill" data-val="pedagogique" onclick="setPill('tons',this)">Pédagogique</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="sec">Sujet du post</div>
+        <textarea id="sujet" placeholder="Décrivez en quelques mots le sujet du post…&#10;&#10;Exemples :&#10;• Pose de volet roulant solaire à Joué-lès-Tours&#10;• Offre de printemps -10% sur les pergolas&#10;• Conseils pour entretenir ses volets en hiver&#10;• Dépannage rapide portail bloqué à Tours"></textarea>
+        <div class="hint">Plus c'est précis, plus le post sera pertinent et personnalisé.</div>
+      </div>
+
+      <div id="error-box" class="error-box" style="display:none">
+        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        <span id="error-text"></span>
+      </div>
+
+      <button class="btn-gen" id="btn-gen" onclick="generate()">
+        <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+        Générer le post
+      </button>
+    </div>
+
+    <!-- RIGHT -->
+    <div>
+      <div class="out-card">
+        <div class="out-header">
+          <div class="out-title" id="out-title">
+            <svg width="13" height="13" fill="none" stroke="#2D3D74" stroke-width="2" viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+            Post Google Business
+          </div>
+          <button class="btn-copy" id="btn-copy" style="display:none" onclick="copyPost()">
+            <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+            Copier
+          </button>
+        </div>
+
+        <!-- Empty -->
+        <div class="empty-state" id="state-empty">
+          <div class="empty-icon">
+            <svg width="56" height="56" fill="none" stroke="#2D3D74" stroke-width="1.2" viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+          </div>
+          <div style="font-size:13px;text-align:center">Choisissez un type, un ton, décrivez le sujet<br>et cliquez sur Générer</div>
+        </div>
+
+        <!-- Loading -->
+        <div class="loading-state" id="state-loading" style="display:none">
+          <div class="spinner" id="spinner"></div>
+          <div class="loading-msg" id="loading-msg">Rédaction du post en cours…</div>
+          <div style="font-size:11px;color:var(--faint)">Optimisation SEO local · Tours 37</div>
+        </div>
+
+        <!-- Result -->
+        <div id="state-result" style="display:none">
+          <div class="preview-wrap">
+            <div class="preview-brand">
+              <div class="preview-avatar" id="prev-avatar" style="background:#2D3D74">F</div>
+              <div>
+                <div class="preview-name" id="prev-name">Fermapro</div>
+                <div class="preview-type" id="prev-type">Publication · Google Business</div>
+              </div>
+            </div>
+            <div class="preview-text" id="post-text"></div>
+          </div>
+          <div class="char-count" id="char-count"></div>
+          <div class="kw-row" id="kw-row"></div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL -->
+<div class="modal-bg" id="modal" style="display:none" onclick="closeOut(event)">
+  <div class="modal">
+    <div class="modal-title">🔑 Clé API Anthropic</div>
+    <div class="modal-sub">Stockée uniquement dans votre navigateur, jamais partagée.</div>
+    <label>Votre clé API</label>
+    <input class="modal-input" type="password" id="modal-key" placeholder="sk-ant-api03-…">
+    <div class="modal-hint">Obtenir une clé : <a href="https://console.anthropic.com/settings/keys" target="_blank">console.anthropic.com</a><br>La clé est partagée avec tous les outils Fermapro sur cet appareil.</div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeSettings()">Annuler</button>
+      <button class="btn-save" onclick="saveKey()">Enregistrer</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const PINK="#F06691",BLUE="#2D3D74",GREEN="#1a7a4a";
+let brand="fp";
+
+const BRANDS={
+  fp:{
+    name:"Fermapro",color:BLUE,avatar:"F",
+    services:"menuiserie extérieure, volets roulants, portails, pergolas, fenêtres, serrurerie, domotique Somfy",
+    zone:"Tours et le département 37 (Indre-et-Loire)",
+    tel:"02 47 38 91 40",site:"fermapro.fr",
+    cities:"Fondettes · Tours · Joué-lès-Tours · Saint-Cyr-sur-Loire · Amboise · Blois"
+  },
+  rp:{
+    name:"Reparpro",color:GREEN,avatar:"R",
+    services:"SAV, dépannage et réparation de fermetures (volets, portails, portes de garage, stores, serrurerie)",
+    zone:"Tours et le département 37",
+    tel:"02 47 38 91 40",site:"reparpro.fr",
+    cities:"Tours · Joué-lès-Tours · Saint-Cyr · Fondettes · Saint-Pierre-des-Corps · Amboise"
+  }
+};
+
+const TYPES_LABELS={conseil:"Conseil",offre:"Offre",realisation:"Réalisation client",actualite:"Actualité",sav:"SAV / Urgence",saisonnier:"Saisonnier"};
+
+function setBrand(b){
+  brand=b;
+  document.getElementById('tab-fp').classList.toggle('active',b==='fp');
+  document.getElementById('tab-rp').classList.toggle('active',b==='rp');
+  const isRp=b==='rp';
+  document.querySelectorAll('.pill').forEach(p=>{p.classList.toggle('rp-mode',isRp);if(p.classList.contains('active')){p.style.background=isRp?GREEN:BLUE;p.style.borderColor=isRp?GREEN:BLUE;}});
+  document.getElementById('btn-gen').className='btn-gen'+(isRp?' rp-mode':'');
+  document.getElementById('spinner').className='spinner'+(isRp?' rp':'');
+  const t=document.getElementById('out-title');
+  t.className='out-title'+(isRp?' rp-mode':'');
+  t.querySelector('svg').setAttribute('stroke',isRp?GREEN:BLUE);
+  const bc=document.getElementById('btn-copy');
+  bc.className='btn-copy'+(isRp?' rp-mode':'');
+}
+
+function setPill(groupId,el){
+  document.querySelectorAll(`#${groupId} .pill`).forEach(p=>{
+    p.classList.remove('active');
+    p.style.background='';p.style.color='';p.style.borderColor='';
+  });
+  el.classList.add('active');
+  const isRp=brand==='rp';
+  el.style.background=isRp?GREEN:BLUE;
+  el.style.color='#fff';
+  el.style.borderColor=isRp?GREEN:BLUE;
+}
+
+function getVal(groupId){
+  const a=document.querySelector(`#${groupId} .pill.active`);
+  return a?a.dataset.val:'';
+}
+
+// API KEY
+function getKey(){return localStorage.getItem('fermapro_agent_apikey')||'';}
+function updateKeyStatus(){
+  const k=getKey();const el=document.getElementById('key-status');
+  if(k&&k.startsWith('sk-')){el.className='key-status key-ok';el.textContent='✓ Clé configurée';}
+  else{el.className='key-status key-missing';el.textContent='⚠ Clé API';}
+}
+function openSettings(){document.getElementById('modal-key').value=getKey();document.getElementById('modal').style.display='flex';}
+function closeSettings(){document.getElementById('modal').style.display='none';}
+function closeOut(e){if(e.target===document.getElementById('modal'))closeSettings();}
+function saveKey(){
+  const k=document.getElementById('modal-key').value.trim();
+  if(k)localStorage.setItem('fermapro_agent_apikey',k);else localStorage.removeItem('fermapro_agent_apikey');
+  updateKeyStatus();closeSettings();
+}
+
+function showState(s){
+  document.getElementById('state-empty').style.display=s==='empty'?'flex':'none';
+  document.getElementById('state-loading').style.display=s==='loading'?'flex':'none';
+  document.getElementById('state-result').style.display=s==='result'?'block':'none';
+  document.getElementById('btn-copy').style.display=s==='result'?'flex':'none';
+}
+
+const MSGS=["Rédaction du post en cours…","Optimisation SEO local…","Intégration des mots-clés Tours 37…","Ajustement du ton…","Finalisation…"];
+let msgIv;
+function startLoading(){let i=0;document.getElementById('loading-msg').textContent=MSGS[0];msgIv=setInterval(()=>{i=(i+1)%MSGS.length;document.getElementById('loading-msg').textContent=MSGS[i];},2000);}
+function stopLoading(){clearInterval(msgIv);}
+
+async function generate(){
+  const key=getKey();
+  if(!key||!key.startsWith('sk-')){document.getElementById('error-text').textContent="Clé API manquante. Cliquez sur « Clé API » en haut pour la configurer.";document.getElementById('error-box').style.display='flex';openSettings();return;}
+  const sujet=document.getElementById('sujet').value.trim();
+  if(!sujet){document.getElementById('error-text').textContent="Veuillez décrire le sujet du post.";document.getElementById('error-box').style.display='flex';return;}
+  document.getElementById('error-box').style.display='none';
+
+  const type=getVal('types'),ton=getVal('tons');
+  const b=BRANDS[brand];
+
+  showState('loading');startLoading();
+  document.getElementById('btn-gen').disabled=true;
+
+  const prompt=`Rédige un post Google Business pour ${b.name}.
+
+Marque : ${b.name}
+Services : ${b.services}
+Zone : ${b.zone}
+Site web : ${b.site}
+Villes cibles : ${b.cities}
+
+Type de post : ${TYPES_LABELS[type]||type}
+Ton : ${ton}
+Sujet : ${sujet}
+
+Règles strictes :
+- Longueur : 150 à 300 caractères maximum (post Google Business court et percutant)
+- Commence par une accroche forte, pas par le nom de la marque
+- Inclure naturellement 1 ou 2 emojis (pas plus)
+- Terminer par le site web et/ou un appel à l'action court
+- AUCUN astérisque (*), AUCUN underscore (_), AUCUN markdown
+- Texte naturel et humain, pas de mise en forme
+- Inclure implicitement au moins un mot-clé local (Tours, 37, Touraine, etc.)
+
+Retourne UNIQUEMENT le texte du post, sans titre, sans guillemets, sans commentaire.`;
+
+  try{
+    const res=await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{'Content-Type':'application/json','x-api-key':key,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
+      body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:500,messages:[{role:'user',content:prompt}]})
+    });
+    const data=await res.json();
+    if(data.error)throw new Error(data.error.message);
+    const text=(data.content||[]).filter(b=>b.type==='text').map(b=>b.text).join('').trim();
+
+    // Keywords based on brand
+    const kws=brand==='fp'
+      ?['menuiserie Tours','fermetures 37','volet roulant Touraine','portail sur mesure','domotique Somfy Tours']
+      :['dépannage fermetures Tours','SAV volets 37','réparation urgente Touraine','vitrier Tours','portail bloqué Tours'];
+
+    document.getElementById('post-text').textContent=text;
+    document.getElementById('prev-avatar').textContent=b.avatar;
+    document.getElementById('prev-avatar').style.background=b.color;
+    document.getElementById('prev-name').textContent=b.name;
+    document.getElementById('prev-type').textContent=`${TYPES_LABELS[type]||type} · Google Business`;
+    document.getElementById('char-count').textContent=`${text.length} caractères`;
+    document.getElementById('kw-row').innerHTML=kws.map(k=>`<span class="kw ${brand==='rp'?'rp':''}">${k}</span>`).join('');
+    showState('result');
+  }catch(e){
+    showState('empty');
+    document.getElementById('error-text').textContent='Erreur : '+e.message;
+    document.getElementById('error-box').style.display='flex';
+  }finally{
+    stopLoading();
+    document.getElementById('btn-gen').disabled=false;
+  }
+}
+
+function copyPost(){
+  const t=document.getElementById('post-text').textContent;
+  navigator.clipboard.writeText(t).then(()=>{
+    const btn=document.getElementById('btn-copy');
+    btn.classList.add('done');
+    btn.innerHTML=`<svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg> Copié !`;
+    setTimeout(()=>{
+      btn.classList.remove('done');
+      btn.innerHTML=`<svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg> Copier`;
+    },2500);
+  });
+}
+
+updateKeyStatus();showState('empty');
+</script>
+</body>
+</html>
