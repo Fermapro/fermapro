@@ -2,6 +2,10 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## Langue de communication
+
+Toujours communiquer avec l'utilisateur **en français**, quelle que soit la langue utilisée dans les questions ou les fichiers.
+
 ## Project overview
 
 Fermapro is a suite of standalone French-language HTML applications for a windows & closures company (menuiseries & fermetures) based in Fondettes (37, Indre-et-Loire). There is no build system, no package manager, and no framework — each file is a self-contained HTML/CSS/JS app deployed as static files via GitHub Pages.
