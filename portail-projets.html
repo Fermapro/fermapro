@@ -1,0 +1,1557 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>Fermapro — Portail Projets</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Open+Sans:wght@400;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --navy:#2D3580;--navy2:#232970;--navy3:#1a1f58;
+  --pink:#E8457A;--pink2:#d63a6e;--pink-l:#FDEDF3;
+  --bg:#F4F5FA;--bg2:#EAECF4;--surface:#fff;
+  --border:#DDE0EE;--border2:#C8CBDF;
+  --text:#1E2345;--text2:#4A4F78;--muted:#8A8FAE;
+  --green:#1A7A45;--green-l:#D4EDDF;
+  --amber:#B8680A;--amber-l:#FDECD4;
+  --red:#C0392B;--red-l:#FADDDA;
+  --purple:#6B3FA0;--purple-l:#EDE8F8;
+  --fn:'Nunito',sans-serif;--fb:'Open Sans',sans-serif;--fm:'JetBrains Mono',monospace;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--bg);color:var(--text);font-family:var(--fb);min-height:100vh}
+
+/* ── LOGIN ── */
+#login-screen{position:fixed;inset:0;background:linear-gradient(135deg,var(--navy3) 0%,var(--navy) 50%,#3d2060 100%);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:1000;padding:24px}
+.login-box{background:rgba(255,255,255,0.07);backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,0.12);border-radius:20px;padding:28px 24px;width:100%;max-width:380px}
+.login-step{display:none}.login-step.active{display:block}
+.login-title{font-family:var(--fn);font-size:18px;font-weight:900;color:#fff;text-align:center;margin-bottom:6px}
+.login-sub{font-size:12px;color:rgba(255,255,255,0.45);text-align:center;margin-bottom:20px;font-family:var(--fn)}
+.user-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.user-card{background:rgba(255,255,255,0.08);border:1.5px solid rgba(255,255,255,0.1);border-radius:12px;padding:14px 10px;cursor:pointer;transition:all 0.15s;display:flex;flex-direction:column;align-items:center;gap:8px}
+.user-card:hover{background:rgba(255,255,255,0.15);border-color:var(--pink);transform:translateY(-2px)}
+.user-avatar{width:48px;height:48px;border-radius:50%;display:grid;place-items:center;font-family:var(--fn);font-size:18px;font-weight:900;color:#fff;background-size:cover;background-position:center}
+.user-name{font-family:var(--fn);font-size:12px;font-weight:800;color:#fff;text-align:center}
+.user-role{font-size:10px;color:rgba(255,255,255,0.4);font-family:var(--fn)}
+.pin-display{display:flex;justify-content:center;gap:12px;margin-bottom:24px}
+.pin-dot{width:16px;height:16px;border-radius:50%;border:2px solid rgba(255,255,255,0.3);transition:all 0.15s}
+.pin-dot.filled{background:var(--pink);border-color:var(--pink)}
+.pin-dot.error{background:var(--red);border-color:var(--red);animation:shake 0.3s ease}
+.pin-pad{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.pin-btn{background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.1);border-radius:12px;height:56px;font-family:var(--fn);font-size:20px;font-weight:800;color:#fff;cursor:pointer;transition:all 0.1s;display:grid;place-items:center}
+.pin-btn:hover{background:rgba(255,255,255,0.18)}
+.pin-btn:active{transform:scale(0.96)}
+.pin-btn.del{font-size:16px;color:rgba(255,255,255,0.6)}
+.pin-btn.empty{background:transparent;border:none;cursor:default}
+.pin-btn.empty:hover{transform:none}
+.pin-error{text-align:center;font-size:12px;color:#ff8080;font-family:var(--fn);font-weight:700;margin-bottom:12px;min-height:18px}
+.login-back{background:none;border:none;color:rgba(255,255,255,0.4);font-family:var(--fn);font-size:12px;font-weight:700;cursor:pointer;margin-top:14px;width:100%;text-align:center;padding:8px;transition:color 0.15s}
+.login-back:hover{color:rgba(255,255,255,0.7)}
+@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+
+/* ── APP ── */
+.app-wrap{display:none}.app-wrap.visible{display:flex}
+.layout{display:flex;min-height:100vh;width:100%}
+
+/* ── SIDEBAR ── */
+aside{width:300px;flex-shrink:0;background:var(--navy);display:flex;flex-direction:column;height:100vh;position:sticky;top:0;overflow:hidden}
+.brand{padding:18px 16px 14px;border-bottom:1px solid rgba(255,255,255,0.09);display:flex;align-items:center;gap:10px;flex-shrink:0}
+.side-user{margin:10px;background:rgba(255,255,255,0.07);border-radius:10px;padding:10px 14px;display:flex;align-items:center;gap:10px;border:1px solid rgba(255,255,255,0.08);flex-shrink:0}
+.side-user-avatar{width:32px;height:32px;border-radius:50%;display:grid;place-items:center;font-family:var(--fn);font-size:13px;font-weight:900;color:#fff;flex-shrink:0;background-size:cover;background-position:center}
+.side-user-info{flex:1;min-width:0}
+.side-user-name{font-family:var(--fn);font-size:12px;font-weight:800;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.side-user-role{font-size:10px;color:rgba(255,255,255,0.35);font-family:var(--fn)}
+.logout-btn{background:rgba(255,255,255,0.1);border:none;color:rgba(255,255,255,0.5);width:26px;height:26px;border-radius:6px;cursor:pointer;font-size:11px;display:grid;place-items:center;flex-shrink:0;transition:all 0.15s}
+.logout-btn:hover{background:rgba(232,69,122,0.3);color:var(--pink)}
+.side-search{padding:10px 10px 6px;flex-shrink:0}
+.side-search input{width:100%;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.12);color:#fff;border-radius:8px;padding:8px 12px;font-family:var(--fb);font-size:12px;outline:none}
+.side-search input::placeholder{color:rgba(255,255,255,0.3)}
+.side-filters{display:flex;gap:5px;padding:4px 10px 8px;flex-wrap:wrap;flex-shrink:0}
+.sf{font-family:var(--fn);font-size:10px;font-weight:800;padding:4px 10px;border-radius:20px;border:none;cursor:pointer;transition:all 0.15s;background:rgba(255,255,255,0.08);color:rgba(255,255,255,0.5)}
+.sf.active{background:var(--pink);color:#fff}
+.sf:hover:not(.active){background:rgba(255,255,255,0.15);color:rgba(255,255,255,0.8)}
+.project-list{flex:1;overflow-y:auto;padding:0 8px 8px}
+.project-list::-webkit-scrollbar{width:3px}
+.project-list::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.15);border-radius:3px}
+.prj-item{padding:12px 14px;border-radius:10px;cursor:pointer;transition:all 0.15s;margin-bottom:4px;border:1.5px solid transparent}
+.prj-item:hover{background:rgba(255,255,255,0.08)}
+.prj-item.active{background:rgba(232,69,122,0.15);border-color:rgba(232,69,122,0.4)}
+.prj-title{font-family:var(--fn);font-size:13px;font-weight:800;color:#fff;margin-bottom:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.prj-client{font-size:11px;color:rgba(255,255,255,0.45);margin-bottom:5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.prj-meta{display:flex;align-items:center;gap:6px}
+.status-pill{font-family:var(--fn);font-size:9px;font-weight:800;padding:2px 8px;border-radius:10px;text-transform:uppercase;letter-spacing:0.5px}
+.sp-prospect{background:var(--amber-l);color:var(--amber)}
+.sp-devis{background:rgba(45,53,128,0.2);color:#a0a8e8}
+.sp-planification{background:var(--purple-l);color:var(--purple)}
+.sp-cloture{background:var(--green-l);color:var(--green)}
+.prj-date{font-size:10px;color:rgba(255,255,255,0.3);margin-left:auto;font-family:var(--fm)}
+.new-prj-btn{margin:8px;flex-shrink:0}
+
+/* ── MAIN ── */
+.main-wrap{flex:1;display:flex;flex-direction:column;min-width:0;min-height:100vh}
+.topbar{background:var(--surface);border-bottom:1px solid var(--border);padding:0 28px;height:62px;display:flex;align-items:center;gap:16px;position:sticky;top:0;z-index:40;box-shadow:0 1px 4px rgba(45,53,128,0.06);flex-shrink:0}
+.topbar-ttl{font-family:var(--fn);font-size:15px;font-weight:900;color:var(--navy);text-transform:uppercase;letter-spacing:0.5px}
+.topbar-sub{font-size:11px;color:var(--muted);margin-top:1px}
+.topbar-actions{display:flex;gap:8px;margin-left:auto;align-items:center}
+
+/* ── EMPTY STATE ── */
+.empty-main{display:flex;flex-direction:column;align-items:center;justify-content:center;flex:1;gap:14px;color:var(--muted);padding:40px}
+.empty-main-ico{font-size:52px;opacity:0.3}
+.empty-main-txt{font-family:var(--fn);font-size:15px;font-weight:700;color:var(--muted)}
+.empty-main-sub{font-size:13px;color:var(--muted);text-align:center}
+
+/* ── PROJECT DETAIL ── */
+.prj-detail{flex:1;display:flex;flex-direction:column;overflow:hidden}
+.prj-header{background:linear-gradient(135deg,var(--navy3),var(--navy));padding:20px 28px;flex-shrink:0}
+.prj-header-top{display:flex;align-items:flex-start;gap:14px;margin-bottom:12px}
+.prj-header-badge{font-family:var(--fn);font-size:10px;font-weight:800;padding:4px 12px;border-radius:20px;text-transform:uppercase;letter-spacing:0.5px;flex-shrink:0;margin-top:2px}
+.prj-header-title{font-family:var(--fn);font-size:20px;font-weight:900;color:#fff;flex:1}
+.prj-header-client{font-size:13px;color:rgba(255,255,255,0.6);margin-top:2px}
+.prj-header-actions{display:flex;gap:8px;flex-shrink:0}
+.prj-tabs{display:flex;border-bottom:1px solid rgba(255,255,255,0.1);padding:0 28px;background:rgba(0,0,0,0.15)}
+.prj-tab{font-family:var(--fn);font-size:12px;font-weight:800;padding:12px 16px;color:rgba(255,255,255,0.45);cursor:pointer;border-bottom:2px solid transparent;transition:all 0.15s;white-space:nowrap;background:none;border-top:none;border-left:none;border-right:none}
+.prj-tab:hover{color:rgba(255,255,255,0.8)}
+.prj-tab.active{color:#fff;border-bottom-color:var(--pink)}
+.prj-tab-body{flex:1;overflow-y:auto;padding:24px 28px}
+.prj-section{display:none}.prj-section.active{display:block}
+
+/* ── ÉTAPES ── */
+.etapes-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px;margin-bottom:24px}
+.etape-card{background:var(--surface);border:2px solid var(--border);border-radius:10px;padding:14px 16px;cursor:pointer;transition:all 0.15s;position:relative;overflow:hidden}
+.etape-card:hover{border-color:var(--navy);transform:translateY(-1px)}
+.etape-card.done{border-color:var(--green);background:var(--green-l)}
+.etape-card.done .etape-label{color:var(--green)}
+.etape-check{width:22px;height:22px;border-radius:50%;border:2px solid var(--border2);display:grid;place-items:center;margin-bottom:8px;transition:all 0.15s;font-size:12px}
+.etape-card.done .etape-check{background:var(--green);border-color:var(--green);color:#fff}
+.etape-label{font-family:var(--fn);font-size:12px;font-weight:800;color:var(--text);margin-bottom:4px}
+.etape-date{font-size:10px;color:var(--muted);font-family:var(--fm)}
+.etape-note-txt{font-size:11px;color:var(--text2);margin-top:6px;font-style:italic}
+
+.info-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.info-block{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:16px 18px}
+.info-block.full{grid-column:1/-1}
+.info-lbl{font-family:var(--fn);font-size:9px;font-weight:800;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin-bottom:10px}
+.info-row{display:flex;flex-direction:column;gap:3px;margin-bottom:10px}
+.info-row:last-child{margin-bottom:0}
+.ir-lbl{font-size:10px;color:var(--muted);font-family:var(--fn);font-weight:700}
+.ir-val{font-size:13px;color:var(--text);font-weight:600}
+.ir-val.mono{font-family:var(--fm);font-size:12px}
+.montant-big{font-family:var(--fn);font-size:28px;font-weight:900;color:var(--navy)}
+
+/* ── DOCUMENTS ── */
+.doc-list{display:flex;flex-direction:column;gap:8px;margin-bottom:16px}
+.doc-item{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:12px 16px;display:flex;align-items:center;gap:12px;transition:background 0.1s}
+.doc-item:hover{background:var(--bg)}
+.doc-icon{font-size:22px;flex-shrink:0}
+.doc-info{flex:1;min-width:0}
+.doc-name{font-family:var(--fn);font-size:13px;font-weight:800;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.doc-meta{font-size:11px;color:var(--muted);margin-top:2px}
+.doc-vis{font-family:var(--fn);font-size:9px;font-weight:800;padding:2px 8px;border-radius:10px;flex-shrink:0}
+.doc-vis.client{background:var(--green-l);color:var(--green)}
+.doc-vis.intern{background:var(--bg2);color:var(--muted)}
+
+/* ── PHOTOS ── */
+.photo-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:12px;margin-bottom:16px}
+.photo-card{border-radius:10px;overflow:hidden;border:1px solid var(--border);background:var(--surface);cursor:pointer;transition:transform 0.15s}
+.photo-card:hover{transform:scale(1.02)}
+.photo-img{width:100%;height:130px;object-fit:cover;display:block}
+.photo-cap{padding:8px 10px}
+.photo-cap-txt{font-size:11px;font-weight:700;color:var(--text);font-family:var(--fn);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.photo-cap-phase{font-size:10px;color:var(--muted)}
+
+/* ── NOTES ── */
+.note-list{display:flex;flex-direction:column;gap:10px;margin-bottom:16px}
+.note-item{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px 16px}
+.note-head{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+.note-author{font-family:var(--fn);font-size:12px;font-weight:800;color:var(--navy)}
+.note-date{font-size:10px;color:var(--muted);margin-left:auto;font-family:var(--fm)}
+.note-text{font-size:13px;color:var(--text);line-height:1.6}
+.note-vis{font-family:var(--fn);font-size:9px;font-weight:800;padding:2px 8px;border-radius:10px}
+.note-vis.client{background:var(--green-l);color:var(--green)}
+.note-vis.intern{background:var(--bg2);color:var(--muted)}
+.note-del{background:none;border:none;color:var(--muted);cursor:pointer;font-size:13px;padding:2px 6px;border-radius:4px;transition:all 0.15s;margin-left:4px}
+.note-del:hover{color:var(--red);background:var(--red-l)}
+
+/* ── BOUTONS COMMUNS ── */
+.btn{font-family:var(--fn);font-size:12px;font-weight:800;padding:9px 16px;border-radius:7px;border:none;cursor:pointer;transition:all 0.15s;display:inline-flex;align-items:center;gap:6px;letter-spacing:0.3px;white-space:nowrap}
+.btn-primary{background:var(--navy);color:#fff}
+.btn-primary:hover{background:var(--navy3);transform:translateY(-1px);box-shadow:0 4px 12px rgba(45,53,128,0.3)}
+.btn-pink{background:var(--pink);color:#fff}
+.btn-pink:hover{background:var(--pink2);transform:translateY(-1px);box-shadow:0 4px 12px rgba(232,69,122,0.35)}
+.btn-ghost{background:var(--surface);color:var(--text2);border:1.5px solid var(--border2)}
+.btn-ghost:hover{border-color:var(--navy);color:var(--navy)}
+.btn-danger{background:var(--red-l);color:var(--red);border:1px solid rgba(192,57,43,0.25)}
+.btn-danger:hover{background:#f0c0bc}
+.btn-green{background:var(--green-l);color:var(--green);border:1px solid rgba(26,122,69,0.25)}
+.btn-green:hover{background:#b8e8cc}
+.btn-sm{padding:6px 11px;font-size:11px}
+.btn-full{width:100%;justify-content:center}
+.btn-w{width:100%;justify-content:center;padding:12px}
+
+/* ── OVERLAY / MODAL ── */
+.overlay{position:fixed;inset:0;background:rgba(45,53,128,0.5);backdrop-filter:blur(5px);z-index:200;display:none;place-items:center}
+.overlay.open{display:grid}
+.modal{background:var(--surface);border:1px solid var(--border);border-radius:14px;width:560px;max-width:96vw;max-height:92vh;overflow-y:auto;animation:popIn 0.2s ease;box-shadow:0 24px 60px rgba(45,53,128,0.2)}
+.modal.sm{width:420px}
+.modal.lg{width:680px}
+.modal-head{padding:18px 24px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:2;background:linear-gradient(to right,var(--navy),var(--navy2))}
+.modal-title{font-family:var(--fn);font-size:17px;font-weight:900;color:#fff;letter-spacing:0.5px;text-transform:uppercase}
+.modal-close{background:rgba(255,255,255,0.15);border:none;color:#fff;width:30px;height:30px;border-radius:6px;cursor:pointer;font-size:13px;display:grid;place-items:center;transition:all 0.15s}
+.modal-close:hover{background:rgba(255,255,255,0.25)}
+.modal-body{padding:20px 24px}
+.modal-foot{padding:14px 24px 20px;display:flex;gap:8px;justify-content:flex-end;border-top:1px solid var(--border)}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.form-grid .full{grid-column:1/-1}
+.fg{display:flex;flex-direction:column;gap:5px}
+.fl{font-family:var(--fn);font-size:9px;font-weight:800;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted)}
+.fi,.fs{background:var(--bg);border:1.5px solid var(--border2);color:var(--text);font-family:var(--fb);font-size:13px;padding:9px 11px;border-radius:7px;outline:none;width:100%;transition:border-color 0.15s,box-shadow 0.15s}
+.fi:focus,.fs:focus{border-color:var(--navy);box-shadow:0 0 0 3px rgba(45,53,128,0.08)}
+.fi::placeholder{color:var(--muted)}
+.ftextarea{min-height:80px;resize:vertical;line-height:1.6}
+.divider-line{height:1px;background:var(--border);margin:8px 0;grid-column:1/-1}
+.section-label{font-family:var(--fn);font-size:10px;font-weight:800;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin-bottom:8px;grid-column:1/-1;padding-top:4px}
+.toggle-row{display:flex;align-items:center;gap:10px;cursor:pointer;font-family:var(--fn);font-size:12px;font-weight:700;color:var(--text)}
+.toggle-row input[type=checkbox]{width:16px;height:16px;accent-color:var(--navy);cursor:pointer}
+
+/* ── TOAST ── */
+.toast-box{position:fixed;bottom:22px;right:22px;display:flex;flex-direction:column;gap:8px;z-index:9999}
+.toast{background:var(--navy);color:#fff;border-radius:8px;padding:11px 16px;font-size:13px;font-weight:600;display:flex;align-items:center;gap:9px;animation:slideToast 0.25s ease,fadeToast 0.3s ease 2.7s both;box-shadow:0 8px 24px rgba(45,53,128,0.3);max-width:320px;font-family:var(--fn)}
+.toast.err{background:var(--red)}.toast.ok{background:var(--green)}.toast.warn{background:var(--pink)}
+
+/* ── VUE CLIENT ── */
+#client-view{display:none;min-height:100vh;background:var(--bg)}
+.cv-header{background:linear-gradient(135deg,var(--navy3),var(--navy));padding:24px 28px 0}
+.cv-brand{display:flex;align-items:center;gap:10px;margin-bottom:20px}
+.cv-brand-name{font-family:var(--fn);font-size:18px;font-weight:900;color:#fff}
+.cv-brand-sub{font-size:11px;color:rgba(255,255,255,0.4);font-family:var(--fn);text-transform:uppercase;letter-spacing:1px}
+.cv-title{font-family:var(--fn);font-size:24px;font-weight:900;color:#fff;margin-bottom:4px}
+.cv-client-name{font-size:14px;color:rgba(255,255,255,0.6);margin-bottom:16px}
+.cv-tabs{display:flex;gap:0;border-bottom:1px solid rgba(255,255,255,0.1)}
+.cv-tab{font-family:var(--fn);font-size:12px;font-weight:800;padding:12px 20px;color:rgba(255,255,255,0.45);cursor:pointer;border-bottom:2px solid transparent;transition:all 0.15s;background:none;border-top:none;border-left:none;border-right:none;white-space:nowrap}
+.cv-tab:hover{color:rgba(255,255,255,0.8)}
+.cv-tab.active{color:#fff;border-bottom-color:var(--pink)}
+.cv-body{max-width:860px;margin:0 auto;padding:28px 20px}
+.cv-section{display:none}.cv-section.active{display:block}
+.cv-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:20px;margin-bottom:14px}
+.cv-card-title{font-family:var(--fn);font-size:12px;font-weight:800;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-bottom:14px}
+
+/* ── TIMELINE CLIENT ── */
+.timeline{position:relative;padding-left:24px}
+.timeline::before{content:'';position:absolute;left:8px;top:4px;bottom:4px;width:2px;background:var(--border2)}
+.tl-step{position:relative;margin-bottom:16px}
+.tl-dot{position:absolute;left:-20px;top:2px;width:16px;height:16px;border-radius:50%;border:2px solid var(--border2);background:var(--surface);display:grid;place-items:center;font-size:8px}
+.tl-dot.done{background:var(--green);border-color:var(--green);color:#fff}
+.tl-dot.current{background:var(--pink);border-color:var(--pink);color:#fff;box-shadow:0 0 0 4px rgba(232,69,122,0.2)}
+.tl-label{font-family:var(--fn);font-size:13px;font-weight:800;color:var(--text)}
+.tl-label.done{color:var(--green)}
+.tl-label.pending{color:var(--muted)}
+.tl-date{font-size:11px;color:var(--muted);font-family:var(--fm);margin-top:2px}
+.tl-note{font-size:12px;color:var(--text2);margin-top:4px;font-style:italic}
+
+/* ── SHARE MODAL ── */
+.share-url-box{background:var(--bg);border:1.5px solid var(--border2);border-radius:8px;padding:12px 14px;font-family:var(--fm);font-size:12px;color:var(--text2);word-break:break-all;margin-bottom:12px;line-height:1.6}
+.share-qr{display:flex;justify-content:center;margin:16px 0}
+
+/* ── ETAPE MODAL ── */
+.etape-edit-grid{display:flex;flex-direction:column;gap:12px}
+
+/* ── LIGHTBOX ── */
+#lightbox{position:fixed;inset:0;background:rgba(0,0,0,0.92);z-index:500;display:none;place-items:center}
+#lightbox.open{display:grid}
+#lightbox img{max-width:95vw;max-height:90vh;object-fit:contain;border-radius:8px}
+#lightbox-close{position:fixed;top:16px;right:16px;background:rgba(255,255,255,0.15);border:none;color:#fff;width:36px;height:36px;border-radius:50%;cursor:pointer;font-size:18px;display:grid;place-items:center}
+
+/* ── CONFIG ── */
+.cfg-panel{background:var(--surface);border:2px solid var(--pink);border-radius:12px;padding:24px;max-width:540px}
+.cfg-title{font-family:var(--fn);font-size:16px;font-weight:900;color:var(--navy);margin-bottom:6px}
+.cfg-sub{font-size:12px;color:var(--muted);margin-bottom:14px;line-height:1.6}
+
+@keyframes popIn{from{opacity:0;transform:scale(0.97) translateY(6px)}to{opacity:1;transform:scale(1) translateY(0)}}
+@keyframes slideToast{from{opacity:0;transform:translateX(14px)}to{opacity:1;transform:translateX(0)}}
+@keyframes fadeToast{to{opacity:0;transform:translateX(14px)}}
+@keyframes riseUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+::-webkit-scrollbar{width:5px;height:5px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px}
+</style>
+</head>
+<body>
+
+<!-- ══ VUE CLIENT (accès sans login via token) ══ -->
+<div id="client-view">
+  <div class="cv-header">
+    <div class="cv-brand">
+      <svg width="32" height="32" viewBox="0 0 42 42" fill="none"><rect x="1" y="1" width="40" height="40" rx="4" fill="#E8457A"/><rect x="5" y="5" width="15" height="16" rx="2" fill="#2D3580" opacity="0.85"/><rect x="22" y="5" width="15" height="16" rx="2" fill="#2D3580" opacity="0.85"/><rect x="5" y="23" width="15" height="14" rx="2" fill="#2D3580" opacity="0.85"/><rect x="22" y="23" width="15" height="14" rx="2" fill="#2D3580" opacity="0.85"/></svg>
+      <div><div class="cv-brand-name">fermapro</div><div class="cv-brand-sub">Menuiseries · Fermetures</div></div>
+    </div>
+    <div class="cv-title" id="cv-title">—</div>
+    <div class="cv-client-name" id="cv-client-name">—</div>
+    <div style="display:flex;gap:6px;margin-bottom:16px" id="cv-status-row"></div>
+    <div class="cv-tabs">
+      <button class="cv-tab active" onclick="cvTab('avancement',this)">📋 Avancement</button>
+      <button class="cv-tab" onclick="cvTab('documents',this)">📄 Documents</button>
+      <button class="cv-tab" onclick="cvTab('photos',this)">📷 Photos</button>
+      <button class="cv-tab" onclick="cvTab('messages',this)">💬 Messages</button>
+    </div>
+  </div>
+  <div class="cv-body">
+    <div class="cv-section active" id="cv-avancement">
+      <div class="cv-card">
+        <div class="cv-card-title">Avancement de votre projet</div>
+        <div class="timeline" id="cv-timeline"></div>
+      </div>
+      <div class="cv-card" id="cv-info-card">
+        <div class="cv-card-title">Informations</div>
+        <div id="cv-infos"></div>
+      </div>
+    </div>
+    <div class="cv-section" id="cv-documents">
+      <div class="cv-card">
+        <div class="cv-card-title">Vos documents</div>
+        <div id="cv-doc-list"></div>
+      </div>
+    </div>
+    <div class="cv-section" id="cv-photos">
+      <div class="cv-card">
+        <div class="cv-card-title">Photos du chantier</div>
+        <div class="photo-grid" id="cv-photo-grid"></div>
+      </div>
+    </div>
+    <div class="cv-section" id="cv-messages">
+      <div class="cv-card">
+        <div class="cv-card-title">Messages de votre commercial</div>
+        <div id="cv-note-list"></div>
+      </div>
+    </div>
+  </div>
+  <div style="text-align:center;padding:20px;font-size:11px;color:var(--muted);border-top:1px solid var(--border)">
+    Fermapro · 8 rue Claude Chappe · 37230 Fondettes · fermapro.fr
+  </div>
+</div>
+
+<!-- ══ LOGIN ══ -->
+<div id="login-screen">
+  <div style="margin-bottom:32px">
+    <svg width="220" height="56" viewBox="0 0 220 56" fill="none"><rect x="1" y="4" width="40" height="40" rx="4" fill="#E8457A"/><rect x="5" y="8" width="15" height="16" rx="2" fill="#2D3580" opacity="0.85"/><rect x="22" y="8" width="15" height="16" rx="2" fill="#2D3580" opacity="0.85"/><rect x="5" y="26" width="15" height="14" rx="2" fill="#2D3580" opacity="0.85"/><rect x="22" y="26" width="15" height="14" rx="2" fill="#2D3580" opacity="0.85"/><text x="50" y="31" font-family="Nunito,sans-serif" font-size="24" font-weight="900" fill="#FFFFFF">fermapro</text><text x="50" y="46" font-family="Nunito,sans-serif" font-size="11" font-weight="700" fill="#E8457A">portail projets</text></svg>
+  </div>
+  <div class="login-box">
+    <div class="login-step active" id="step-user">
+      <div class="login-title">Qui êtes-vous ?</div>
+      <div class="login-sub">Sélectionnez votre profil</div>
+      <div class="user-grid" id="user-grid"></div>
+      <div style="margin-top:16px;text-align:center">
+        <button class="login-back" onclick="showConfig()" style="font-size:11px;opacity:0.5">⚙️ Configuration</button>
+      </div>
+    </div>
+    <div class="login-step" id="step-pin">
+      <div class="login-title" id="pin-greeting">Bonjour !</div>
+      <div class="login-sub">Code PIN à 4 chiffres</div>
+      <div class="pin-display">
+        <div class="pin-dot" id="d0"></div><div class="pin-dot" id="d1"></div>
+        <div class="pin-dot" id="d2"></div><div class="pin-dot" id="d3"></div>
+      </div>
+      <div class="pin-error" id="pin-error"></div>
+      <div class="pin-pad">
+        <button class="pin-btn" onclick="pinPress(1)">1</button><button class="pin-btn" onclick="pinPress(2)">2</button><button class="pin-btn" onclick="pinPress(3)">3</button>
+        <button class="pin-btn" onclick="pinPress(4)">4</button><button class="pin-btn" onclick="pinPress(5)">5</button><button class="pin-btn" onclick="pinPress(6)">6</button>
+        <button class="pin-btn" onclick="pinPress(7)">7</button><button class="pin-btn" onclick="pinPress(8)">8</button><button class="pin-btn" onclick="pinPress(9)">9</button>
+        <button class="pin-btn empty"></button><button class="pin-btn" onclick="pinPress(0)">0</button><button class="pin-btn del" onclick="pinDel()">⌫</button>
+      </div>
+      <button class="login-back" onclick="backToUsers()">← Changer d'utilisateur</button>
+    </div>
+    <div class="login-step" id="step-config">
+      <div class="login-title">⚙️ Configuration</div>
+      <div class="login-sub">URL du Google Apps Script dédié aux projets</div>
+      <input class="fi" id="cfg-url-login" placeholder="https://script.google.com/macros/s/…/exec" style="margin-bottom:10px">
+      <button class="btn btn-pink btn-w" onclick="saveConfigLogin()">Enregistrer</button>
+      <button class="login-back" onclick="backToUsers()">← Retour</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ APP PRINCIPALE ══ -->
+<div class="app-wrap" id="app-wrap">
+<div class="layout">
+
+<aside>
+  <div class="brand">
+    <svg width="130" height="36" viewBox="0 0 130 36" fill="none"><rect x="1" y="2" width="28" height="28" rx="3" fill="#E8457A"/><rect x="4" y="5" width="10" height="11" rx="1.5" fill="#2D3580" opacity="0.85"/><rect x="16" y="5" width="10" height="11" rx="1.5" fill="#2D3580" opacity="0.85"/><rect x="4" y="18" width="10" height="9" rx="1.5" fill="#2D3580" opacity="0.85"/><rect x="16" y="18" width="10" height="9" rx="1.5" fill="#2D3580" opacity="0.85"/><text x="34" y="20" font-family="Nunito,sans-serif" font-size="15" font-weight="900" fill="#FFFFFF">fermapro</text><text x="34" y="31" font-family="Nunito,sans-serif" font-size="8" font-weight="700" fill="#E8457A">portail projets</text></svg>
+  </div>
+  <div class="side-user">
+    <div class="side-user-avatar" id="side-avatar" style="background:var(--pink)">?</div>
+    <div class="side-user-info">
+      <div class="side-user-name" id="side-uname">—</div>
+      <div class="side-user-role" id="side-urole">—</div>
+    </div>
+    <button class="logout-btn" onclick="logout()" title="Se déconnecter">⏻</button>
+  </div>
+  <div class="side-search">
+    <input type="text" id="prj-search" placeholder="🔍 Rechercher un projet…" oninput="renderList()">
+  </div>
+  <div class="side-filters">
+    <button class="sf active" onclick="setFilter('',this)">Tous</button>
+    <button class="sf" onclick="setFilter('prospect',this)">Prospect</button>
+    <button class="sf" onclick="setFilter('devis',this)">Devis</button>
+    <button class="sf" onclick="setFilter('planification',this)">En cours</button>
+    <button class="sf" onclick="setFilter('cloture',this)">Clôturé</button>
+  </div>
+  <div class="project-list" id="project-list"></div>
+  <div class="new-prj-btn">
+    <button class="btn btn-pink btn-full" onclick="openNewProject()">＋ Nouveau projet</button>
+  </div>
+</aside>
+
+<div class="main-wrap">
+  <!-- Topbar -->
+  <div class="topbar">
+    <div>
+      <div class="topbar-ttl" id="topbar-title">Portail Projets</div>
+      <div class="topbar-sub" id="topbar-sub">Sélectionnez un projet</div>
+    </div>
+    <div class="topbar-actions" id="topbar-actions" style="display:none">
+      <button class="btn btn-ghost btn-sm" onclick="openShare()">🔗 Lien client</button>
+      <button class="btn btn-ghost btn-sm" onclick="openEditProject()">✏️ Modifier</button>
+      <button class="btn btn-ghost btn-sm" onclick="loadAll()">🔄 Sync</button>
+      <button class="btn btn-danger btn-sm" onclick="deleteProject()">🗑 Supprimer</button>
+    </div>
+  </div>
+
+  <!-- Empty -->
+  <div class="empty-main" id="empty-main">
+    <div class="empty-main-ico">🏗️</div>
+    <div class="empty-main-txt">Aucun projet sélectionné</div>
+    <div class="empty-main-sub">Choisissez un projet dans la liste<br>ou créez-en un nouveau.</div>
+    <button class="btn btn-pink" onclick="openNewProject()">＋ Créer un projet</button>
+  </div>
+
+  <!-- Project detail -->
+  <div class="prj-detail" id="prj-detail" style="display:none">
+    <div class="prj-header">
+      <div class="prj-header-top">
+        <span class="prj-header-badge status-pill" id="ph-badge">—</span>
+        <div style="flex:1">
+          <div class="prj-header-title" id="ph-title">—</div>
+          <div class="prj-header-client" id="ph-client">—</div>
+        </div>
+        <div class="prj-header-actions">
+          <span id="ph-montant" style="font-family:var(--fn);font-size:16px;font-weight:900;color:#fff;padding:6px 12px;background:rgba(255,255,255,0.12);border-radius:8px;display:none"></span>
+        </div>
+      </div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <span style="font-size:11px;color:rgba(255,255,255,0.4);font-family:var(--fn)" id="ph-dates"></span>
+      </div>
+    </div>
+    <div class="prj-tabs">
+      <button class="prj-tab active" onclick="prjTab('etapes',this)">📋 Étapes</button>
+      <button class="prj-tab" onclick="prjTab('infos',this)">👤 Client</button>
+      <button class="prj-tab" onclick="prjTab('documents',this)">📄 Documents</button>
+      <button class="prj-tab" onclick="prjTab('photos',this)">📷 Photos</button>
+      <button class="prj-tab" onclick="prjTab('notes',this)">💬 Notes</button>
+      <button class="prj-tab" onclick="prjTab('config',this)">⚙️ Config</button>
+    </div>
+    <div class="prj-tab-body">
+      <!-- ÉTAPES -->
+      <div class="prj-section active" id="sec-etapes">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+          <div style="font-family:var(--fn);font-size:13px;font-weight:800;color:var(--navy)">Progression du projet</div>
+          <div style="display:flex;align-items:center;gap:8px">
+            <div style="font-family:var(--fm);font-size:11px;color:var(--muted)" id="etapes-progress"></div>
+            <button class="btn btn-ghost btn-sm" onclick="openAddEtape()">＋ Étape</button>
+          </div>
+        </div>
+        <div class="etapes-grid" id="etapes-grid"></div>
+        <div style="margin-top:8px;padding:14px;background:var(--bg2);border-radius:10px;border:1px solid var(--border)">
+          <div style="font-family:var(--fn);font-size:10px;font-weight:800;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-bottom:6px">Statut global du projet</div>
+          <select class="fs" id="statut-select" onchange="changeStatut(this.value)" style="max-width:260px">
+            <option value="prospect">🟡 Prospect / Négociation</option>
+            <option value="devis">🔵 Devis &amp; Commande</option>
+            <option value="planification">🟣 Planification &amp; Pose</option>
+            <option value="cloture">🟢 Clôturé</option>
+          </select>
+        </div>
+      </div>
+      <!-- INFOS CLIENT -->
+      <div class="prj-section" id="sec-infos">
+        <div class="info-grid">
+          <div class="info-block">
+            <div class="info-lbl">Informations client</div>
+            <div class="info-row"><div class="ir-lbl">Nom</div><div class="ir-val" id="ic-nom">—</div></div>
+            <div class="info-row"><div class="ir-lbl">Email</div><div class="ir-val" id="ic-email">—</div></div>
+            <div class="info-row"><div class="ir-lbl">Téléphone</div><div class="ir-val" id="ic-tel">—</div></div>
+            <div class="info-row"><div class="ir-lbl">Adresse</div><div class="ir-val" id="ic-adresse">—</div></div>
+          </div>
+          <div class="info-block">
+            <div class="info-lbl">Projet</div>
+            <div class="info-row"><div class="ir-lbl">Commercial</div><div class="ir-val" id="ic-commercial">—</div></div>
+            <div class="info-row"><div class="ir-lbl">Montant devis HT</div><div class="montant-big" id="ic-montant">—</div></div>
+            <div class="info-row"><div class="ir-lbl">Date prévue de pose</div><div class="ir-val mono" id="ic-datePrevue">—</div></div>
+            <div class="info-row"><div class="ir-lbl">Créé le</div><div class="ir-val mono" id="ic-dateCreation">—</div></div>
+          </div>
+          <div class="info-block full" id="ic-desc-block" style="display:none">
+            <div class="info-lbl">Description / Travaux</div>
+            <div class="ir-val" id="ic-description" style="line-height:1.7"></div>
+          </div>
+        </div>
+      </div>
+      <!-- DOCUMENTS -->
+      <div class="prj-section" id="sec-documents">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+          <div style="font-family:var(--fn);font-size:13px;font-weight:800;color:var(--navy)">Documents du projet</div>
+          <button class="btn btn-primary btn-sm" onclick="openAddDoc()">＋ Ajouter</button>
+        </div>
+        <div class="doc-list" id="doc-list"></div>
+        <div id="doc-empty" style="display:none;text-align:center;padding:32px;color:var(--muted);font-family:var(--fn);font-size:13px">Aucun document — ajoutez un lien ou importez un fichier.</div>
+      </div>
+      <!-- PHOTOS -->
+      <div class="prj-section" id="sec-photos">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+          <div style="font-family:var(--fn);font-size:13px;font-weight:800;color:var(--navy)">Photos du chantier</div>
+          <button class="btn btn-primary btn-sm" onclick="document.getElementById('photo-input').click()">📷 Ajouter photos</button>
+          <input type="file" id="photo-input" accept="image/*" multiple style="display:none" onchange="handlePhotos(this.files)">
+        </div>
+        <div class="photo-grid" id="photo-grid"></div>
+        <div id="photo-empty" style="display:none;text-align:center;padding:32px;color:var(--muted);font-family:var(--fn);font-size:13px">Aucune photo — ajoutez des photos avant / pendant / après chantier.</div>
+      </div>
+      <!-- NOTES -->
+      <div class="prj-section" id="sec-notes">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+          <div style="font-family:var(--fn);font-size:13px;font-weight:800;color:var(--navy)">Notes &amp; communications</div>
+        </div>
+        <div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:16px;margin-bottom:14px">
+          <textarea class="fi ftextarea" id="new-note-txt" placeholder="Saisissez une note, un message client, un rappel…" style="margin-bottom:10px"></textarea>
+          <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px">
+            <label class="toggle-row">
+              <input type="checkbox" id="new-note-client"> Visible par le client
+            </label>
+            <button class="btn btn-primary btn-sm" onclick="addNote()">Publier la note</button>
+          </div>
+        </div>
+        <div class="note-list" id="note-list"></div>
+        <div id="note-empty" style="display:none;text-align:center;padding:32px;color:var(--muted);font-family:var(--fn);font-size:13px">Aucune note pour ce projet.</div>
+      </div>
+      <!-- CONFIG -->
+      <div class="prj-section" id="sec-config">
+        <div class="cfg-panel">
+          <div class="cfg-title">⚙️ Connexion Google Apps Script</div>
+          <div class="cfg-sub">URL du script dédié au portail projets (Google Sheet séparé du stock).</div>
+          <input class="fi" id="cfg-url" placeholder="https://script.google.com/macros/s/…/exec" style="margin-bottom:10px">
+          <div style="display:flex;gap:8px;flex-wrap:wrap">
+            <button class="btn btn-pink btn-sm" onclick="saveConfig()">✓ Enregistrer</button>
+            <button class="btn btn-ghost btn-sm" onclick="testConnection()">Tester la connexion</button>
+          </div>
+          <div style="margin-top:10px;font-size:11px;color:var(--muted)">Sans script, les données sont sauvegardées localement uniquement.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+</div><!-- /app-wrap -->
+
+<!-- ══ MODALS ══ -->
+
+<!-- Nouveau / éditer projet -->
+<div class="overlay" id="ov-project">
+  <div class="modal lg">
+    <div class="modal-head"><div class="modal-title" id="pm-title">Nouveau projet</div><button class="modal-close" onclick="closeModal('ov-project')">✕</button></div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="fg full"><label class="fl">Titre du projet *</label><input class="fi" id="pm-titre" placeholder="Ex: Pose volets roulants — Mme Dupont"></div>
+        <div class="fg full"><label class="fl">Description / Travaux</label><textarea class="fi ftextarea" id="pm-description" placeholder="Nature des travaux, produits, remarques…"></textarea></div>
+        <div class="section-label">Client</div>
+        <div class="fg full"><label class="fl">Nom du client *</label><input class="fi" id="pm-client-nom" placeholder="Jean Dupont"></div>
+        <div class="fg"><label class="fl">Email</label><input class="fi" id="pm-client-email" placeholder="client@email.fr" type="email"></div>
+        <div class="fg"><label class="fl">Téléphone</label><input class="fi" id="pm-client-tel" placeholder="06 12 34 56 78" type="tel"></div>
+        <div class="fg full"><label class="fl">Adresse du chantier</label><input class="fi" id="pm-client-adresse" placeholder="12 rue des Lilas, 37000 Tours"></div>
+        <div class="section-label">Projet</div>
+        <div class="fg"><label class="fl">Commercial responsable</label><input class="fi" id="pm-commercial" placeholder="Prénom Nom"></div>
+        <div class="fg"><label class="fl">Montant devis HT (€)</label><input class="fi" id="pm-montant" type="number" step="0.01" placeholder="0.00"></div>
+        <div class="fg"><label class="fl">Date prévue de pose</label><input class="fi" id="pm-datePrevue" type="date"></div>
+        <div class="fg"><label class="fl">Statut</label>
+          <select class="fs" id="pm-statut">
+            <option value="prospect">🟡 Prospect / Négociation</option>
+            <option value="devis">🔵 Devis &amp; Commande</option>
+            <option value="planification">🟣 Planification &amp; Pose</option>
+            <option value="cloture">🟢 Clôturé</option>
+          </select>
+        </div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" onclick="closeModal('ov-project')">Annuler</button>
+      <button class="btn btn-pink" onclick="saveProject()">Enregistrer</button>
+    </div>
+  </div>
+</div>
+
+<!-- Ajouter document -->
+<div class="overlay" id="ov-doc">
+  <div class="modal">
+    <div class="modal-head"><div class="modal-title">Ajouter un document</div><button class="modal-close" onclick="closeModal('ov-doc')">✕</button></div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="fg full"><label class="fl">Nom du document *</label><input class="fi" id="doc-nom" placeholder="Ex: Devis N°2024-031"></div>
+        <div class="fg full">
+          <label class="fl">Type</label>
+          <select class="fs" id="doc-type">
+            <option value="devis">📋 Devis</option>
+            <option value="commande">📝 Bon de commande</option>
+            <option value="facture">🧾 Facture</option>
+            <option value="plan">📐 Plan / Schéma</option>
+            <option value="notice">📖 Notice technique</option>
+            <option value="autre">📎 Autre</option>
+          </select>
+        </div>
+        <div class="fg full">
+          <label class="fl">Lien (URL Google Drive, etc.)</label>
+          <input class="fi" id="doc-url" placeholder="https://drive.google.com/…">
+          <div style="text-align:center;font-size:11px;color:var(--muted);margin:8px 0">— ou —</div>
+          <button class="btn btn-ghost btn-full" onclick="document.getElementById('doc-file').click()">📎 Importer un fichier (≤ 2 Mo)</button>
+          <input type="file" id="doc-file" accept=".pdf,image/*,.xlsx,.docx" style="display:none" onchange="handleDocFile(this)">
+          <div id="doc-file-name" style="font-size:11px;color:var(--green);margin-top:6px;font-family:var(--fn);font-weight:700"></div>
+        </div>
+        <div class="fg full">
+          <label class="toggle-row">
+            <input type="checkbox" id="doc-visible-client"> Visible par le client
+          </label>
+        </div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" onclick="closeModal('ov-doc')">Annuler</button>
+      <button class="btn btn-primary" onclick="saveDoc()">Ajouter</button>
+    </div>
+  </div>
+</div>
+
+<!-- Éditer étape -->
+<div class="overlay" id="ov-etape">
+  <div class="modal sm">
+    <div class="modal-head"><div class="modal-title" id="etape-modal-title">Étape</div><button class="modal-close" onclick="closeModal('ov-etape')">✕</button></div>
+    <div class="modal-body">
+      <div class="etape-edit-grid">
+        <div class="fg"><label class="fl">Statut</label>
+          <label class="toggle-row"><input type="checkbox" id="etape-done"> Étape réalisée</label>
+        </div>
+        <div class="fg"><label class="fl">Date de réalisation</label><input class="fi" id="etape-date" type="date"></div>
+        <div class="fg"><label class="fl">Note / Commentaire</label><textarea class="fi ftextarea" id="etape-note" placeholder="Remarques sur cette étape…" style="min-height:60px"></textarea></div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" onclick="closeModal('ov-etape')">Annuler</button>
+      <button class="btn btn-primary" onclick="saveEtape()">Enregistrer</button>
+    </div>
+  </div>
+</div>
+
+<!-- Ajouter étape personnalisée -->
+<div class="overlay" id="ov-add-etape">
+  <div class="modal sm">
+    <div class="modal-head"><div class="modal-title">Nouvelle étape</div><button class="modal-close" onclick="closeModal('ov-add-etape')">✕</button></div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="fg full"><label class="fl">Libellé de l'étape *</label><input class="fi" id="new-etape-label" placeholder="Ex: Réception matériaux"></div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" onclick="closeModal('ov-add-etape')">Annuler</button>
+      <button class="btn btn-primary" onclick="confirmAddEtape()">Ajouter</button>
+    </div>
+  </div>
+</div>
+
+<!-- Partager lien client -->
+<div class="overlay" id="ov-share">
+  <div class="modal sm">
+    <div class="modal-head"><div class="modal-title">🔗 Lien client</div><button class="modal-close" onclick="closeModal('ov-share')">✕</button></div>
+    <div class="modal-body">
+      <div style="font-family:var(--fn);font-size:12px;color:var(--muted);margin-bottom:12px">Partagez ce lien avec votre client pour qu'il suive l'avancement de son projet :</div>
+      <div class="share-url-box" id="share-url-box">—</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px">
+        <button class="btn btn-primary btn-sm" onclick="copyShareUrl()">📋 Copier le lien</button>
+        <button class="btn btn-ghost btn-sm" onclick="regenToken()">🔄 Nouveau lien</button>
+      </div>
+      <div style="background:var(--amber-l);border:1px solid rgba(184,104,10,0.3);border-radius:8px;padding:10px 14px;font-size:12px;color:var(--amber);font-family:var(--fn);font-weight:700">
+        ⚠ Le lien donne accès en lecture seule aux documents et notes marqués "Visible client".
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Lightbox photo -->
+<div id="lightbox" onclick="closeLightbox()">
+  <button id="lightbox-close" onclick="closeLightbox()">✕</button>
+  <img id="lightbox-img" src="" alt="">
+</div>
+
+<!-- Toasts -->
+<div class="toast-box" id="toast-box"></div>
+
+<script>
+// ═══════════════════════════════════════════════════════
+//  ÉTAT
+// ═══════════════════════════════════════════════════════
+let projects = [];
+let users = [];
+let currentUser = null;
+let currentProjectId = null;
+let editingProjectId = null;
+let editingEtapeId = null;
+let pendingDocFile = null;
+let filterStatus = '';
+let SCRIPT_URL = localStorage.getItem('pp_script_url') || '';
+
+const STATUT_META = {
+  prospect:      { label:'Prospect',       cls:'sp-prospect',      emoji:'🟡' },
+  devis:         { label:'Devis',           cls:'sp-devis',         emoji:'🔵' },
+  planification: { label:'En cours',        cls:'sp-planification', emoji:'🟣' },
+  cloture:       { label:'Clôturé',         cls:'sp-cloture',       emoji:'🟢' },
+};
+
+const DOC_ICONS = { devis:'📋', commande:'📝', facture:'🧾', plan:'📐', notice:'📖', autre:'📎' };
+
+// ═══════════════════════════════════════════════════════
+//  MODÈLE
+// ═══════════════════════════════════════════════════════
+function newProject(base = {}) {
+  return {
+    id: 'PRJ-' + Date.now(),
+    token: Math.random().toString(36).slice(2, 10).toUpperCase(),
+    titre: '',
+    description: '',
+    client: { nom: '', email: '', tel: '', adresse: '' },
+    statut: 'prospect',
+    commercial: '',
+    montantDevis: '',
+    datePrevue: '',
+    dateCreation: new Date().toISOString(),
+    etapes: defaultEtapes(),
+    notes: [],
+    documents: [],
+    photos: [],
+    ...base,
+  };
+}
+
+function defaultEtapes() {
+  return [
+    { id: 'contact',      label: 'Contact initial',       done: false, date: '', note: '' },
+    { id: 'visite',       label: 'Visite technique',      done: false, date: '', note: '' },
+    { id: 'devis_envoye', label: 'Devis envoyé',          done: false, date: '', note: '' },
+    { id: 'commande',     label: 'Bon de commande signé', done: false, date: '', note: '' },
+    { id: 'planifie',     label: 'Pose planifiée',        done: false, date: '', note: '' },
+    { id: 'en_cours',     label: 'Pose en cours',         done: false, date: '', note: '' },
+    { id: 'termine',      label: 'Travaux terminés',      done: false, date: '', note: '' },
+    { id: 'facture',      label: 'Facture émise',         done: false, date: '', note: '' },
+    { id: 'paye',         label: 'Règlement reçu',        done: false, date: '', note: '' },
+  ];
+}
+
+// ═══════════════════════════════════════════════════════
+//  PERSISTANCE
+// ═══════════════════════════════════════════════════════
+function saveLocal() {
+  // On sépare les photos (volumineuses) du reste pour éviter les dépassements
+  const light = projects.map(p => ({ ...p, photos: p.photos.map(ph => ({ ...ph, data: ph.data ? '[photo]' : '' })) }));
+  try { localStorage.setItem('pp_projects', JSON.stringify(projects)); } catch(e) {
+    // Si trop volumineux, on sauvegarde sans les données photo
+    try { localStorage.setItem('pp_projects', JSON.stringify(light)); } catch(e2) { toast('Stockage local saturé — réduisez le nombre de photos', 'err'); }
+  }
+}
+
+function loadLocal() {
+  try { projects = JSON.parse(localStorage.getItem('pp_projects') || '[]'); } catch(e) { projects = []; }
+}
+
+async function loadAll() {
+  loadLocal();
+  if (SCRIPT_URL) {
+    try {
+      const data = await apiGet('getProjects');
+      if (data && Array.isArray(data)) {
+        // Fusionner : on garde les photos locales (non syncées), on prend les métadonnées du serveur
+        data.forEach(remote => {
+          const local = projects.find(p => p.id === remote.id);
+          if (local) {
+            remote.photos = local.photos || [];
+          }
+        });
+        projects = data;
+        saveLocal();
+      }
+    } catch(e) { /* offline, on garde le local */ }
+  }
+  renderList();
+  if (currentProjectId) selectProject(currentProjectId);
+}
+
+async function syncProject(p) {
+  if (!SCRIPT_URL) return;
+  try {
+    const toSync = { ...p, photos: [] }; // ne pas envoyer les photos en base64 vers Sheets
+    await apiPost({ action: 'saveProject', project: toSync });
+  } catch(e) { /* silencieux */ }
+}
+
+async function apiGet(action) {
+  const r = await fetch(SCRIPT_URL + '?action=' + action + '&t=' + Date.now());
+  return r.json();
+}
+async function apiPost(body) {
+  const r = await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify(body) });
+  return r.json();
+}
+
+// ═══════════════════════════════════════════════════════
+//  LOGIN
+// ═══════════════════════════════════════════════════════
+let pinBuffer = '', pinTarget = null;
+
+function initLogin() {
+  // Réutiliser les utilisateurs du module stock
+  try { users = JSON.parse(localStorage.getItem('fp_users') || '[]'); } catch(e) { users = []; }
+  if (!users.length) {
+    users = [{ id: 'admin', nom: 'Administrateur', role: 'admin', pin: '0000', color: '#E8457A', permissions: { canAdmin: true } }];
+  }
+  renderUserGrid();
+  // Reconnexion auto
+  const lastId = localStorage.getItem('pp_last_user');
+  if (lastId) {
+    const u = users.find(u => u.id === lastId);
+    if (u) { doLogin(u); return; }
+  }
+}
+
+function renderUserGrid() {
+  const grid = document.getElementById('user-grid');
+  grid.innerHTML = users.map(u => `
+    <div class="user-card" onclick="selectUser('${u.id}')">
+      <div class="user-avatar" style="background:${u.photo ? 'url('+u.photo+') center/cover' : (u.color||'#E8457A')}">${u.photo ? '' : (u.nom||'?')[0]}</div>
+      <div class="user-name">${u.nom}</div>
+      <div class="user-role">${u.role||''}</div>
+    </div>`).join('');
+}
+
+function selectUser(id) {
+  pinTarget = users.find(u => u.id === id);
+  if (!pinTarget) return;
+  pinBuffer = '';
+  document.getElementById('pin-greeting').textContent = 'Bonjour, ' + pinTarget.nom.split(' ')[0] + ' !';
+  updatePinDots();
+  showStep('step-pin');
+}
+
+function pinPress(n) {
+  if (pinBuffer.length >= 4) return;
+  pinBuffer += n;
+  updatePinDots();
+  if (pinBuffer.length === 4) {
+    setTimeout(checkPin, 100);
+  }
+}
+function pinDel() { pinBuffer = pinBuffer.slice(0, -1); updatePinDots(); }
+function updatePinDots() {
+  for (let i = 0; i < 4; i++) {
+    const d = document.getElementById('d' + i);
+    d.classList.toggle('filled', i < pinBuffer.length);
+    d.classList.remove('error');
+  }
+}
+function checkPin() {
+  if (pinBuffer === String(pinTarget.pin)) {
+    doLogin(pinTarget);
+  } else {
+    document.getElementById('pin-error').textContent = 'Code incorrect — réessayez';
+    [0,1,2,3].forEach(i => document.getElementById('d'+i).classList.add('error'));
+    setTimeout(() => { pinBuffer = ''; updatePinDots(); document.getElementById('pin-error').textContent = ''; }, 800);
+  }
+}
+function doLogin(user) {
+  currentUser = user;
+  localStorage.setItem('pp_last_user', user.id);
+  document.getElementById('login-screen').style.display = 'none';
+  document.getElementById('app-wrap').classList.add('visible');
+  document.getElementById('side-avatar').textContent = user.photo ? '' : (user.nom||'?')[0];
+  document.getElementById('side-avatar').style.background = user.photo ? 'url('+user.photo+') center/cover' : (user.color||'#E8457A');
+  document.getElementById('side-uname').textContent = user.nom;
+  document.getElementById('side-urole').textContent = user.role || '';
+  loadAll();
+}
+function logout() {
+  localStorage.removeItem('pp_last_user');
+  currentUser = null;
+  currentProjectId = null;
+  document.getElementById('app-wrap').classList.remove('visible');
+  document.getElementById('login-screen').style.display = 'flex';
+  pinBuffer = '';
+  showStep('step-user');
+}
+function backToUsers() { pinBuffer = ''; showStep('step-user'); }
+function showStep(id) {
+  document.querySelectorAll('.login-step').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+function showConfig() {
+  document.getElementById('cfg-url-login').value = SCRIPT_URL;
+  showStep('step-config');
+}
+function saveConfigLogin() {
+  SCRIPT_URL = document.getElementById('cfg-url-login').value.trim();
+  localStorage.setItem('pp_script_url', SCRIPT_URL);
+  toast('Configuration enregistrée', 'ok');
+  backToUsers();
+}
+
+document.addEventListener('keydown', e => {
+  const active = document.querySelector('.login-step.active');
+  if (!active || active.id !== 'step-pin') return;
+  if (e.key >= '0' && e.key <= '9') pinPress(parseInt(e.key));
+  if (e.key === 'Backspace') pinDel();
+});
+
+// ═══════════════════════════════════════════════════════
+//  LISTE PROJETS
+// ═══════════════════════════════════════════════════════
+function setFilter(status, btn) {
+  filterStatus = status;
+  document.querySelectorAll('.sf').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  renderList();
+}
+
+function renderList() {
+  const q = document.getElementById('prj-search').value.toLowerCase();
+  const list = document.getElementById('project-list');
+  let filtered = projects.filter(p => {
+    if (filterStatus && p.statut !== filterStatus) return false;
+    if (q && !p.titre.toLowerCase().includes(q) && !(p.client?.nom||'').toLowerCase().includes(q)) return false;
+    return true;
+  });
+  // Plus récent en premier
+  filtered.sort((a, b) => new Date(b.dateCreation) - new Date(a.dateCreation));
+  if (!filtered.length) {
+    list.innerHTML = '<div style="text-align:center;padding:24px;font-size:12px;color:rgba(255,255,255,0.3);font-family:var(--fn)">Aucun projet trouvé</div>';
+    return;
+  }
+  list.innerHTML = filtered.map(p => {
+    const m = STATUT_META[p.statut] || STATUT_META.prospect;
+    const d = p.datePrevue ? new Date(p.datePrevue).toLocaleDateString('fr-FR',{day:'2-digit',month:'2-digit'}) : '';
+    return `<div class="prj-item${p.id===currentProjectId?' active':''}" onclick="selectProject('${p.id}')">
+      <div class="prj-title">${p.titre || '(Sans titre)'}</div>
+      <div class="prj-client">👤 ${p.client?.nom || '—'}</div>
+      <div class="prj-meta">
+        <span class="status-pill ${m.cls}">${m.label}</span>
+        ${d?`<span class="prj-date">${d}</span>`:''}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ═══════════════════════════════════════════════════════
+//  SÉLECTION PROJET
+// ═══════════════════════════════════════════════════════
+function selectProject(id) {
+  currentProjectId = id;
+  const p = projects.find(p => p.id === id);
+  if (!p) return;
+  document.getElementById('empty-main').style.display = 'none';
+  document.getElementById('prj-detail').style.display = 'flex';
+  document.getElementById('topbar-actions').style.display = 'flex';
+  renderList();
+  renderProjectHeader(p);
+  renderEtapes(p);
+  renderInfos(p);
+  renderDocs(p);
+  renderPhotos(p);
+  renderNotes(p);
+  // Config
+  document.getElementById('cfg-url').value = SCRIPT_URL;
+}
+
+function currentProject() { return projects.find(p => p.id === currentProjectId); }
+
+function renderProjectHeader(p) {
+  const m = STATUT_META[p.statut] || STATUT_META.prospect;
+  const badge = document.getElementById('ph-badge');
+  badge.textContent = m.label;
+  badge.className = 'prj-header-badge status-pill ' + m.cls;
+  document.getElementById('ph-title').textContent = p.titre || '(Sans titre)';
+  document.getElementById('ph-client').textContent = '👤 ' + (p.client?.nom || '—') + (p.client?.tel ? ' · ' + p.client.tel : '');
+  const montEl = document.getElementById('ph-montant');
+  if (p.montantDevis) { montEl.style.display = ''; montEl.textContent = Number(p.montantDevis).toLocaleString('fr-FR') + ' € HT'; }
+  else montEl.style.display = 'none';
+  const dc = p.dateCreation ? new Date(p.dateCreation).toLocaleDateString('fr-FR') : '';
+  const dp = p.datePrevue ? new Date(p.datePrevue).toLocaleDateString('fr-FR',{day:'2-digit',month:'long',year:'numeric'}) : '';
+  document.getElementById('ph-dates').textContent = (dc ? 'Créé le ' + dc : '') + (dp ? ' · Pose prévue le ' + dp : '');
+  document.getElementById('topbar-title').textContent = p.titre || 'Projet sans titre';
+  document.getElementById('topbar-sub').textContent = p.client?.nom || '—';
+}
+
+// ═══════════════════════════════════════════════════════
+//  ONGLETS
+// ═══════════════════════════════════════════════════════
+function prjTab(name, btn) {
+  document.querySelectorAll('.prj-tab').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.prj-section').forEach(s => s.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('sec-' + name).classList.add('active');
+}
+
+// ═══════════════════════════════════════════════════════
+//  ÉTAPES
+// ═══════════════════════════════════════════════════════
+function renderEtapes(p) {
+  const done = p.etapes.filter(e => e.done).length;
+  document.getElementById('etapes-progress').textContent = done + ' / ' + p.etapes.length + ' complétées';
+  document.getElementById('etapes-grid').innerHTML = p.etapes.map(e => `
+    <div class="etape-card${e.done?' done':''}" onclick="openEtape('${e.id}')">
+      <div class="etape-check">${e.done ? '✓' : ''}</div>
+      <div class="etape-label">${e.label}</div>
+      ${e.date ? `<div class="etape-date">${new Date(e.date).toLocaleDateString('fr-FR')}</div>` : ''}
+      ${e.note ? `<div class="etape-note-txt">${e.note}</div>` : ''}
+    </div>`).join('');
+  const sel = document.getElementById('statut-select');
+  if (sel) sel.value = p.statut;
+}
+
+function openEtape(id) {
+  const p = currentProject(); if (!p) return;
+  const e = p.etapes.find(e => e.id === id);
+  if (!e) return;
+  editingEtapeId = id;
+  document.getElementById('etape-modal-title').textContent = e.label;
+  document.getElementById('etape-done').checked = e.done;
+  document.getElementById('etape-date').value = e.date || '';
+  document.getElementById('etape-note').value = e.note || '';
+  openModal('ov-etape');
+}
+
+function saveEtape() {
+  const p = currentProject(); if (!p) return;
+  const e = p.etapes.find(e => e.id === editingEtapeId);
+  if (!e) return;
+  e.done = document.getElementById('etape-done').checked;
+  e.date = document.getElementById('etape-date').value;
+  e.note = document.getElementById('etape-note').value.trim();
+  persistProject(p);
+  closeModal('ov-etape');
+  renderEtapes(p);
+}
+
+function openAddEtape() { document.getElementById('new-etape-label').value = ''; openModal('ov-add-etape'); }
+function confirmAddEtape() {
+  const p = currentProject(); if (!p) return;
+  const label = document.getElementById('new-etape-label').value.trim();
+  if (!label) return;
+  p.etapes.push({ id: 'custom_' + Date.now(), label, done: false, date: '', note: '' });
+  persistProject(p);
+  closeModal('ov-add-etape');
+  renderEtapes(p);
+}
+
+function changeStatut(val) {
+  const p = currentProject(); if (!p) return;
+  p.statut = val;
+  persistProject(p);
+  renderProjectHeader(p);
+  renderList();
+}
+
+// ═══════════════════════════════════════════════════════
+//  INFOS CLIENT
+// ═══════════════════════════════════════════════════════
+function renderInfos(p) {
+  document.getElementById('ic-nom').textContent = p.client?.nom || '—';
+  document.getElementById('ic-email').textContent = p.client?.email || '—';
+  document.getElementById('ic-tel').textContent = p.client?.tel || '—';
+  document.getElementById('ic-adresse').textContent = p.client?.adresse || '—';
+  document.getElementById('ic-commercial').textContent = p.commercial || '—';
+  document.getElementById('ic-montant').textContent = p.montantDevis ? Number(p.montantDevis).toLocaleString('fr-FR') + ' €' : '—';
+  document.getElementById('ic-datePrevue').textContent = p.datePrevue ? new Date(p.datePrevue).toLocaleDateString('fr-FR',{day:'2-digit',month:'long',year:'numeric'}) : '—';
+  document.getElementById('ic-dateCreation').textContent = p.dateCreation ? new Date(p.dateCreation).toLocaleDateString('fr-FR') : '—';
+  const descBlock = document.getElementById('ic-desc-block');
+  if (p.description) { descBlock.style.display = ''; document.getElementById('ic-description').textContent = p.description; }
+  else descBlock.style.display = 'none';
+}
+
+// ═══════════════════════════════════════════════════════
+//  DOCUMENTS
+// ═══════════════════════════════════════════════════════
+function renderDocs(p) {
+  const list = document.getElementById('doc-list');
+  const empty = document.getElementById('doc-empty');
+  if (!p.documents.length) { list.innerHTML = ''; empty.style.display = ''; return; }
+  empty.style.display = 'none';
+  list.innerHTML = p.documents.map((d, i) => `
+    <div class="doc-item">
+      <div class="doc-icon">${DOC_ICONS[d.type]||'📎'}</div>
+      <div class="doc-info">
+        <div class="doc-name">${d.nom}</div>
+        <div class="doc-meta">${d.type} · ${new Date(d.date).toLocaleDateString('fr-FR')}</div>
+      </div>
+      <span class="doc-vis ${d.visibleClient?'client':'intern'}">${d.visibleClient?'Client':'Interne'}</span>
+      ${d.url ? `<a href="${d.url}" target="_blank" class="btn btn-ghost btn-sm">Ouvrir</a>` : ''}
+      <button class="btn btn-danger btn-sm" onclick="deleteDoc(${i})">✕</button>
+    </div>`).join('');
+}
+
+function openAddDoc() {
+  document.getElementById('doc-nom').value = '';
+  document.getElementById('doc-url').value = '';
+  document.getElementById('doc-type').value = 'devis';
+  document.getElementById('doc-visible-client').checked = false;
+  document.getElementById('doc-file-name').textContent = '';
+  pendingDocFile = null;
+  openModal('ov-doc');
+}
+
+function handleDocFile(input) {
+  const f = input.files[0]; if (!f) return;
+  if (f.size > 2 * 1024 * 1024) { toast('Fichier trop volumineux (max 2 Mo) — utilisez un lien Google Drive', 'err'); input.value = ''; return; }
+  const reader = new FileReader();
+  reader.onload = e => { pendingDocFile = { name: f.name, data: e.target.result }; document.getElementById('doc-file-name').textContent = '✓ ' + f.name; };
+  reader.readAsDataURL(f);
+}
+
+function saveDoc() {
+  const p = currentProject(); if (!p) return;
+  const nom = document.getElementById('doc-nom').value.trim();
+  if (!nom) { toast('Saisissez un nom de document', 'err'); return; }
+  const url = document.getElementById('doc-url').value.trim();
+  const doc = {
+    id: 'doc_' + Date.now(),
+    nom,
+    type: document.getElementById('doc-type').value,
+    date: new Date().toISOString(),
+    visibleClient: document.getElementById('doc-visible-client').checked,
+    url: pendingDocFile ? pendingDocFile.data : url,
+  };
+  p.documents.push(doc);
+  persistProject(p);
+  closeModal('ov-doc');
+  renderDocs(p);
+  toast('Document ajouté');
+}
+
+function deleteDoc(i) {
+  const p = currentProject(); if (!p) return;
+  if (!confirm('Supprimer ce document ?')) return;
+  p.documents.splice(i, 1);
+  persistProject(p);
+  renderDocs(p);
+}
+
+// ═══════════════════════════════════════════════════════
+//  PHOTOS
+// ═══════════════════════════════════════════════════════
+function handlePhotos(files) {
+  const p = currentProject(); if (!p) return;
+  Array.from(files).forEach(f => {
+    if (f.size > 8 * 1024 * 1024) { toast(f.name + ' trop volumineux', 'err'); return; }
+    compressPhoto(f).then(data => {
+      p.photos.push({ id: 'ph_' + Date.now() + Math.random(), nom: f.name, data, caption: '', phase: 'chantier', date: new Date().toISOString(), visibleClient: true });
+      persistProject(p);
+      renderPhotos(p);
+    });
+  });
+  document.getElementById('photo-input').value = '';
+}
+
+function compressPhoto(file) {
+  return new Promise(resolve => {
+    const reader = new FileReader();
+    reader.onload = e => {
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        let w = img.width, h = img.height;
+        const max = 1200;
+        if (w > max || h > max) { if (w > h) { h = Math.round(h * max / w); w = max; } else { w = Math.round(w * max / h); h = max; } }
+        canvas.width = w; canvas.height = h;
+        canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+        let q = 0.8, url = canvas.toDataURL('image/jpeg', q);
+        while (url.length * 0.75 > 400 * 1024 && q > 0.3) { q -= 0.1; url = canvas.toDataURL('image/jpeg', q); }
+        resolve(url);
+      };
+      img.src = e.target.result;
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
+function renderPhotos(p) {
+  const grid = document.getElementById('photo-grid');
+  const empty = document.getElementById('photo-empty');
+  if (!p.photos.length) { grid.innerHTML = ''; empty.style.display = ''; return; }
+  empty.style.display = 'none';
+  grid.innerHTML = p.photos.map((ph, i) => `
+    <div class="photo-card" style="position:relative">
+      <img class="photo-img" src="${ph.data}" alt="${ph.caption||ph.nom}" onclick="openLightbox('${ph.id}')">
+      <div class="photo-cap">
+        <input value="${ph.caption||''}" placeholder="Légende…" onchange="updatePhotoCaption('${ph.id}',this.value)"
+          style="border:none;background:transparent;font-family:var(--fn);font-size:11px;font-weight:700;color:var(--text);width:100%;outline:none">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-top:4px">
+          <select onchange="updatePhotoPhase('${ph.id}',this.value)" style="border:none;background:transparent;font-size:10px;color:var(--muted);cursor:pointer;outline:none;font-family:var(--fn)">
+            <option value="avant" ${ph.phase==='avant'?'selected':''}>Avant</option>
+            <option value="chantier" ${ph.phase==='chantier'?'selected':''}>Pendant</option>
+            <option value="apres" ${ph.phase==='apres'?'selected':''}>Après</option>
+          </select>
+          <label style="display:flex;align-items:center;gap:4px;font-size:10px;color:var(--muted);cursor:pointer;font-family:var(--fn)">
+            <input type="checkbox" ${ph.visibleClient?'checked':''} onchange="updatePhotoVis('${ph.id}',this.checked)" style="width:12px;height:12px;accent-color:var(--green)"> Client
+          </label>
+          <button onclick="deletePhoto('${ph.id}')" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:12px;padding:0">✕</button>
+        </div>
+      </div>
+    </div>`).join('');
+}
+
+function updatePhotoCaption(id, v) {
+  const p = currentProject(); if (!p) return;
+  const ph = p.photos.find(x => x.id === id); if (!ph) return;
+  ph.caption = v; persistProject(p);
+}
+function updatePhotoPhase(id, v) {
+  const p = currentProject(); if (!p) return;
+  const ph = p.photos.find(x => x.id === id); if (!ph) return;
+  ph.phase = v; persistProject(p);
+}
+function updatePhotoVis(id, v) {
+  const p = currentProject(); if (!p) return;
+  const ph = p.photos.find(x => x.id === id); if (!ph) return;
+  ph.visibleClient = v; persistProject(p);
+}
+function deletePhoto(id) {
+  const p = currentProject(); if (!p) return;
+  if (!confirm('Supprimer cette photo ?')) return;
+  p.photos = p.photos.filter(ph => ph.id !== id);
+  persistProject(p); renderPhotos(p);
+}
+function openLightbox(id) {
+  const p = currentProject(); if (!p) return;
+  const ph = p.photos.find(x => x.id === id); if (!ph) return;
+  document.getElementById('lightbox-img').src = ph.data;
+  document.getElementById('lightbox').classList.add('open');
+}
+function closeLightbox() { document.getElementById('lightbox').classList.remove('open'); }
+
+// ═══════════════════════════════════════════════════════
+//  NOTES
+// ═══════════════════════════════════════════════════════
+function addNote() {
+  const p = currentProject(); if (!p) return;
+  const txt = document.getElementById('new-note-txt').value.trim();
+  if (!txt) return;
+  p.notes.push({
+    id: 'note_' + Date.now(),
+    auteur: currentUser?.nom || 'Équipe Fermapro',
+    date: new Date().toISOString(),
+    texte: txt,
+    visibleClient: document.getElementById('new-note-client').checked,
+  });
+  document.getElementById('new-note-txt').value = '';
+  document.getElementById('new-note-client').checked = false;
+  persistProject(p); renderNotes(p); toast('Note ajoutée');
+}
+
+function deleteNote(id) {
+  const p = currentProject(); if (!p) return;
+  p.notes = p.notes.filter(n => n.id !== id);
+  persistProject(p); renderNotes(p);
+}
+
+function renderNotes(p) {
+  const list = document.getElementById('note-list');
+  const empty = document.getElementById('note-empty');
+  if (!p.notes.length) { list.innerHTML = ''; empty.style.display = ''; return; }
+  empty.style.display = 'none';
+  const sorted = [...p.notes].reverse();
+  list.innerHTML = sorted.map(n => `
+    <div class="note-item">
+      <div class="note-head">
+        <span class="note-author">${n.auteur}</span>
+        <span class="note-vis ${n.visibleClient?'client':'intern'}">${n.visibleClient?'👁 Client':'🔒 Interne'}</span>
+        <span class="note-date">${new Date(n.date).toLocaleString('fr-FR',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'})}</span>
+        <button class="note-del" onclick="deleteNote('${n.id}')">✕</button>
+      </div>
+      <div class="note-text">${n.texte.replace(/\n/g,'<br>')}</div>
+    </div>`).join('');
+}
+
+// ═══════════════════════════════════════════════════════
+//  CRUD PROJETS
+// ═══════════════════════════════════════════════════════
+function openNewProject() {
+  editingProjectId = null;
+  document.getElementById('pm-title').textContent = 'Nouveau projet';
+  ['pm-titre','pm-description','pm-client-nom','pm-client-email','pm-client-tel','pm-client-adresse','pm-commercial','pm-montant','pm-datePrevue'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('pm-statut').value = 'prospect';
+  openModal('ov-project');
+}
+
+function openEditProject() {
+  const p = currentProject(); if (!p) return;
+  editingProjectId = p.id;
+  document.getElementById('pm-title').textContent = 'Modifier le projet';
+  document.getElementById('pm-titre').value = p.titre || '';
+  document.getElementById('pm-description').value = p.description || '';
+  document.getElementById('pm-client-nom').value = p.client?.nom || '';
+  document.getElementById('pm-client-email').value = p.client?.email || '';
+  document.getElementById('pm-client-tel').value = p.client?.tel || '';
+  document.getElementById('pm-client-adresse').value = p.client?.adresse || '';
+  document.getElementById('pm-commercial').value = p.commercial || '';
+  document.getElementById('pm-montant').value = p.montantDevis || '';
+  document.getElementById('pm-datePrevue').value = p.datePrevue || '';
+  document.getElementById('pm-statut').value = p.statut || 'prospect';
+  openModal('ov-project');
+}
+
+function saveProject() {
+  const titre = document.getElementById('pm-titre').value.trim();
+  const clientNom = document.getElementById('pm-client-nom').value.trim();
+  if (!titre || !clientNom) { toast('Titre et nom client obligatoires', 'err'); return; }
+  const data = {
+    titre,
+    description: document.getElementById('pm-description').value.trim(),
+    client: {
+      nom: clientNom,
+      email: document.getElementById('pm-client-email').value.trim(),
+      tel: document.getElementById('pm-client-tel').value.trim(),
+      adresse: document.getElementById('pm-client-adresse').value.trim(),
+    },
+    commercial: document.getElementById('pm-commercial').value.trim(),
+    montantDevis: document.getElementById('pm-montant').value,
+    datePrevue: document.getElementById('pm-datePrevue').value,
+    statut: document.getElementById('pm-statut').value,
+  };
+  if (editingProjectId) {
+    const p = projects.find(p => p.id === editingProjectId);
+    Object.assign(p, data);
+    persistProject(p);
+    selectProject(p.id);
+  } else {
+    const p = newProject(data);
+    projects.unshift(p);
+    persistProject(p);
+    currentProjectId = p.id;
+    selectProject(p.id);
+  }
+  closeModal('ov-project');
+  renderList();
+  toast(editingProjectId ? 'Projet mis à jour' : 'Projet créé', 'ok');
+}
+
+function deleteProject() {
+  const p = currentProject(); if (!p) return;
+  if (!confirm('Supprimer définitivement ce projet et toutes ses données ?')) return;
+  projects = projects.filter(x => x.id !== p.id);
+  saveLocal();
+  if (SCRIPT_URL) apiPost({ action: 'deleteProject', id: p.id }).catch(() => {});
+  currentProjectId = null;
+  document.getElementById('prj-detail').style.display = 'none';
+  document.getElementById('empty-main').style.display = '';
+  document.getElementById('topbar-actions').style.display = 'none';
+  document.getElementById('topbar-title').textContent = 'Portail Projets';
+  document.getElementById('topbar-sub').textContent = 'Sélectionnez un projet';
+  renderList();
+  toast('Projet supprimé', 'warn');
+}
+
+function persistProject(p) {
+  const idx = projects.findIndex(x => x.id === p.id);
+  if (idx >= 0) projects[idx] = p; else projects.unshift(p);
+  saveLocal();
+  syncProject(p);
+}
+
+// ═══════════════════════════════════════════════════════
+//  PARTAGE LIEN CLIENT
+// ═══════════════════════════════════════════════════════
+function openShare() {
+  const p = currentProject(); if (!p) return;
+  const url = location.href.split('#')[0] + '#c/' + p.token;
+  document.getElementById('share-url-box').textContent = url;
+  openModal('ov-share');
+}
+function copyShareUrl() {
+  const p = currentProject(); if (!p) return;
+  const url = location.href.split('#')[0] + '#c/' + p.token;
+  navigator.clipboard.writeText(url).then(() => toast('Lien copié !', 'ok'));
+}
+function regenToken() {
+  if (!confirm('Générer un nouveau lien ? L\'ancien ne fonctionnera plus.')) return;
+  const p = currentProject(); if (!p) return;
+  p.token = Math.random().toString(36).slice(2, 10).toUpperCase();
+  persistProject(p);
+  const url = location.href.split('#')[0] + '#c/' + p.token;
+  document.getElementById('share-url-box').textContent = url;
+  toast('Nouveau lien généré');
+}
+
+// ═══════════════════════════════════════════════════════
+//  CONFIG
+// ═══════════════════════════════════════════════════════
+function saveConfig() {
+  SCRIPT_URL = document.getElementById('cfg-url').value.trim();
+  localStorage.setItem('pp_script_url', SCRIPT_URL);
+  toast('Configuration enregistrée', 'ok');
+  loadAll();
+}
+async function testConnection() {
+  if (!SCRIPT_URL) { toast('Aucune URL configurée', 'err'); return; }
+  try { await apiGet('ping'); toast('Connexion OK ✓', 'ok'); } catch(e) { toast('Erreur de connexion', 'err'); }
+}
+
+// ═══════════════════════════════════════════════════════
+//  VUE CLIENT
+// ═══════════════════════════════════════════════════════
+function initClientView(token) {
+  document.getElementById('login-screen').style.display = 'none';
+  document.getElementById('app-wrap').style.display = 'none';
+  loadLocal();
+  // Sync depuis le serveur si disponible
+  if (SCRIPT_URL) {
+    apiGet('getProjects').then(data => {
+      if (data && Array.isArray(data)) {
+        data.forEach(remote => {
+          const local = projects.find(p => p.id === remote.id);
+          if (local) remote.photos = local.photos || [];
+        });
+        projects = data;
+        saveLocal();
+      }
+      renderClientView(token);
+    }).catch(() => renderClientView(token));
+  } else {
+    renderClientView(token);
+  }
+}
+
+function renderClientView(token) {
+  const p = projects.find(p => p.token === token);
+  const view = document.getElementById('client-view');
+  view.style.display = 'block';
+  if (!p) {
+    view.innerHTML = '<div style="text-align:center;padding:60px;font-family:var(--fn);color:var(--muted)"><div style="font-size:48px;margin-bottom:16px">🔍</div><div style="font-size:18px;font-weight:800;color:var(--navy)">Projet introuvable</div><div style="margin-top:8px">Ce lien est invalide ou a expiré.</div></div>';
+    return;
+  }
+  document.getElementById('cv-title').textContent = p.titre;
+  document.getElementById('cv-client-name').textContent = '👤 ' + (p.client?.nom || '');
+  const m = STATUT_META[p.statut] || STATUT_META.prospect;
+  document.getElementById('cv-status-row').innerHTML = `<span class="status-pill ${m.cls}">${m.emoji} ${m.label}</span>`;
+
+  // Timeline
+  const tl = document.getElementById('cv-timeline');
+  const doneIdx = p.etapes.reduce((max, e, i) => e.done ? i : max, -1);
+  tl.innerHTML = p.etapes.map((e, i) => {
+    const isDone = e.done;
+    const isCurrent = !isDone && i === doneIdx + 1;
+    return `<div class="tl-step">
+      <div class="tl-dot ${isDone?'done':isCurrent?'current':''}">${isDone?'✓':isCurrent?'▶':''}</div>
+      <div class="tl-label ${isDone?'done':!isCurrent?'pending':''}">${e.label}</div>
+      ${e.date ? `<div class="tl-date">${new Date(e.date).toLocaleDateString('fr-FR',{day:'2-digit',month:'long',year:'numeric'})}</div>` : ''}
+      ${e.note ? `<div class="tl-note">${e.note}</div>` : ''}
+    </div>`;
+  }).join('');
+
+  // Infos
+  const infos = document.getElementById('cv-infos');
+  infos.innerHTML = [
+    p.commercial ? `<div style="margin-bottom:8px"><span style="font-size:11px;color:var(--muted);font-family:var(--fn);font-weight:700">Commercial</span><br><span style="font-weight:700">${p.commercial}</span></div>` : '',
+    p.datePrevue ? `<div style="margin-bottom:8px"><span style="font-size:11px;color:var(--muted);font-family:var(--fn);font-weight:700">Date de pose prévue</span><br><span style="font-weight:700">${new Date(p.datePrevue).toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'long',year:'numeric'})}</span></div>` : '',
+    p.description ? `<div><span style="font-size:11px;color:var(--muted);font-family:var(--fn);font-weight:700">Descriptif des travaux</span><br><span style="line-height:1.7">${p.description}</span></div>` : '',
+  ].join('');
+
+  // Documents
+  const docs = p.documents.filter(d => d.visibleClient);
+  const docList = document.getElementById('cv-doc-list');
+  docList.innerHTML = docs.length ? docs.map(d => `
+    <div class="doc-item">
+      <div class="doc-icon">${DOC_ICONS[d.type]||'📎'}</div>
+      <div class="doc-info"><div class="doc-name">${d.nom}</div><div class="doc-meta">${d.type} · ${new Date(d.date).toLocaleDateString('fr-FR')}</div></div>
+      ${d.url ? `<a href="${d.url}" target="_blank" class="btn btn-ghost btn-sm">Ouvrir</a>` : ''}
+    </div>`).join('') : '<div style="color:var(--muted);font-size:13px;padding:12px 0">Aucun document partagé.</div>';
+
+  // Photos
+  const photos = p.photos.filter(ph => ph.visibleClient);
+  const photoGrid = document.getElementById('cv-photo-grid');
+  photoGrid.innerHTML = photos.length ? photos.map(ph => `
+    <div class="photo-card" onclick="document.getElementById('cv-lb-img').src='${ph.data}';document.getElementById('cv-lb').classList.add('open')">
+      <img class="photo-img" src="${ph.data}" alt="${ph.caption||''}">
+      <div class="photo-cap"><div class="photo-cap-txt">${ph.caption||ph.nom}</div><div class="photo-cap-phase">${ph.phase==='avant'?'Avant travaux':ph.phase==='apres'?'Après travaux':'En cours'}</div></div>
+    </div>`).join('') : '<div style="color:var(--muted);font-size:13px;padding:12px 0">Aucune photo partagée.</div>';
+
+  // Lightbox client
+  if (!document.getElementById('cv-lb')) {
+    const lb = document.createElement('div');
+    lb.id = 'cv-lb';
+    lb.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.92);z-index:500;display:none;place-items:center';
+    lb.innerHTML = '<button onclick="this.parentElement.classList.remove(\'open\')" style="position:fixed;top:16px;right:16px;background:rgba(255,255,255,.15);border:none;color:#fff;width:36px;height:36px;border-radius:50%;cursor:pointer;font-size:18px;display:grid;place-items:center">✕</button><img id="cv-lb-img" style="max-width:95vw;max-height:90vh;object-fit:contain;border-radius:8px" onclick="event.stopPropagation()">';
+    lb.addEventListener('click', e => { if (e.target === lb) lb.classList.remove('open'); });
+    lb.style.display = 'none';
+    document.body.appendChild(lb);
+    lb.style.display = '';
+    lb.style.cssText += ';display:none';
+    lb.className = '';
+    // simplifier
+    lb.style.display = 'none';
+    lb.addEventListener('click', function(e) { if(e.target===this) this.classList.remove('open'); });
+    const style = document.createElement('style');
+    style.textContent = '#cv-lb.open{display:grid!important}';
+    document.head.appendChild(style);
+  }
+
+  // Notes client
+  const notes = p.notes.filter(n => n.visibleClient);
+  const noteList = document.getElementById('cv-note-list');
+  noteList.innerHTML = notes.length ? [...notes].reverse().map(n => `
+    <div class="note-item">
+      <div class="note-head">
+        <span class="note-author">${n.auteur}</span>
+        <span class="note-date">${new Date(n.date).toLocaleString('fr-FR',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'})}</span>
+      </div>
+      <div class="note-text">${n.texte.replace(/\n/g,'<br>')}</div>
+    </div>`).join('') : '<div style="color:var(--muted);font-size:13px;padding:12px 0">Aucun message pour le moment.</div>';
+}
+
+function cvTab(name, btn) {
+  document.querySelectorAll('.cv-tab').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.cv-section').forEach(s => s.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('cv-' + name).classList.add('active');
+}
+
+// ═══════════════════════════════════════════════════════
+//  MODALS UTILITAIRES
+// ═══════════════════════════════════════════════════════
+function openModal(id) { document.getElementById(id).classList.add('open'); }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+document.querySelectorAll('.overlay').forEach(ov => {
+  ov.addEventListener('click', e => { if (e.target === ov) ov.classList.remove('open'); });
+});
+
+// ═══════════════════════════════════════════════════════
+//  TOASTS
+// ═══════════════════════════════════════════════════════
+function toast(msg, type = '') {
+  const box = document.getElementById('toast-box');
+  const t = document.createElement('div');
+  t.className = 'toast' + (type ? ' ' + type : '');
+  t.textContent = msg;
+  box.appendChild(t);
+  setTimeout(() => t.remove(), 3100);
+}
+
+// ═══════════════════════════════════════════════════════
+//  INIT
+// ═══════════════════════════════════════════════════════
+(function init() {
+  const hash = location.hash;
+  if (hash.startsWith('#c/')) {
+    initClientView(hash.slice(3));
+  } else {
+    initLogin();
+  }
+})();
+</script>
+</body>
+</html>
