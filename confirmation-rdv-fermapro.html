@@ -454,11 +454,11 @@
   }
 
   function genererTexte(html) {
-    const civilite    = document.getElementById('civilite').value;
-    const nom         = document.getElementById('nom').value.trim().toUpperCase();
-    const dateVal     = document.getElementById('date').value;
-    const adresse     = document.getElementById('adresse').value.trim();
-    const note        = document.getElementById('note').value.trim();
+    const civilite     = document.getElementById('civilite').value;
+    const nom          = document.getElementById('nom').value.trim().toUpperCase();
+    const dateVal      = document.getElementById('date').value;
+    const adresse      = document.getElementById('adresse').value.trim();
+    const note         = document.getElementById('note').value.trim();
     const avecFacture  = document.getElementById('cb-facture').checked;
     const avecPresence = document.getElementById('cb-presence').checked;
     const avecReglement= document.getElementById('cb-reglement').checked;
@@ -466,8 +466,8 @@
     const typeRdv      = document.getElementById('type-rdv').value;
     const libelleRdv   = typeRdv === 'diagnostic' ? 'diagnostic' : typeRdv === 'sav' ? 'service après-vente' : 'intervention';
 
-    const nomSociete   = societe === 'reparpro' ? "Reparpro" : "Fermapro";
-    const nomFinal     = nom     || (html ? '<em>[NOM CLIENT]</em>'        : '[NOM CLIENT]');
+    const nomSociete   = societe === 'reparpro' ? 'Reparpro' : 'Fermapro';
+    const nomFinal     = nom     || (html ? '<em>[NOM CLIENT]</em>'          : '[NOM CLIENT]');
     const dateFinal    = dateVal ? formatDate(dateVal) : (html ? '<em>[DATE]</em>' : '[DATE]');
     const horaireFinal = getHoraireTexte(html);
     const adresseFinal = adresse || (html ? '<em>[ADRESSE DU CHANTIER]</em>' : '[ADRESSE DU CHANTIER]');
@@ -477,6 +477,28 @@
       : '';
 
     const ligneNote = note ? `\n${note}\n` : '';
+
+    const modalites = [
+      '— Chèque à l\'ordre de Fermapro',
+      '— Virement bancaire (IBAN : FR76 1450 5000 0208 0007 8633 202) — l\'avis de virement est à remettre au technicien le jour de l\'intervention',
+      ...(societe === 'reparpro' ? ['— Carte bancaire'] : [])
+    ].join('\n');
+
+    const ligneReglement = avecReglement ? [
+      '\n✅ Le règlement du solde est à effectuer le jour de l\'intervention, directement auprès de nos techniciens.' + (avecFacture ? ' La facture en pièce jointe vous permet d\'anticiper ce règlement.' : ''),
+      '',
+      'Modes de paiement acceptés :',
+      modalites,
+      ''
+    ].join('\n') : '';
+
+    const lignePresence = avecPresence
+      ? '✅ Votre présence en fin de chantier est indispensable. La réception des travaux en votre présence est obligatoire. Elle conditionne l\'activation de vos garanties.\n'
+      : '';
+
+    const blocAPrevoir = (avecPresence || avecReglement)
+      ? `─────────────────────────────\nÀ prévoir le jour de l'intervention\n─────────────────────────────\n\n${lignePresence}${ligneReglement}\n─────────────────────────────`
+      : '';
 
     const corps =
 `${civilite} ${nomFinal},
@@ -488,12 +510,7 @@ Nous vous confirmons votre rendez-vous de ${libelleRdv} avec nos techniciens ${n
 ${ligneNote}
 Nos techniciens vous contacteront si nécessaire pour préciser leur heure d'arrivée — merci de rester joignable. En cas d'empêchement, merci de nous prévenir au moins 48h à l'avance.
 
-${(avecPresence || avecReglement) ? `─────────────────────────────
-À prévoir le jour de l'intervention
-─────────────────────────────
-
-${avecPresence ? '✅ Votre présence en fin de chantier est indispensable. La réception des travaux en votre présence est obligatoire. Elle conditionne l\'activation de vos garanties.\n' : ''}${avecReglement ? '\n✅ Le règlement du solde est à effectuer le jour de l\'intervention, directement auprès de nos techniciens. Modes de paiement acceptés : ' + (societe === 'reparpro' ? 'chèque à l\'ordre de Fermapro, carte bancaire ou avis de virement' : 'chèque à l\'ordre de Fermapro ou avis de virement') + '.' + (avecFacture ? ' La facture en pièce jointe vous permet d\'anticiper ce règlement.' : '') + '\n' : ''}
-─────────────────────────────` : ''}
+${blocAPrevoir}
 
 Pour toute question, nous sommes disponibles au 02 47 38 91 40 ou à bureau@fermapro.fr.
 
