@@ -479,15 +479,15 @@
     const ligneNote = note ? `\n${note}\n` : '';
 
     const lignePresence = avecPresence
-      ? `Votre présence en fin de chantier est indispensable. La réception des travaux en votre présence est obligatoire. Elle conditionne l'activation de vos garanties.\n`
+      ? `✅ Votre présence en fin de chantier est indispensable. La réception des travaux en votre présence est obligatoire. Elle conditionne l'activation de vos garanties.\n`
       : '';
 
-    const ligneReglement = avecReglement ? `Le règlement du solde est à effectuer le jour de l'intervention, directement auprès de nos techniciens.` + (avecFacture ? ` La facture en pièce jointe vous permet d'anticiper ce règlement.` : '') + `\n\nModes de paiement acceptés :\n\n— Chèque à l'ordre de Fermapro\n\n— Virement bancaire (IBAN : FR76 1450 5000 0208 0007 8633 202) — l'avis de virement est à remettre au technicien le jour de l'intervention\n` + (societe === 'reparpro' ? `\n— Carte bancaire\n` : '') : '';
+    const ligneReglement = avecReglement ? `✅ Le règlement du solde est à effectuer le jour de l'intervention, directement auprès de nos techniciens.` + (avecFacture ? ` La facture en pièce jointe vous permet d'anticiper ce règlement.` : '') + `\n\nModes de paiement acceptés :\n\n— Chèque à l'ordre de Fermapro\n\n— Virement bancaire (IBAN : FR76 1450 5000 0208 0007 8633 202) — l'avis de virement est à remettre au technicien le jour de l'intervention\n` + (societe === 'reparpro' ? `\n— Carte bancaire\n` : '') : '';
 
     const separateur = `\n─────────────────────────────\n`;
 
     const blocAPrevoir = (avecPresence || avecReglement)
-      ? `${separateur}\nA prévoir le jour de l'intervention${separateur}\n${lignePresence ? lignePresence + '\n' : ''}${ligneReglement ? ligneReglement + '\n' : ''}${separateur}`
+      ? `${separateur}\nÀ prévoir le jour de l'intervention${separateur}\n${lignePresence ? lignePresence + '\n' : ''}${ligneReglement ? ligneReglement + '\n' : ''}${separateur}`
       : '';
 
     const corps =
