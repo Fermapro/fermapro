@@ -464,7 +464,7 @@
     const avecReglement= document.getElementById('cb-reglement').checked;
     const societe      = document.getElementById('societe').value;
     const typeRdv      = document.getElementById('type-rdv').value;
-    const libelleRdv   = typeRdv === 'diagnostic' ? 'diagnostic' : typeRdv === 'sav' ? 'service après-vente' : 'intervention';
+    const libelleRdv   = typeRdv === 'diagnostic' ? 'de diagnostic' : typeRdv === 'sav' ? 'de service après-vente' : "d'intervention";
 
     const nomSociete   = societe === 'reparpro' ? 'Reparpro' : 'Fermapro';
     const nomFinal     = nom     || (html ? '<em>[NOM CLIENT]</em>'          : '[NOM CLIENT]');
@@ -503,7 +503,7 @@
     const corps =
 `${civilite} ${nomFinal},
 
-Nous vous confirmons votre rendez-vous de ${libelleRdv} avec nos techniciens ${nomSociete}. ${ligneFacture}
+Nous vous confirmons votre rendez-vous ${libelleRdv} avec nos techniciens ${nomSociete}. ${ligneFacture}
 📅 Date : ${dateFinal}
 🕑 Horaire : ${horaireFinal}
 📍 Lieu : ${adresseFinal}
