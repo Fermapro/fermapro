@@ -1,0 +1,524 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Confirmation RDV — Fermapro</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap');
+
+  :root {
+    --rose: #F06691;
+    --blue: #2D3D74;
+    --blue-light: #3d5299;
+    --bg: #f5f6fa;
+    --card: #ffffff;
+    --border: #e2e6f0;
+    --text: #1a2035;
+    --muted: #6b7a99;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    padding: 32px 16px;
+  }
+
+  .wrapper { max-width: 760px; margin: 0 auto; }
+
+  .header {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 32px;
+  }
+
+  .logo-badge {
+    width: 48px; height: 48px;
+    background: var(--blue);
+    border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+
+  .logo-badge svg { width: 28px; height: 28px; fill: white; }
+
+  .header-text h1 {
+    font-size: 18px; font-weight: 600;
+    color: var(--blue); letter-spacing: -0.3px;
+  }
+
+  .header-text p { font-size: 13px; color: var(--muted); margin-top: 2px; }
+
+  .panel {
+    background: var(--card);
+    border-radius: 16px;
+    border: 1px solid var(--border);
+    overflow: hidden;
+    box-shadow: 0 2px 12px rgba(45,61,116,0.06);
+    margin-bottom: 20px;
+  }
+
+  .panel-header {
+    background: var(--blue);
+    padding: 16px 24px;
+    display: flex; align-items: center; gap: 10px;
+  }
+
+  .panel-header span {
+    font-size: 13px; font-weight: 600;
+    color: rgba(255,255,255,0.7);
+    text-transform: uppercase; letter-spacing: 0.8px;
+  }
+
+  .panel-header svg { width: 16px; height: 16px; fill: rgba(255,255,255,0.6); flex-shrink: 0; }
+
+  .panel-body { padding: 24px; }
+
+  .form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+  }
+
+  .form-grid .full { grid-column: 1 / -1; }
+
+  .field label {
+    display: block;
+    font-size: 11px; font-weight: 600;
+    text-transform: uppercase; letter-spacing: 0.7px;
+    color: var(--muted); margin-bottom: 6px;
+  }
+
+  .field label .req { color: var(--rose); margin-left: 2px; }
+
+  .field input, .field select, .field textarea {
+    width: 100%;
+    padding: 10px 14px;
+    border: 1.5px solid var(--border);
+    border-radius: 8px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px; color: var(--text);
+    background: #fafbfd;
+    transition: border-color 0.15s, box-shadow 0.15s;
+    outline: none;
+  }
+
+  .field input:focus, .field select:focus, .field textarea:focus {
+    border-color: var(--blue);
+    box-shadow: 0 0 0 3px rgba(45,61,116,0.08);
+    background: #fff;
+  }
+
+  .field textarea { resize: vertical; min-height: 72px; }
+  .field select { cursor: pointer; }
+
+  .creneau-row {
+    display: flex; align-items: center; gap: 12px;
+  }
+
+  .creneau-row input { flex: 1; }
+
+  .creneau-sep {
+    color: var(--muted); font-size: 13px;
+    white-space: nowrap; flex-shrink: 0;
+  }
+
+  .field-hint {
+    margin-top: 6px; font-size: 12px; color: var(--muted);
+  }
+
+  .checkbox-row {
+    display: flex; align-items: center; gap: 10px;
+    padding: 12px 14px;
+    border: 1.5px solid var(--border);
+    border-radius: 8px; cursor: pointer;
+    background: #fafbfd;
+    transition: border-color 0.15s, background 0.15s;
+  }
+
+  .checkbox-row:hover { border-color: var(--rose); background: #fff5f8; }
+  .checkbox-row.checked { border-color: var(--rose); background: #fff5f8; }
+  .checkbox-row input[type="checkbox"] { display: none; }
+
+  .check-box {
+    width: 20px; height: 20px;
+    border-radius: 5px; border: 2px solid var(--border);
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.15s; flex-shrink: 0; background: white;
+  }
+
+  .checkbox-row.checked .check-box { background: var(--rose); border-color: var(--rose); }
+  .check-box svg { width: 12px; height: 12px; fill: white; opacity: 0; transition: opacity 0.15s; }
+  .checkbox-row.checked .check-box svg { opacity: 1; }
+  .checkbox-row span { font-size: 13.5px; color: var(--text); font-weight: 400; }
+  .checkbox-row strong { font-weight: 600; color: var(--blue); }
+
+  .preview-label {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 12px;
+  }
+
+  .preview-label span {
+    font-size: 11px; font-weight: 600;
+    text-transform: uppercase; letter-spacing: 0.7px; color: var(--muted);
+  }
+
+  .preview-box {
+    background: #fafbfd;
+    border: 1.5px solid var(--border);
+    border-radius: 10px;
+    padding: 20px 22px;
+    font-size: 14px; line-height: 1.75; color: var(--text);
+    white-space: pre-wrap;
+    font-family: 'DM Sans', sans-serif;
+    min-height: 200px;
+  }
+
+  .preview-box em {
+    background: #fff3cd;
+    padding: 1px 4px; border-radius: 3px;
+    font-style: normal;
+    font-family: 'DM Mono', monospace;
+    font-size: 12.5px; color: #996600;
+  }
+
+  .actions { display: flex; gap: 12px; flex-wrap: wrap; }
+
+  .btn {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 11px 20px; border-radius: 9px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px; font-weight: 600;
+    cursor: pointer; border: none;
+    transition: all 0.15s; text-decoration: none;
+  }
+
+  .btn-primary { background: var(--rose); color: white; box-shadow: 0 2px 8px rgba(240,102,145,0.3); }
+  .btn-primary:hover { background: #e0567f; box-shadow: 0 4px 14px rgba(240,102,145,0.4); transform: translateY(-1px); }
+
+  .btn-secondary { background: white; color: var(--blue); border: 1.5px solid var(--border); }
+  .btn-secondary:hover { border-color: var(--blue); background: #f0f3ff; }
+
+  .btn-blue { background: var(--blue); color: white; box-shadow: 0 2px 8px rgba(45,61,116,0.25); }
+  .btn-blue:hover { background: var(--blue-light); transform: translateY(-1px); }
+
+  .btn svg { width: 16px; height: 16px; flex-shrink: 0; }
+
+  .toast {
+    position: fixed; bottom: 28px; right: 28px;
+    background: var(--blue); color: white;
+    padding: 12px 20px; border-radius: 10px;
+    font-size: 14px; font-weight: 500;
+    opacity: 0; transform: translateY(10px);
+    transition: all 0.25s; pointer-events: none; z-index: 999;
+    box-shadow: 0 4px 20px rgba(45,61,116,0.3);
+  }
+
+  .toast.show { opacity: 1; transform: translateY(0); }
+
+  .divider { height: 1px; background: var(--border); margin: 20px 0; }
+
+  @media (max-width: 560px) {
+    .form-grid { grid-template-columns: 1fr; }
+    .form-grid .full { grid-column: 1; }
+  }
+</style>
+</head>
+<body>
+
+<div class="wrapper">
+
+  <div class="header">
+    <div class="logo-badge">
+      <svg viewBox="0 0 24 24"><path d="M12 2L2 7v10l10 5 10-5V7L12 2zm0 2.18L20 8.5v7L12 19.82 4 15.5v-7l8-4.32z"/></svg>
+    </div>
+    <div class="header-text">
+      <h1>Confirmation de RDV — Fermapro</h1>
+      <p>Générateur de mail client · Alexia Da Silva</p>
+    </div>
+  </div>
+
+  <!-- FORMULAIRE -->
+  <div class="panel">
+    <div class="panel-header">
+      <svg viewBox="0 0 24 24"><path d="M9 11H7v2h2v-2zm4 0h-2v2h2v-2zm4 0h-2v2h2v-2zm2-7h-1V2h-2v2H8V2H6v2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V9h14v11z"/></svg>
+      <span>Informations du rendez-vous</span>
+    </div>
+    <div class="panel-body">
+      <div class="form-grid">
+
+        <div class="field full">
+          <label>Société intervenante <span class="req">*</span></label>
+          <select id="societe" onchange="update()">
+            <option value="fermapro">Fermapro</option>
+            <option value="reparpro">Reparpro</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label>Civilité <span class="req">*</span></label>
+          <select id="civilite">
+            <option value="Madame, Monsieur">Madame, Monsieur</option>
+            <option value="Madame">Madame</option>
+            <option value="Monsieur">Monsieur</option>
+            <option value="Mesdames">Mesdames</option>
+            <option value="Messieurs">Messieurs</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label>Nom client <span class="req">*</span></label>
+          <input type="text" id="nom" placeholder="ex : GARRIDO" oninput="update()">
+        </div>
+
+        <div class="field">
+          <label>Date d'intervention <span class="req">*</span></label>
+          <input type="date" id="date" oninput="update()">
+        </div>
+
+        <!-- TYPE HORAIRE -->
+        <div class="field">
+          <label>Type d'horaire <span class="req">*</span></label>
+          <select id="type-heure" onchange="updateTypeHeure()">
+            <option value="fixe">Heure fixe (à partir de…)</option>
+            <option value="creneau">Créneau de 2 heures</option>
+          </select>
+        </div>
+
+        <!-- HEURE FIXE -->
+        <div class="field full" id="bloc-fixe">
+          <label>Heure de début <span class="req">*</span></label>
+          <input type="time" id="heure" value="08:30" oninput="update()">
+        </div>
+
+        <!-- CRÉNEAU -->
+        <div class="field full" id="bloc-creneau" style="display:none;">
+          <label>Créneau <span class="req">*</span></label>
+          <div class="creneau-row">
+            <input type="time" id="heure-debut" value="08:00" oninput="updateCreneauAuto()">
+            <span class="creneau-sep">→</span>
+            <input type="time" id="heure-fin" value="10:00" oninput="update()">
+          </div>
+          <div class="field-hint">La fin est calculée automatiquement (+2h) mais reste modifiable.</div>
+        </div>
+
+        <div class="field full">
+          <label>Email client <span style="font-weight:400;color:var(--muted)">(pour envoi Outlook)</span></label>
+          <input type="email" id="email-client" placeholder="ex : garrido@email.com" oninput="update()">
+        </div>
+
+        <div class="field full">
+          <label>Adresse du chantier <span class="req">*</span></label>
+          <input type="text" id="adresse" placeholder="ex : 1 Rue Saint-Mesmin, 37800 Sainte-Maure-de-Touraine" oninput="update()">
+        </div>
+
+        <div class="field full">
+          <label>Note complémentaire <span style="font-weight:400;color:var(--muted)">(optionnel)</span></label>
+          <textarea id="note" placeholder="ex : Prévoir accès au garage, code portail 1234…" oninput="update()"></textarea>
+        </div>
+
+        <div class="field full">
+          <label>Options</label>
+          <div style="display:flex;flex-direction:column;gap:10px;">
+            <label class="checkbox-row checked" id="cb-facture-wrap" onclick="toggleCheck('cb-facture', this); update()">
+              <input type="checkbox" id="cb-facture" checked>
+              <div class="check-box">
+                <svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
+              </div>
+              <span>Mentionner la <strong>facture en pièce jointe</strong></span>
+            </label>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- PRÉVISUALISATION -->
+  <div class="panel">
+    <div class="panel-header">
+      <svg viewBox="0 0 24 24"><path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/></svg>
+      <span>Prévisualisation du mail</span>
+    </div>
+    <div class="panel-body">
+      <div class="preview-label">
+        <span>Contenu du mail généré</span>
+      </div>
+      <div class="preview-box" id="preview"></div>
+
+      <div class="divider"></div>
+
+      <div class="actions">
+        <button class="btn btn-primary" onclick="copier()">
+          <svg viewBox="0 0 24 24" fill="white"><path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/></svg>
+          Copier le mail
+        </button>
+        <button class="btn btn-blue" onclick="ouvrirOutlook()">
+          <svg viewBox="0 0 24 24" fill="white"><path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/></svg>
+          Ouvrir dans Outlook
+        </button>
+        <button class="btn btn-secondary" onclick="reinitialiser()">
+          <svg viewBox="0 0 24 24"><path d="M12 5V1L7 6l5 5V7c3.31 0 6 2.69 6 6s-2.69 6-6 6-6-2.69-6-6H4c0 4.42 3.58 8 8 8s8-3.58 8-8-3.58-8-8-8z" fill="var(--blue)"/></svg>
+          Réinitialiser
+        </button>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<div class="toast" id="toast">✓ Mail copié dans le presse-papiers</div>
+
+<script>
+  function toggleCheck(id, wrap) {
+    const cb = document.getElementById(id);
+    cb.checked = !cb.checked;
+    wrap.classList.toggle('checked', cb.checked);
+  }
+
+  function pad(n) { return String(n).padStart(2, '0'); }
+
+  function formatDate(val) {
+    if (!val) return null;
+    const [y, m, d] = val.split('-');
+    return `${pad(d)}/${pad(m)}/${y}`;
+  }
+
+  function formatHeure(val) {
+    if (!val) return null;
+    const [h, m] = val.split(':');
+    return m === '00' ? `${h}h` : `${h}h${m}`;
+  }
+
+  function addTwoHours(val) {
+    if (!val) return null;
+    const [h, m] = val.split(':').map(Number);
+    const total = h * 60 + m + 120;
+    return `${pad(Math.floor(total / 60) % 24)}:${pad(total % 60)}`;
+  }
+
+  function updateTypeHeure() {
+    const type = document.getElementById('type-heure').value;
+    document.getElementById('bloc-fixe').style.display   = type === 'fixe'    ? '' : 'none';
+    document.getElementById('bloc-creneau').style.display = type === 'creneau' ? '' : 'none';
+    update();
+  }
+
+  function updateCreneauAuto() {
+    const debut = document.getElementById('heure-debut').value;
+    if (debut) {
+      document.getElementById('heure-fin').value = addTwoHours(debut);
+    }
+    update();
+  }
+
+  function getHoraireTexte(html) {
+    const type = document.getElementById('type-heure').value;
+    if (type === 'fixe') {
+      const h = document.getElementById('heure').value;
+      return h ? `à partir de ${formatHeure(h)}` : (html ? '<em>[HEURE]</em>' : '[HEURE]');
+    } else {
+      const debut = document.getElementById('heure-debut').value;
+      const fin   = document.getElementById('heure-fin').value;
+      if (debut && fin) return `entre ${formatHeure(debut)} et ${formatHeure(fin)}`;
+      return html ? '<em>[CRÉNEAU]</em>' : '[CRÉNEAU]';
+    }
+  }
+
+  function genererTexte(html) {
+    const civilite    = document.getElementById('civilite').value;
+    const nom         = document.getElementById('nom').value.trim().toUpperCase();
+    const dateVal     = document.getElementById('date').value;
+    const adresse     = document.getElementById('adresse').value.trim();
+    const note        = document.getElementById('note').value.trim();
+    const avecFacture = document.getElementById('cb-facture').checked;
+    const societe     = document.getElementById('societe').value;
+
+    const nomSociete   = societe === 'reparpro' ? "Reparpro" : "Fermapro";
+    const nomFinal     = nom     || (html ? '<em>[NOM CLIENT]</em>'        : '[NOM CLIENT]');
+    const dateFinal    = dateVal ? formatDate(dateVal) : (html ? '<em>[DATE]</em>' : '[DATE]');
+    const horaireFinal = getHoraireTexte(html);
+    const adresseFinal = adresse || (html ? '<em>[ADRESSE DU CHANTIER]</em>' : '[ADRESSE DU CHANTIER]');
+
+    const ligneFacture = avecFacture
+      ? `Vous trouverez en pièce jointe la facture correspondant à vos travaux.\n\n`
+      : '';
+
+    const ligneNote = note ? `\n${note}\n` : '';
+
+    const corps =
+`${civilite} ${nomFinal},
+
+Nous vous confirmons votre rendez-vous d'intervention avec nos techniciens ${nomSociete}. ${ligneFacture}
+📅 Date : ${dateFinal}
+🕑 Horaire : ${horaireFinal}
+📍 Lieu : ${adresseFinal}
+${ligneNote}
+Nos techniciens vous contacteront le matin de l'intervention pour préciser leur heure d'arrivée — merci de rester joignable. En cas d'empêchement, merci de nous prévenir au moins 48h à l'avance.
+
+─────────────────────────────
+À prévoir le jour de l'intervention
+─────────────────────────────
+
+✅ Votre présence en fin de chantier est indispensable. La réception des travaux en votre présence est obligatoire. Elle conditionne l'activation de vos garanties.
+
+✅ Le règlement du solde est à effectuer le jour de l'intervention, directement auprès de nos techniciens. Modes de paiement acceptés : ${societe === 'reparpro' ? "chèque à l'ordre de Reparpro, carte bancaire ou avis de virement" : "chèque à l'ordre de Fermapro ou avis de virement"}.${avecFacture ? ' La facture en pièce jointe vous permet d\'anticiper ce règlement.' : ''}
+
+─────────────────────────────
+
+Pour toute question, nous sommes disponibles au 02 47 38 91 40 ou à bureau@fermapro.fr.
+
+À très bientôt !`;
+
+    return corps;
+  }
+
+  function update() {
+    document.getElementById('preview').innerHTML = genererTexte(true);
+  }
+
+  function copier() {
+    navigator.clipboard.writeText(genererTexte(false)).then(() => {
+      const t = document.getElementById('toast');
+      t.classList.add('show');
+      setTimeout(() => t.classList.remove('show'), 2500);
+    });
+  }
+
+  function ouvrirOutlook() {
+    const email = document.getElementById('email-client').value.trim();
+    const sujet = encodeURIComponent('Confirmation de votre rendez-vous Fermapro');
+    const corps = encodeURIComponent(genererTexte(false));
+    window.location.href = `mailto:${email}?subject=${sujet}&body=${corps}`;
+  }
+
+  function reinitialiser() {
+    document.getElementById('societe').value    = 'fermapro';
+    document.getElementById('email-client').value = '';
+    document.getElementById('societe').value    = 'fermapro';
+    document.getElementById('email-client').value = '';
+    document.getElementById('nom').value        = '';
+    document.getElementById('date').value       = '';
+    document.getElementById('heure').value      = '08:30';
+    document.getElementById('heure-debut').value = '08:00';
+    document.getElementById('heure-fin').value  = '10:00';
+    document.getElementById('type-heure').value = 'fixe';
+    document.getElementById('adresse').value    = '';
+    document.getElementById('note').value       = '';
+    document.getElementById('cb-facture').checked = true;
+    document.getElementById('cb-facture-wrap').classList.add('checked');
+    updateTypeHeure();
+  }
+
+  // Init
+  document.getElementById('civilite').addEventListener('change', update);
+  update();
+</script>
+
+</body>
+</html>
