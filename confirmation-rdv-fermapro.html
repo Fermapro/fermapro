@@ -253,6 +253,15 @@
       <div class="form-grid">
 
         <div class="field full">
+          <label>Type de rendez-vous <span class="req">*</span></label>
+          <select id="type-rdv" onchange="update()">
+            <option value="diagnostic">Diagnostic</option>
+            <option value="intervention" selected>Intervention</option>
+            <option value="sav">Service après-vente</option>
+          </select>
+        </div>
+
+        <div class="field full">
           <label>Société intervenante <span class="req">*</span></label>
           <select id="societe" onchange="update()">
             <option value="fermapro">Fermapro</option>
@@ -331,6 +340,20 @@
                 <svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
               </div>
               <span>Mentionner la <strong>facture en pièce jointe</strong></span>
+            </label>
+            <label class="checkbox-row checked" id="cb-presence-wrap" onclick="toggleCheck('cb-presence', this); update()">
+              <input type="checkbox" id="cb-presence" checked>
+              <div class="check-box">
+                <svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
+              </div>
+              <span><strong>Présence obligatoire</strong> en fin de chantier (PV de réception)</span>
+            </label>
+            <label class="checkbox-row checked" id="cb-reglement-wrap" onclick="toggleCheck('cb-reglement', this); update()">
+              <input type="checkbox" id="cb-reglement" checked>
+              <div class="check-box">
+                <svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
+              </div>
+              <span><strong>Règlement du solde</strong> le jour de l'intervention</span>
             </label>
           </div>
         </div>
@@ -436,8 +459,12 @@
     const dateVal     = document.getElementById('date').value;
     const adresse     = document.getElementById('adresse').value.trim();
     const note        = document.getElementById('note').value.trim();
-    const avecFacture = document.getElementById('cb-facture').checked;
-    const societe     = document.getElementById('societe').value;
+    const avecFacture  = document.getElementById('cb-facture').checked;
+    const avecPresence = document.getElementById('cb-presence').checked;
+    const avecReglement= document.getElementById('cb-reglement').checked;
+    const societe      = document.getElementById('societe').value;
+    const typeRdv      = document.getElementById('type-rdv').value;
+    const libelleRdv   = typeRdv === 'diagnostic' ? 'diagnostic' : typeRdv === 'sav' ? 'service après-vente' : 'intervention';
 
     const nomSociete   = societe === 'reparpro' ? "Reparpro" : "Fermapro";
     const nomFinal     = nom     || (html ? '<em>[NOM CLIENT]</em>'        : '[NOM CLIENT]');
@@ -454,22 +481,19 @@
     const corps =
 `${civilite} ${nomFinal},
 
-Nous vous confirmons votre rendez-vous d'intervention avec nos techniciens ${nomSociete}. ${ligneFacture}
+Nous vous confirmons votre rendez-vous de ${libelleRdv} avec nos techniciens ${nomSociete}. ${ligneFacture}
 📅 Date : ${dateFinal}
 🕑 Horaire : ${horaireFinal}
 📍 Lieu : ${adresseFinal}
 ${ligneNote}
 Nos techniciens vous contacteront le matin de l'intervention pour préciser leur heure d'arrivée — merci de rester joignable. En cas d'empêchement, merci de nous prévenir au moins 48h à l'avance.
 
-─────────────────────────────
+${(avecPresence || avecReglement) ? `─────────────────────────────
 À prévoir le jour de l'intervention
 ─────────────────────────────
 
-✅ Votre présence en fin de chantier est indispensable. La réception des travaux en votre présence est obligatoire. Elle conditionne l'activation de vos garanties.
-
-✅ Le règlement du solde est à effectuer le jour de l'intervention, directement auprès de nos techniciens. Modes de paiement acceptés : ${societe === 'reparpro' ? "chèque à l'ordre de Fermapro, carte bancaire ou avis de virement" : "chèque à l'ordre de Fermapro ou avis de virement"}.${avecFacture ? ' La facture en pièce jointe vous permet d\'anticiper ce règlement.' : ''}
-
-─────────────────────────────
+${avecPresence ? '✅ Votre présence en fin de chantier est indispensable. La réception des travaux en votre présence est obligatoire. Elle conditionne l\'activation de vos garanties.\n' : ''}${avecReglement ? '\n✅ Le règlement du solde est à effectuer le jour de l\'intervention, directement auprès de nos techniciens. Modes de paiement acceptés : ' + (societe === 'reparpro' ? 'chèque à l\'ordre de Fermapro, carte bancaire ou avis de virement' : 'chèque à l\'ordre de Fermapro ou avis de virement') + '.' + (avecFacture ? ' La facture en pièce jointe vous permet d\'anticiper ce règlement.' : '') + '\n' : ''}
+─────────────────────────────` : ''}
 
 Pour toute question, nous sommes disponibles au 02 47 38 91 40 ou à bureau@fermapro.fr.
 
@@ -498,8 +522,10 @@ Pour toute question, nous sommes disponibles au 02 47 38 91 40 ou à bureau@ferm
   }
 
   function reinitialiser() {
+    document.getElementById('type-rdv').value   = 'intervention';
     document.getElementById('societe').value    = 'fermapro';
     document.getElementById('email-client').value = '';
+    document.getElementById('type-rdv').value   = 'intervention';
     document.getElementById('societe').value    = 'fermapro';
     document.getElementById('email-client').value = '';
     document.getElementById('nom').value        = '';
@@ -512,6 +538,10 @@ Pour toute question, nous sommes disponibles au 02 47 38 91 40 ou à bureau@ferm
     document.getElementById('note').value       = '';
     document.getElementById('cb-facture').checked = true;
     document.getElementById('cb-facture-wrap').classList.add('checked');
+    document.getElementById('cb-presence').checked = true;
+    document.getElementById('cb-presence-wrap').classList.add('checked');
+    document.getElementById('cb-reglement').checked = true;
+    document.getElementById('cb-reglement-wrap').classList.add('checked');
     updateTypeHeure();
   }
 
