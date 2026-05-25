@@ -177,6 +177,7 @@ body {
   opacity: 0; transform: translateY(10px);
   transition: all 0.25s; pointer-events: none; z-index: 999;
   box-shadow: 0 4px 20px rgba(45,61,116,0.3);
+  max-width: 320px;
 }
 .toast.show { opacity: 1; transform: translateY(0); }
 .divider { height: 1px; background: var(--border); margin: 20px 0; }
@@ -206,6 +207,7 @@ body {
     </div>
     <div class="panel-body">
       <div class="form-grid">
+
         <div class="field full">
           <label>Type de rendez-vous <span class="req">*</span></label>
           <select id="type-rdv" onchange="update()">
@@ -214,6 +216,7 @@ body {
             <option value="sav">Service après-vente</option>
           </select>
         </div>
+
         <div class="field full">
           <label>Société intervenante <span class="req">*</span></label>
           <select id="societe" onchange="update()">
@@ -221,9 +224,10 @@ body {
             <option value="reparpro">Reparpro</option>
           </select>
         </div>
+
         <div class="field">
           <label>Civilité <span class="req">*</span></label>
-          <select id="civilite">
+          <select id="civilite" onchange="update()">
             <option value="Madame, Monsieur">Madame, Monsieur</option>
             <option value="Madame">Madame</option>
             <option value="Monsieur">Monsieur</option>
@@ -231,15 +235,17 @@ body {
             <option value="Messieurs">Messieurs</option>
           </select>
         </div>
+
         <div class="field">
           <label>Nom client <span class="req">*</span></label>
           <input type="text" id="nom" placeholder="ex : GARRIDO" oninput="update()">
         </div>
+
         <div class="field">
           <label>Date d'intervention <span class="req">*</span></label>
           <input type="date" id="date" oninput="update()">
         </div>
-        <!-- TYPE HORAIRE -->
+
         <div class="field">
           <label>Type d'horaire <span class="req">*</span></label>
           <select id="type-heure" onchange="updateTypeHeure()">
@@ -247,12 +253,12 @@ body {
             <option value="creneau">Créneau de 2 heures</option>
           </select>
         </div>
-        <!-- HEURE FIXE -->
+
         <div class="field full" id="bloc-fixe">
           <label>Heure de début <span class="req">*</span></label>
           <input type="time" id="heure" value="08:30" oninput="update()">
         </div>
-        <!-- CRÉNEAU -->
+
         <div class="field full" id="bloc-creneau" style="display:none;">
           <label>Créneau <span class="req">*</span></label>
           <div class="creneau-row">
@@ -262,18 +268,22 @@ body {
           </div>
           <div class="field-hint">La fin est calculée automatiquement (+2h) mais reste modifiable.</div>
         </div>
+
         <div class="field full">
           <label>Email client <span style="font-weight:400;color:var(--muted)">(pour envoi Outlook)</span></label>
           <input type="email" id="email-client" placeholder="ex : garrido@email.com" oninput="update()">
         </div>
+
         <div class="field full">
           <label>Adresse du chantier <span class="req">*</span></label>
           <input type="text" id="adresse" placeholder="ex : 1 Rue Saint-Mesmin, 37800 Sainte-Maure-de-Touraine" oninput="update()">
         </div>
+
         <div class="field full">
           <label>Note complémentaire <span style="font-weight:400;color:var(--muted)">(optionnel)</span></label>
           <textarea id="note" placeholder="ex : Prévoir accès au garage, code portail 1234…" oninput="update()"></textarea>
         </div>
+
         <div class="field full">
           <label>Options</label>
           <div style="display:flex;flex-direction:column;gap:10px;">
@@ -300,6 +310,7 @@ body {
             </label>
           </div>
         </div>
+
       </div>
     </div>
   </div>
@@ -334,48 +345,58 @@ body {
   </div>
 </div>
 
-<div class="toast" id="toast">✓ Mail copié dans le presse-papiers</div>
+<div class="toast" id="toast"></div>
 
 <script>
-function toggleCheck(id, wrap) {
-  const cb = document.getElementById(id);
-  cb.checked = !cb.checked;
-  wrap.classList.toggle('checked', cb.checked);
-}
+// ─── Utilitaires ────────────────────────────────────────────────────────────
 
 function pad(n) { return String(n).padStart(2, '0'); }
 
 function formatDate(val) {
   if (!val) return null;
   const [y, m, d] = val.split('-');
-  return `${pad(d)}/${pad(m)}/${y}`;
+  return pad(d) + '/' + pad(m) + '/' + y;
 }
 
 function formatHeure(val) {
   if (!val) return null;
   const [h, m] = val.split(':');
-  return m === '00' ? `${h}h` : `${h}h${m}`;
+  return m === '00' ? h + 'h' : h + 'h' + m;
 }
 
 function addTwoHours(val) {
   if (!val) return null;
   const [h, m] = val.split(':').map(Number);
   const total = h * 60 + m + 120;
-  return `${pad(Math.floor(total / 60) % 24)}:${pad(total % 60)}`;
+  return pad(Math.floor(total / 60) % 24) + ':' + pad(total % 60);
+}
+
+// Encodage UTF-8 → Base64 sans unescape (deprecated)
+function toBase64UTF8(str) {
+  const bytes = new TextEncoder().encode(str);
+  let binary = '';
+  bytes.forEach(function(b) { binary += String.fromCharCode(b); });
+  return btoa(binary);
+}
+
+// ─── Interactions UI ────────────────────────────────────────────────────────
+
+function toggleCheck(id, wrap) {
+  const cb = document.getElementById(id);
+  cb.checked = !cb.checked;
+  wrap.classList.toggle('checked', cb.checked);
 }
 
 function updateTypeHeure() {
   const type = document.getElementById('type-heure').value;
-  document.getElementById('bloc-fixe').style.display = type === 'fixe' ? '' : 'none';
+  document.getElementById('bloc-fixe').style.display  = type === 'fixe'    ? '' : 'none';
   document.getElementById('bloc-creneau').style.display = type === 'creneau' ? '' : 'none';
   update();
 }
 
 function updateCreneauAuto() {
   const debut = document.getElementById('heure-debut').value;
-  if (debut) {
-    document.getElementById('heure-fin').value = addTwoHours(debut);
-  }
+  if (debut) document.getElementById('heure-fin').value = addTwoHours(debut);
   update();
 }
 
@@ -383,151 +404,215 @@ function getHoraireTexte(html) {
   const type = document.getElementById('type-heure').value;
   if (type === 'fixe') {
     const h = document.getElementById('heure').value;
-    return h ? `à partir de ${formatHeure(h)}` : (html ? '<em>[HEURE]</em>' : '[HEURE]');
+    return h ? 'à partir de ' + formatHeure(h) : (html ? '<em>[HEURE]</em>' : '[HEURE]');
   } else {
     const debut = document.getElementById('heure-debut').value;
-    const fin = document.getElementById('heure-fin').value;
-    if (debut && fin) return `entre ${formatHeure(debut)} et ${formatHeure(fin)}`;
+    const fin   = document.getElementById('heure-fin').value;
+    if (debut && fin) return 'entre ' + formatHeure(debut) + ' et ' + formatHeure(fin);
     return html ? '<em>[CRÉNEAU]</em>' : '[CRÉNEAU]';
   }
 }
 
-function genererTexte(html) {
-  const civilite = document.getElementById('civilite').value;
-  const nom = document.getElementById('nom').value.trim().toUpperCase();
-  const dateVal = document.getElementById('date').value;
-  const adresse = document.getElementById('adresse').value.trim();
-  const note = document.getElementById('note').value.trim();
-  const avecFacture = document.getElementById('cb-facture').checked;
-  const avecPresence = document.getElementById('cb-presence').checked;
-  const avecReglement = document.getElementById('cb-reglement').checked;
-  const societe = document.getElementById('societe').value;
-  const typeRdv = document.getElementById('type-rdv').value;
-  const libelleRdv = typeRdv === 'diagnostic' ? 'de diagnostic' : typeRdv === 'sav' ? 'de service après-vente' : "d'intervention";
-  const nomSociete = societe === 'reparpro' ? 'Reparpro' : 'Fermapro';
+// ─── Génération du texte ────────────────────────────────────────────────────
 
-  const nomFinal = nom || (html ? '<em>[NOM CLIENT]</em>' : '[NOM CLIENT]');
-  const dateFinal = dateVal ? formatDate(dateVal) : (html ? '<em>[DATE]</em>' : '[DATE]');
+function genererTexte(html) {
+  const civilite    = document.getElementById('civilite').value;
+  const nom         = document.getElementById('nom').value.trim().toUpperCase();
+  const dateVal     = document.getElementById('date').value;
+  const adresse     = document.getElementById('adresse').value.trim();
+  const note        = document.getElementById('note').value.trim();
+  const avecFacture = document.getElementById('cb-facture').checked;
+  const avecPresence= document.getElementById('cb-presence').checked;
+  const avecReglement=document.getElementById('cb-reglement').checked;
+  const societe     = document.getElementById('societe').value;
+  const typeRdv     = document.getElementById('type-rdv').value;
+
+  const libelleRdv  = typeRdv === 'diagnostic' ? 'de diagnostic'
+                    : typeRdv === 'sav'         ? 'de service après-vente'
+                    : "d'intervention";
+  const nomSociete  = societe === 'reparpro' ? 'Reparpro' : 'Fermapro';
+
+  const nomFinal     = nom     || (html ? '<em>[NOM CLIENT]</em>'         : '[NOM CLIENT]');
+  const dateFinal    = dateVal  ? formatDate(dateVal) : (html ? '<em>[DATE]</em>' : '[DATE]');
   const horaireFinal = getHoraireTexte(html);
   const adresseFinal = adresse || (html ? '<em>[ADRESSE DU CHANTIER]</em>' : '[ADRESSE DU CHANTIER]');
 
-  const ligneFacture = avecFacture
-    ? `Vous trouverez en pièce jointe la facture correspondant à vos travaux.\n`
-    : '';
-  const ligneNote = note ? `\n${note}\n` : '';
-  const lignePresence = avecPresence
-    ? `✅ Votre présence en fin de chantier est indispensable. La réception des travaux en votre présence est obligatoire. Elle conditionne l'activation de vos garanties.\n`
-    : '';
-  const ligneReglement = avecReglement
-    ? `✅ Le règlement du solde est à effectuer le jour de l'intervention, directement auprès de nos techniciens.` +
-      (avecFacture ? ` La facture en pièce jointe vous permet d'anticiper ce règlement.` : '') +
-      `\n\nModes de paiement acceptés :\n\n— Chèque à l'ordre de Fermapro\n\n— Virement bancaire (IBAN : FR76 1450 5000 0208 0007 8633 202) — l'avis de virement est à remettre au technicien le jour de l'intervention\n` +
-      (societe === 'reparpro' ? `\n— Carte bancaire\n` : '')
-    : '';
+  // Construction par blocs pour maîtriser les espacements
+  const lignes = [];
 
-  const separateur = `\n─────────────────────────────\n`;
-  const blocAPrevoir = (avecPresence || avecReglement)
-    ? `${separateur}\nÀ prévoir le jour de l'intervention${separateur}\n${lignePresence ? lignePresence + '\n' : ''}${ligneReglement ? ligneReglement + '\n' : ''}${separateur}`
-    : '';
+  lignes.push(civilite + ' ' + nomFinal + ',');
+  lignes.push('');
+  lignes.push('Nous vous confirmons votre rendez-vous ' + libelleRdv + ' avec nos techniciens ' + nomSociete + '.');
+  lignes.push('');
 
-  const corps =
-`${civilite} ${nomFinal},
+  if (avecFacture) {
+    lignes.push('Vous trouverez en pièce jointe la facture correspondant à vos travaux.');
+    lignes.push('');
+  }
 
-Nous vous confirmons votre rendez-vous ${libelleRdv} avec nos techniciens ${nomSociete}.
+  lignes.push('Date : ' + dateFinal);
+  lignes.push('');
+  lignes.push('Horaire : ' + horaireFinal);
+  lignes.push('');
+  lignes.push('Lieu : ' + adresseFinal);
+  lignes.push('');
 
-${ligneFacture}
-Date : ${dateFinal}
+  if (note) {
+    lignes.push(note);
+    lignes.push('');
+  }
 
-Horaire : ${horaireFinal}
+  lignes.push('Nos techniciens vous contacteront si nécessaire pour préciser leur heure d\'arrivée. Merci de rester joignable. En cas d\'empêchement, merci de nous prévenir au moins 48 heures à l\'avance.');
 
-Lieu : ${adresseFinal}
+  if (avecPresence || avecReglement) {
+    lignes.push('');
+    lignes.push('\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500');
+    lignes.push('À prévoir le jour de l\'intervention');
+    lignes.push('\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500');
 
-${ligneNote}
-Nos techniciens vous contacteront si nécessaire pour préciser leur heure d'arrivée. Merci de rester joignable. En cas d'empêchement, merci de nous prévenir au moins 48 heures à l'avance.
+    if (avecPresence) {
+      lignes.push('');
+      lignes.push('\u2705 Votre présence en fin de chantier est indispensable. La réception des travaux en votre présence est obligatoire. Elle conditionne l\'activation de vos garanties.');
+    }
 
-${blocAPrevoir}
+    if (avecReglement) {
+      lignes.push('');
+      lignes.push('\u2705 Le règlement du solde est à effectuer le jour de l\'intervention, directement auprès de nos techniciens.'
+        + (avecFacture ? ' La facture en pièce jointe vous permet d\'anticiper ce règlement.' : ''));
+      lignes.push('');
+      lignes.push('Modes de paiement acceptés :');
+      lignes.push('');
+      lignes.push('— Chèque à l\'ordre de Fermapro');
+      lignes.push('');
+      lignes.push('— Virement bancaire (IBAN : FR76 1450 5000 0208 0007 8633 202) — l\'avis de virement est à remettre au technicien le jour de l\'intervention');
+      if (societe === 'reparpro') {
+        lignes.push('');
+        lignes.push('— Carte bancaire');
+      }
+    }
 
-Pour toute question, nous sommes disponibles au 02 47 38 91 40 ou à l'adresse bureau@fermapro.fr.
+    lignes.push('');
+    lignes.push('\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500');
+  }
 
-À très bientôt !
+  lignes.push('');
+  lignes.push('Pour toute question, nous sommes disponibles au 02 47 38 91 40 ou à l\'adresse bureau@fermapro.fr.');
+  lignes.push('');
+  lignes.push('À très bientôt !');
 
-`;
-  return corps;
+  return lignes.join('\n');
 }
+
+// ─── Actions boutons ────────────────────────────────────────────────────────
 
 function update() {
   document.getElementById('preview').innerHTML = genererTexte(true);
 }
 
 function copier() {
-  navigator.clipboard.writeText(genererTexte(false)).then(() => {
-    showToast('✓ Mail copié dans le presse-papiers', 2500);
-  });
+  const texte = genererTexte(false);
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(texte)
+      .then(function() {
+        showToast('\u2713 Mail copié dans le presse-papiers', 2500);
+      })
+      .catch(function() {
+        // Fallback si clipboard API bloquée (HTTP, permissions)
+        fallbackCopier(texte);
+      });
+  } else {
+    fallbackCopier(texte);
+  }
+}
+
+function fallbackCopier(texte) {
+  const ta = document.createElement('textarea');
+  ta.value = texte;
+  ta.style.position = 'fixed';
+  ta.style.opacity = '0';
+  document.body.appendChild(ta);
+  ta.focus();
+  ta.select();
+  try {
+    document.execCommand('copy');
+    showToast('\u2713 Mail copié dans le presse-papiers', 2500);
+  } catch(e) {
+    showToast('\u26a0 Impossible de copier automatiquement', 3000);
+  }
+  document.body.removeChild(ta);
 }
 
 function ouvrirOutlook() {
-  const email = document.getElementById('email-client').value.trim();
-  const sujet = 'Confirmation de votre rendez-vous Fermapro';
-  const corps = genererTexte(false);
+  try {
+    const email  = document.getElementById('email-client').value.trim();
+    const sujet  = 'Confirmation de votre rendez-vous Fermapro';
+    const corps  = genererTexte(false);
+    const sujetB64 = '=?UTF-8?B?' + toBase64UTF8(sujet) + '?=';
 
-  // Encodage Base64 du sujet (RFC 2047) pour les accents
-  const sujetB64 = '=?UTF-8?B?' + btoa(unescape(encodeURIComponent(sujet))) + '?=';
+    // Fichier .eml — fonctionne sur Mac (Safari/Chrome) ET PC (Chrome/Edge/Firefox)
+    // Outlook s'ouvre directement avec destinataire + sujet + corps pré-remplis
+    const emlContent = [
+      'To: ' + email,
+      'Subject: ' + sujetB64,
+      'MIME-Version: 1.0',
+      'Content-Type: text/plain; charset=UTF-8',
+      'Content-Transfer-Encoding: 8bit',
+      '',
+      corps
+    ].join('\r\n');
 
-  // Construction du fichier .eml
-  const emlContent = [
-    'To: ' + email,
-    'Subject: ' + sujetB64,
-    'MIME-Version: 1.0',
-    'Content-Type: text/plain; charset=UTF-8',
-    'Content-Transfer-Encoding: 8bit',
-    '',
-    corps
-  ].join('\r\n');
+    const blob = new Blob([emlContent], { type: 'message/rfc822' });
+    const url  = URL.createObjectURL(blob);
+    const a    = document.createElement('a');
+    a.href     = url;
+    a.download = 'confirmation-rdv-fermapro.eml';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    setTimeout(function() { URL.revokeObjectURL(url); }, 2000);
 
-  // Création d'un Blob .eml et déclenchement du téléchargement
-  const blob = new Blob([emlContent], { type: 'message/rfc822' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = 'confirmation-rdv-fermapro.eml';
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
-  setTimeout(() => URL.revokeObjectURL(url), 1000);
+    showToast('\u2713 Fichier .eml téléchargé — ouvrez-le pour lancer Outlook', 4000);
 
-  showToast('✓ Fichier .eml téléchargé — s\'ouvre dans Outlook', 3500);
+  } catch(err) {
+    showToast('\u26a0 Erreur lors de la génération du fichier', 3000);
+    console.error('ouvrirOutlook error:', err);
+  }
 }
 
 function showToast(msg, duration) {
   const t = document.getElementById('toast');
   t.textContent = msg;
   t.classList.add('show');
-  setTimeout(() => t.classList.remove('show'), duration);
+  clearTimeout(t._timer);
+  t._timer = setTimeout(function() { t.classList.remove('show'); }, duration);
 }
+
+// ─── Réinitialisation ───────────────────────────────────────────────────────
 
 function reinitialiser() {
-  document.getElementById('type-rdv').value = 'intervention';
-  document.getElementById('societe').value = 'fermapro';
+  // FIX : civilité remise à la valeur par défaut (était oublié)
+  document.getElementById('civilite').value     = 'Madame, Monsieur';
+  document.getElementById('type-rdv').value     = 'intervention';
+  document.getElementById('societe').value      = 'fermapro';
+  document.getElementById('nom').value          = '';
+  document.getElementById('date').value         = '';
   document.getElementById('email-client').value = '';
-  document.getElementById('nom').value = '';
-  document.getElementById('date').value = '';
-  document.getElementById('heure').value = '08:30';
-  document.getElementById('heure-debut').value = '08:00';
-  document.getElementById('heure-fin').value = '10:00';
-  document.getElementById('type-heure').value = 'fixe';
-  document.getElementById('adresse').value = '';
-  document.getElementById('note').value = '';
-  document.getElementById('cb-facture').checked = true;
-  document.getElementById('cb-facture-wrap').classList.add('checked');
-  document.getElementById('cb-presence').checked = true;
-  document.getElementById('cb-presence-wrap').classList.add('checked');
-  document.getElementById('cb-reglement').checked = true;
-  document.getElementById('cb-reglement-wrap').classList.add('checked');
-  updateTypeHeure();
+  document.getElementById('adresse').value      = '';
+  document.getElementById('note').value         = '';
+  document.getElementById('type-heure').value   = 'fixe';
+  document.getElementById('heure').value        = '08:30';
+  document.getElementById('heure-debut').value  = '08:00';
+  document.getElementById('heure-fin').value    = '10:00';
+
+  ['cb-facture', 'cb-presence', 'cb-reglement'].forEach(function(id) {
+    document.getElementById(id).checked = true;
+    document.getElementById(id + '-wrap').classList.add('checked');
+  });
+
+  updateTypeHeure(); // remet l'affichage des blocs + appelle update()
 }
 
-// Init
-document.getElementById('civilite').addEventListener('change', update);
+// ─── Init ───────────────────────────────────────────────────────────────────
 update();
 </script>
 </body>
