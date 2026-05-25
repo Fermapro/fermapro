@@ -543,40 +543,10 @@ function fallbackCopier(texte) {
 }
 
 function ouvrirOutlook() {
-  try {
-    const email  = document.getElementById('email-client').value.trim();
-    const sujet  = 'Confirmation de votre rendez-vous Fermapro';
-    const corps  = genererTexte(false);
-    const sujetB64 = '=?UTF-8?B?' + toBase64UTF8(sujet) + '?=';
-
-    // Fichier .eml — fonctionne sur Mac (Safari/Chrome) ET PC (Chrome/Edge/Firefox)
-    // Outlook s'ouvre directement avec destinataire + sujet + corps pré-remplis
-    const emlContent = [
-      'To: ' + email,
-      'Subject: ' + sujetB64,
-      'MIME-Version: 1.0',
-      'Content-Type: text/plain; charset=UTF-8',
-      'Content-Transfer-Encoding: 8bit',
-      '',
-      corps
-    ].join('\r\n');
-
-    const blob = new Blob([emlContent], { type: 'message/rfc822' });
-    const url  = URL.createObjectURL(blob);
-    const a    = document.createElement('a');
-    a.href     = url;
-    a.download = 'confirmation-rdv-fermapro.eml';
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    setTimeout(function() { URL.revokeObjectURL(url); }, 2000);
-
-    showToast('\u2713 Fichier .eml téléchargé — ouvrez-le pour lancer Outlook', 4000);
-
-  } catch(err) {
-    showToast('\u26a0 Erreur lors de la génération du fichier', 3000);
-    console.error('ouvrirOutlook error:', err);
-  }
+  const email = document.getElementById('email-client').value.trim();
+  const sujet = encodeURIComponent('Confirmation de votre rendez-vous Fermapro');
+  const corps = encodeURIComponent(genererTexte(false));
+  window.location.href = 'mailto:' + email + '?subject=' + sujet + '&body=' + corps;
 }
 
 function showToast(msg, duration) {
