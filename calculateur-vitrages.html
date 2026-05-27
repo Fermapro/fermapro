@@ -1,0 +1,835 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Calculateur Vitrages — Fermapro</title>
+  <style>
+    :root {
+      --rose: #F06691;
+      --rose-light: #fff0f5;
+      --bleu: #2D3D74;
+      --bleu-mid: #3d5199;
+      --bleu-light: #eef1fa;
+      --bg: #f2f4f8;
+      --white: #ffffff;
+      --border: #dde2ee;
+      --text: #1a1a2e;
+      --muted: #6b7280;
+      --warn: #f59e0b;
+      --warn-bg: #fffbeb;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      font-size: 14px;
+    }
+
+    /* ===== HEADER ===== */
+    .header {
+      background: var(--bleu);
+      color: white;
+      padding: 14px 20px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.25);
+    }
+    .header-logo {
+      background: var(--rose);
+      border-radius: 10px;
+      width: 40px; height: 40px;
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 900; font-size: 15px; letter-spacing: -0.5px;
+      flex-shrink: 0;
+    }
+    .header-info { flex: 1; }
+    .header-title { font-size: 17px; font-weight: 700; }
+    .header-sub { font-size: 12px; opacity: 0.65; margin-top: 1px; }
+    .header-ref {
+      text-align: right;
+      font-size: 11px;
+      opacity: 0.55;
+      line-height: 1.5;
+      flex-shrink: 0;
+    }
+
+    /* ===== MAIN ===== */
+    .main { max-width: 860px; margin: 0 auto; padding: 20px 16px 60px; }
+
+    /* ===== LINES ===== */
+    .lines-wrap { display: flex; flex-direction: column; gap: 14px; }
+
+    /* ===== EMPTY STATE ===== */
+    .empty {
+      background: white;
+      border: 2px dashed var(--border);
+      border-radius: 14px;
+      padding: 48px 20px;
+      text-align: center;
+      color: var(--muted);
+    }
+    .empty-icon { font-size: 38px; margin-bottom: 10px; }
+    .empty-text { font-size: 14px; }
+
+    /* ===== CARD ===== */
+    .card {
+      background: white;
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      overflow: hidden;
+      box-shadow: 0 1px 5px rgba(0,0,0,0.06);
+    }
+
+    .card-head {
+      background: var(--bleu);
+      padding: 10px 14px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      color: white;
+    }
+    .card-num {
+      background: var(--rose);
+      border-radius: 50%;
+      width: 24px; height: 24px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 12px; font-weight: 700;
+      flex-shrink: 0;
+    }
+    .card-label { flex: 1; font-size: 13px; font-weight: 500; opacity: 0.9; }
+    .btn-del {
+      background: rgba(255,255,255,0.12);
+      border: none; color: white;
+      border-radius: 7px; padding: 4px 9px;
+      cursor: pointer; font-size: 15px;
+      transition: background .15s;
+    }
+    .btn-del:hover { background: rgba(239,68,68,0.55); }
+
+    .card-body { padding: 14px 16px 16px; }
+
+    /* ===== FIELDS ===== */
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+    }
+    .f1 { grid-column: span 1; }
+    .f2 { grid-column: span 2; }
+    .f4 { grid-column: 1 / -1; }
+
+    .field { display: flex; flex-direction: column; gap: 5px; }
+
+    label.fl {
+      font-size: 10.5px;
+      font-weight: 700;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+    }
+
+    input[type=text], input[type=number], select {
+      border: 1.5px solid var(--border);
+      border-radius: 8px;
+      padding: 8px 10px;
+      font-size: 13.5px;
+      color: var(--text);
+      background: white;
+      width: 100%;
+      transition: border-color .15s;
+      -moz-appearance: textfield;
+    }
+    input::-webkit-outer-spin-button,
+    input::-webkit-inner-spin-button { -webkit-appearance: none; }
+    input:focus, select:focus { outline: none; border-color: var(--rose); }
+    input[readonly] { background: #f8f9fc; color: var(--muted); cursor: default; }
+    input.warn-applied { border-color: var(--warn) !important; background: var(--warn-bg); }
+
+    .hint {
+      font-size: 10.5px;
+      color: var(--muted);
+      margin-top: 2px;
+      min-height: 14px;
+    }
+    .hint.warn { color: var(--warn); font-weight: 600; }
+
+    /* ===== INTERCALAIRE TOGGLE ===== */
+    .toggle-wrap {
+      border: 1.5px solid var(--border);
+      border-radius: 8px;
+      padding: 8px 10px;
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      cursor: pointer;
+      user-select: none;
+      transition: border-color .15s, background .15s;
+    }
+    .toggle-wrap.on { border-color: var(--rose); background: var(--rose-light); }
+    .toggle-wrap input[type=checkbox] { display: none; }
+    .toggle-dot {
+      width: 16px; height: 16px;
+      border-radius: 50%;
+      border: 2px solid var(--border);
+      background: white;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 9px; color: white;
+      flex-shrink: 0;
+      transition: background .15s, border-color .15s;
+    }
+    .toggle-wrap.on .toggle-dot { background: var(--rose); border-color: var(--rose); }
+    .toggle-text { font-size: 12.5px; color: var(--text); }
+    .toggle-wrap.on .toggle-text { color: var(--rose); font-weight: 600; }
+
+    /* ===== LINE TOTAL ===== */
+    .line-footer {
+      margin-top: 12px;
+      padding-top: 10px;
+      border-top: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 8px;
+    }
+    .line-total-lbl { font-size: 12px; color: var(--muted); }
+    .line-total-val {
+      font-size: 20px; font-weight: 800;
+      color: var(--bleu);
+      min-width: 100px; text-align: right;
+    }
+    .line-min5 {
+      font-size: 10.5px; color: var(--warn);
+      font-weight: 600; margin-right: auto;
+    }
+
+    /* ===== ADD BUTTON ===== */
+    .btn-add {
+      width: 100%;
+      background: white;
+      border: 2px dashed var(--rose);
+      color: var(--rose);
+      border-radius: 14px;
+      padding: 15px;
+      font-size: 14px; font-weight: 700;
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+      transition: background .15s;
+      margin-top: 14px;
+    }
+    .btn-add:hover { background: var(--rose-light); }
+
+    /* ===== TOTALS ===== */
+    .totals-card {
+      background: var(--bleu);
+      color: white;
+      border-radius: 14px;
+      padding: 18px 20px;
+      margin-top: 20px;
+    }
+    .totals-title {
+      font-size: 10.5px; font-weight: 700;
+      text-transform: uppercase; letter-spacing: 0.7px;
+      opacity: 0.6; margin-bottom: 12px;
+    }
+    .totals-row {
+      display: flex; justify-content: space-between; align-items: center;
+      font-size: 14px; padding: 4px 0;
+    }
+    .totals-row .lbl { opacity: 0.8; }
+    .totals-row .val { font-weight: 700; }
+    .totals-main {
+      border-top: 1px solid rgba(255,255,255,0.25);
+      margin-top: 8px; padding-top: 10px;
+      font-size: 20px; font-weight: 900;
+    }
+    .totals-main .val { font-size: 26px; }
+
+    /* ===== COMMANDE TABLE ===== */
+    .cmd-card {
+      background: white;
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      margin-top: 16px;
+      overflow: hidden;
+    }
+    .cmd-head {
+      background: var(--bleu-light);
+      padding: 11px 16px;
+      display: flex; align-items: center; justify-content: space-between;
+      border-bottom: 1px solid var(--border);
+    }
+    .cmd-head-title {
+      font-size: 11px; font-weight: 800;
+      color: var(--bleu); text-transform: uppercase; letter-spacing: 0.6px;
+    }
+    .btn-copy {
+      background: var(--rose); color: white;
+      border: none; border-radius: 7px;
+      padding: 5px 14px; font-size: 12px; font-weight: 700;
+      cursor: pointer; transition: opacity .15s;
+    }
+    .btn-copy:hover { opacity: 0.85; }
+
+    table { width: 100%; border-collapse: collapse; }
+    thead th {
+      padding: 8px 12px;
+      font-size: 10.5px; font-weight: 700;
+      color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px;
+      text-align: left; background: #f8f9fc;
+      border-bottom: 1px solid var(--border);
+    }
+    thead th.r { text-align: right; }
+    tbody td {
+      padding: 10px 12px;
+      border-bottom: 1px solid #f0f2f8;
+      vertical-align: top;
+      font-size: 13px;
+    }
+    tbody tr:last-child td { border-bottom: none; }
+    .td-r { text-align: right; }
+    .td-c { text-align: center; }
+    .des-main { font-weight: 600; font-size: 12.5px; margin-bottom: 2px; }
+    .des-opt { font-size: 11px; color: var(--muted); margin-top: 2px; }
+    .total-bold { font-weight: 800; color: var(--bleu); }
+
+    /* ===== RESPONSIVE ===== */
+    @media (max-width: 640px) {
+      .grid { grid-template-columns: 1fr 1fr; }
+      .f1 { grid-column: span 1; }
+      .f2 { grid-column: span 2; }
+      .f4 { grid-column: 1 / -1; }
+      thead { display: none; }
+      tbody td { display: block; padding: 4px 12px; }
+      tbody td:first-child { padding-top: 10px; }
+      tbody td:last-child { padding-bottom: 10px; border-bottom: 1px solid var(--border); }
+      .td-r { text-align: left; }
+      .totals-main .val { font-size: 22px; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-logo">FP</div>
+  <div class="header-info">
+    <div class="header-title">Calculateur Vitrages</div>
+    <div class="header-sub">Miroiterie du Centre — Tarifs fournisseur HT</div>
+  </div>
+  <div class="header-ref">Devis MDC N° 26000746<br>13/05/2026</div>
+</div>
+
+<div class="main">
+  <div class="lines-wrap" id="linesWrap"></div>
+
+  <button class="btn-add" id="btnAdd" onclick="addLine()">
+    <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+    Ajouter un vitrage
+  </button>
+
+  <div id="totalsSection" style="display:none">
+    <div class="totals-card">
+      <div class="totals-title">Récapitulatif</div>
+      <div class="totals-row">
+        <span class="lbl">Vitrages HT</span>
+        <span class="val" id="tVit">0,00 €</span>
+      </div>
+      <div class="totals-row">
+        <span class="lbl">Petits bois HT</span>
+        <span class="val" id="tPB">0,00 €</span>
+      </div>
+      <div class="totals-row totals-main">
+        <span class="lbl">Total HT</span>
+        <span class="val" id="tHT">0,00 €</span>
+      </div>
+    </div>
+
+    <div class="cmd-card">
+      <div class="cmd-head">
+        <span class="cmd-head-title">📋 Récapitulatif commande MDC37</span>
+        <button class="btn-copy" id="btnCopy" onclick="copyCommande()">Copier</button>
+      </div>
+      <table>
+        <thead>
+          <tr>
+            <th>Désignation</th>
+            <th class="r">Qté</th>
+            <th class="r">H (mm)</th>
+            <th class="r">L (mm)</th>
+            <th class="r">Surf. unit. (m²)</th>
+            <th class="r">Surf. fact. (m²)</th>
+            <th class="r">P.U. HT</th>
+            <th class="r">Total HT</th>
+          </tr>
+        </thead>
+        <tbody id="cmdBody"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<script>
+// ════════════════════════════════════════════
+//  CATALOGUE MDC37 — Devis N° 26000746
+// ════════════════════════════════════════════
+const CAT = [
+  // — Double vitrage isolant standard —
+  { id:'dv_4fe_16ar_4_we_noir',       label:'Double vitrage 4 FE/16 argon /4, Warm edge noir',                        prix:55.00,  min_surf:0.50, isolant:true,  groupe:'Double vitrage isolant' },
+  { id:'dv_4fe_16ar_4_alu_nat',        label:'Double vitrage 4 FE/16 argon /4, Intercalaire alu naturel',              prix:55.00,  min_surf:0.50, isolant:true,  groupe:'Double vitrage isolant' },
+  { id:'dv_442_16ar_4fe_we_noir',      label:'Double vitrage 44/2/16 argon /4 FE, Warm edge noir',                    prix:76.50,  min_surf:0.50, isolant:true,  groupe:'Double vitrage isolant' },
+  { id:'dv_442_16ar_4fe_alu_nat',      label:'Double vitrage 44/2/16 argon /4 FE, Intercalaire alu naturel',          prix:82.88,  min_surf:0.50, isolant:true,  groupe:'Double vitrage isolant' },
+  { id:'dv_442_16ar_442fe_we_noir',    label:'Double vitrage 44/2/16 argon /44.2 FE, Warm edge noir',                 prix:115.08, min_surf:0.50, isolant:true,  groupe:'Double vitrage isolant' },
+  { id:'dv_442_16ar_442fe_alu_nat',    label:'Double vitrage 44/2/16 argon /44.2 FE, Intercalaire alu naturel',       prix:115.08, min_surf:0.50, isolant:true,  groupe:'Double vitrage isolant' },
+  { id:'dv_10_16ar_442fe_we_noir',     label:'Double vitrage 10/16 argon /44.2 FE, Warm edge noir',                   prix:106.25, min_surf:0.50, isolant:true,  groupe:'Double vitrage isolant' },
+  // — Double vitrage silence —
+  { id:'dv_10fe_16ar_442sil_alu_noir', label:'Double vitrage 10 FE/16 argon /44.2 SILENCE, Intercalaire alu noir',    prix:210.00, min_surf:0.50, isolant:true,  groupe:'Double vitrage silence' },
+  // — Verre simple et décoratif —
+  { id:'imprime_200_4mm',              label:'VERRE IMPRIME 200 4mm',                                                  prix:25.00,  min_surf:0.15, isolant:false, groupe:'Verre simple / décoratif' },
+  { id:'glace_claire_4mm',             label:'GLACE CLAIRE 4mm',                                                       prix:20.40,  min_surf:0.15, isolant:false, groupe:'Verre simple / décoratif' },
+  { id:'depolie_acide_4mm',            label:'DEPOLIE ACIDE 4mm',                                                      prix:68.00,  min_surf:0.25, isolant:false, groupe:'Verre simple / décoratif' },
+  // — Verre feuilleté —
+  { id:'feuillete_clair_33_2',         label:'FEUILLETE CLAIR 33/2 (ép = 6.8mm)',                                      prix:52.70,  min_surf:0.35, isolant:false, groupe:'Verre feuilleté' },
+  { id:'feuillete_clair_44_2',         label:'FEUILLETE CLAIR 44/2 (ép = 8.8mm)',                                      prix:64.90,  min_surf:0.25, isolant:false, groupe:'Verre feuilleté' },
+  // — Verre trempé —
+  { id:'glace_trempee_4mm_jp',         label:'GLACE CLAIRE TREMPEE 4mm JP',                                            prix:75.00,  min_surf:0.50, isolant:false, groupe:'Verre trempé' },
+];
+
+// Regroupement pour les optgroup
+const GROUPES = {};
+CAT.forEach(p => { if (!GROUPES[p.groupe]) GROUPES[p.groupe] = []; GROUPES[p.groupe].push(p); });
+
+function buildOptions() {
+  let h = '<option value="">— Choisir une référence —</option>';
+  for (const [g, items] of Object.entries(GROUPES)) {
+    h += `<optgroup label="${g}">`;
+    items.forEach(p => { h += `<option value="${p.id}">${p.label}</option>`; });
+    h += '</optgroup>';
+  }
+  return h;
+}
+
+// Constantes
+const PB_TRAVERSE_PRIX  = 25.00;
+const PB_CROISIL_PRIX   = 34.15;
+const PB_ML_MIN         = 0.500;
+const MIN_FACTURATION   = 5.00;
+const INTERCALAIRE_PV   = 2.00;
+
+// ════════════════════════════════════════════
+//  STATE
+// ════════════════════════════════════════════
+let lines = [];
+let counter = 0;
+
+function getItem(id) { return CAT.find(p => p.id === id); }
+
+// ════════════════════════════════════════════
+//  LIGNE — AJOUT / SUPPRESSION
+// ════════════════════════════════════════════
+function addLine() {
+  counter++;
+  const lid = 'L' + Date.now();
+  lines.push({ lid, num: counter });
+  renderAll();
+  setTimeout(() => {
+    const el = document.getElementById(lid);
+    if (el) el.scrollIntoView({ behavior:'smooth', block:'center' });
+    const sel = document.getElementById('ref_' + lid);
+    if (sel) sel.focus();
+  }, 60);
+}
+
+function delLine(lid) {
+  lines = lines.filter(l => l.lid !== lid);
+  lines.forEach((l, i) => l.num = i + 1);
+  counter = lines.length;
+  renderAll();
+  calcTotals();
+}
+
+// ════════════════════════════════════════════
+//  RENDU
+// ════════════════════════════════════════════
+function renderAll() {
+  const wrap = document.getElementById('linesWrap');
+  wrap.innerHTML = '';
+
+  if (lines.length === 0) {
+    wrap.innerHTML = `<div class="empty">
+      <div class="empty-icon">🔲</div>
+      <div class="empty-text">Aucun vitrage — cliquez sur le bouton ci-dessous pour commencer</div>
+    </div>`;
+    calcTotals();
+    return;
+  }
+
+  lines.forEach(line => {
+    const lid = line.lid;
+    const card = document.createElement('div');
+    card.className = 'card';
+    card.id = lid;
+    card.innerHTML = `
+      <div class="card-head">
+        <div class="card-num">${line.num}</div>
+        <div class="card-label" id="lbl_${lid}">Sélectionner une référence</div>
+        <button class="btn-del" onclick="delLine('${lid}')" title="Supprimer cette ligne">✕</button>
+      </div>
+      <div class="card-body">
+        <div class="grid">
+
+          <div class="field f4">
+            <label class="fl">Désignation MDC37</label>
+            <select id="ref_${lid}" onchange="onRefChange('${lid}')">
+              ${buildOptions()}
+            </select>
+          </div>
+
+          <div class="field f1">
+            <label class="fl">Qté</label>
+            <input type="number" id="qty_${lid}" value="1" min="1" step="1" oninput="calc('${lid}')">
+          </div>
+
+          <div class="field f1">
+            <label class="fl">Hauteur (mm)</label>
+            <input type="number" id="h_${lid}" placeholder="ex : 1200" min="1" oninput="calc('${lid}')">
+          </div>
+
+          <div class="field f1">
+            <label class="fl">Largeur (mm)</label>
+            <input type="number" id="w_${lid}" placeholder="ex : 800" min="1" oninput="onWChange('${lid}')">
+          </div>
+
+          <div class="field f1">
+            <label class="fl">Surface (m²)</label>
+            <input type="text" id="surf_${lid}" readonly placeholder="—">
+            <div class="hint" id="surfHint_${lid}"></div>
+          </div>
+
+          <div class="field f2" id="fIntercalaire_${lid}" style="display:none">
+            <label class="fl">Option intercalaire</label>
+            <div class="toggle-wrap" id="tog_${lid}" onclick="toggleIntercalaire('${lid}')">
+              <input type="checkbox" id="intercalaire_${lid}">
+              <div class="toggle-dot" id="togDot_${lid}">✓</div>
+              <span class="toggle-text">+ ${INTERCALAIRE_PV} €/m² — intercalaire 18 ou 20 mm</span>
+            </div>
+          </div>
+
+          <div class="field f2">
+            <label class="fl">Petits bois</label>
+            <select id="pb_${lid}" onchange="onPBChange('${lid}')">
+              <option value="none">Aucun</option>
+              <option value="traverse">Traverse seule 26×8 blanc 9016 — 25 €/ml</option>
+              <option value="croisillons">Croisillons 26×8 blanc 9016 — 34,15 €/ml</option>
+            </select>
+          </div>
+
+          <div class="field f1" id="fPBNb_${lid}" style="display:none">
+            <label class="fl">Nb traverses</label>
+            <input type="number" id="pbNb_${lid}" value="1" min="1" step="1" oninput="calcPBTraverse('${lid}')">
+          </div>
+
+          <div class="field f1" id="fPBMl_${lid}" style="display:none">
+            <label class="fl">Longueur PB (ml)</label>
+            <input type="number" id="pbMl_${lid}" placeholder="ex : 0.80" min="0" step="0.01" oninput="calc('${lid}')">
+            <div class="hint" id="pbHint_${lid}"></div>
+          </div>
+
+        </div>
+
+        <div class="line-footer">
+          <span class="line-min5" id="min5_${lid}"></span>
+          <span class="line-total-lbl">Total ligne HT</span>
+          <span class="line-total-val" id="ltot_${lid}">—</span>
+        </div>
+      </div>
+    `;
+    wrap.appendChild(card);
+  });
+}
+
+// ════════════════════════════════════════════
+//  EVENTS
+// ════════════════════════════════════════════
+function onRefChange(lid) {
+  const val = document.getElementById('ref_' + lid).value;
+  const item = getItem(val);
+  document.getElementById('lbl_' + lid).textContent = item ? item.label : 'Sélectionner une référence';
+
+  const fI = document.getElementById('fIntercalaire_' + lid);
+  if (item && item.isolant) {
+    fI.style.display = '';
+  } else {
+    fI.style.display = 'none';
+    const cb = document.getElementById('intercalaire_' + lid);
+    cb.checked = false;
+    document.getElementById('tog_' + lid).classList.remove('on');
+  }
+  calc(lid);
+}
+
+function toggleIntercalaire(lid) {
+  const cb = document.getElementById('intercalaire_' + lid);
+  cb.checked = !cb.checked;
+  document.getElementById('tog_' + lid).classList.toggle('on', cb.checked);
+  calc(lid);
+}
+
+function onPBChange(lid) {
+  const v = document.getElementById('pb_' + lid).value;
+  document.getElementById('fPBNb_' + lid).style.display = (v === 'traverse') ? '' : 'none';
+  document.getElementById('fPBMl_' + lid).style.display = (v !== 'none')      ? '' : 'none';
+
+  if (v === 'traverse') calcPBTraverse(lid);
+  else calc(lid);
+}
+
+function onWChange(lid) {
+  // Si traverse active, recalcule les ml automatiquement
+  if (document.getElementById('pb_' + lid).value === 'traverse') {
+    calcPBTraverse(lid);
+  } else {
+    calc(lid);
+  }
+}
+
+function calcPBTraverse(lid) {
+  const w  = parseFloat(document.getElementById('w_' + lid).value) || 0;
+  const nb = parseInt(document.getElementById('pbNb_' + lid).value) || 1;
+  if (w > 0) {
+    const ml = Math.round(nb * w / 1000 * 1000) / 1000;
+    document.getElementById('pbMl_' + lid).value = ml.toFixed(3);
+  }
+  calc(lid);
+}
+
+// ════════════════════════════════════════════
+//  CALCUL LIGNE
+// ════════════════════════════════════════════
+function calc(lid) {
+  const card   = document.getElementById(lid);
+  const refVal = document.getElementById('ref_' + lid).value;
+  const item   = getItem(refVal);
+  const qty    = Math.max(1, parseInt(document.getElementById('qty_' + lid).value) || 1);
+  const h      = parseFloat(document.getElementById('h_' + lid).value) || 0;
+  const w      = parseFloat(document.getElementById('w_' + lid).value) || 0;
+  const hasI   = document.getElementById('intercalaire_' + lid).checked;
+  const pbType = document.getElementById('pb_' + lid).value;
+  const pbMl   = parseFloat(document.getElementById('pbMl_' + lid).value) || 0;
+
+  const surfEl     = document.getElementById('surf_' + lid);
+  const surfHintEl = document.getElementById('surfHint_' + lid);
+  const ltotEl     = document.getElementById('ltot_' + lid);
+  const min5El     = document.getElementById('min5_' + lid);
+
+  if (!item || h <= 0 || w <= 0) {
+    surfEl.value = '';
+    surfEl.classList.remove('warn-applied');
+    surfHintEl.textContent = '';
+    surfHintEl.className = 'hint';
+    ltotEl.textContent = '—';
+    min5El.textContent = '';
+    store(card, {});
+    calcTotals();
+    return;
+  }
+
+  // Surface réelle
+  const surfReelle = Math.round(h * w / 1e6 * 10000) / 10000;
+
+  // Surface facturée (minimum par vitrage)
+  const surfFactUnit = Math.max(surfReelle, item.min_surf);
+  const surfFactTotal = surfFactUnit * qty;
+
+  // Affichage
+  surfEl.value = f4(surfReelle) + ' m²';
+  if (surfReelle < item.min_surf) {
+    surfEl.classList.add('warn-applied');
+    surfHintEl.textContent = `Mini ${f2(item.min_surf)} m²/vitrage appliqué`;
+    surfHintEl.className = 'hint warn';
+  } else {
+    surfEl.classList.remove('warn-applied');
+    surfHintEl.textContent = `Surf. facturée : ${f2(surfFactUnit)} m²/vitrage`;
+    surfHintEl.className = 'hint';
+  }
+
+  // Prix unitaire vitrage
+  let pu = item.prix + (hasI && item.isolant ? INTERCALAIRE_PV : 0);
+
+  // Total vitrages HT (avant minimum 5€)
+  let totalVit = qty * surfFactUnit * pu;
+
+  // Minimum 5€ par volume
+  let min5Applied = false;
+  if (totalVit < MIN_FACTURATION && totalVit > 0) {
+    totalVit = MIN_FACTURATION;
+    min5Applied = true;
+  }
+
+  // Petits bois
+  let totalPB = 0;
+  const pbHintEl = document.getElementById('pbHint_' + lid);
+  if (pbType !== 'none' && pbMl > 0) {
+    const pbPrix    = pbType === 'traverse' ? PB_TRAVERSE_PRIX : PB_CROISIL_PRIX;
+    const pbMlFact  = Math.max(pbMl, PB_ML_MIN);  // mini 0.5ml/vitrage
+    totalPB         = qty * pbMlFact * pbPrix;
+
+    if (pbMl < PB_ML_MIN) {
+      pbHintEl.textContent = `Mini ${PB_ML_MIN} ml/vitrage → ${f3(pbMlFact * qty)} ml facturés`;
+      pbHintEl.className = 'hint warn';
+    } else {
+      pbHintEl.textContent = `${f3(pbMlFact)} ml × ${qty} = ${f3(pbMlFact * qty)} ml facturés`;
+      pbHintEl.className = 'hint';
+    }
+  } else {
+    if (pbHintEl) { pbHintEl.textContent = ''; pbHintEl.className = 'hint'; }
+  }
+
+  const totalLigne = totalVit + totalPB;
+  ltotEl.textContent = eur(totalLigne);
+  min5El.textContent = min5Applied ? '⚠ Minimum 5 € appliqué' : '';
+
+  // Stocker les données pour les totaux
+  store(card, {
+    totalVit, totalPB,
+    refVal, qty, h, w,
+    surfReelle, surfFactUnit, surfFactTotal,
+    pu, hasI,
+    pbType, pbMl,
+    min5Applied
+  });
+
+  calcTotals();
+}
+
+function store(el, d) {
+  el.dataset.d = JSON.stringify(d);
+}
+function load(lid) {
+  const el = document.getElementById(lid);
+  if (!el || !el.dataset.d) return {};
+  try { return JSON.parse(el.dataset.d); } catch { return {}; }
+}
+
+// ════════════════════════════════════════════
+//  TOTAUX + TABLEAU COMMANDE
+// ════════════════════════════════════════════
+function calcTotals() {
+  const section = document.getElementById('totalsSection');
+
+  if (lines.length === 0) { section.style.display = 'none'; return; }
+  section.style.display = '';
+
+  let tVit = 0, tPB = 0;
+  lines.forEach(l => {
+    const d = load(l.lid);
+    tVit += d.totalVit || 0;
+    tPB  += d.totalPB  || 0;
+  });
+
+  document.getElementById('tVit').textContent = eur(tVit);
+  document.getElementById('tPB').textContent  = eur(tPB);
+  document.getElementById('tHT').textContent  = eur(tVit + tPB);
+
+  buildCmdTable();
+}
+
+function buildCmdTable() {
+  const tbody = document.getElementById('cmdBody');
+  tbody.innerHTML = '';
+
+  lines.forEach((line, i) => {
+    const d = load(line.lid);
+    if (!d.refVal) return;
+    const item = getItem(d.refVal);
+    if (!item) return;
+
+    // Options texte
+    const opts = [];
+    if (d.hasI) opts.push(`Intercalaire 18/20 mm (+${INTERCALAIRE_PV} €/m²)`);
+    if (d.pbType === 'traverse')    opts.push(`Traverse 26×8 blanc 9016 — ${f3(Math.max(d.pbMl,PB_ML_MIN)*d.qty)} ml`);
+    if (d.pbType === 'croisillons') opts.push(`Croisillons 26×8 blanc 9016 — ${f3(Math.max(d.pbMl,PB_ML_MIN)*d.qty)} ml`);
+    if (d.min5Applied) opts.push('Minimum 5 € appliqué');
+
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>
+        <div class="des-main">${item.label}</div>
+        ${opts.map(o => `<div class="des-opt">• ${o}</div>`).join('')}
+      </td>
+      <td class="td-c">${d.qty}</td>
+      <td class="td-r">${d.h}</td>
+      <td class="td-r">${d.w}</td>
+      <td class="td-r">${f4(d.surfReelle)}</td>
+      <td class="td-r">${f2(d.surfFactUnit)}</td>
+      <td class="td-r">${f2(d.pu)} €</td>
+      <td class="td-r total-bold">${eur(d.totalVit + d.totalPB)}</td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+// ════════════════════════════════════════════
+//  COPIER COMMANDE
+// ════════════════════════════════════════════
+function copyCommande() {
+  let txt = 'COMMANDE MDC37 — Fermapro / Reparpro\n';
+  txt += 'Réf. devis fournisseur : N° 26000746 du 13/05/2026\n';
+  txt += '═'.repeat(50) + '\n\n';
+
+  let tVit = 0, tPB = 0;
+
+  lines.forEach((line, i) => {
+    const d = load(line.lid);
+    if (!d.refVal) return;
+    const item = getItem(d.refVal);
+    if (!item) return;
+
+    txt += `Ligne ${i+1} — ${item.label}\n`;
+    txt += `  Qté     : ${d.qty}\n`;
+    txt += `  Haut.   : ${d.h} mm\n`;
+    txt += `  Larg.   : ${d.w} mm\n`;
+    txt += `  Surf.   : ${f4(d.surfReelle)} m² réelle / ${f2(d.surfFactUnit)} m² facturée\n`;
+    if (d.hasI)  txt += `  Option  : Intercalaire 18/20 mm (+${INTERCALAIRE_PV} €/m²)\n`;
+    if (d.pbType === 'traverse')    txt += `  PB      : Traverse 26x8 blanc 9016 — ${f3(Math.max(d.pbMl,PB_ML_MIN)*d.qty)} ml\n`;
+    if (d.pbType === 'croisillons') txt += `  PB      : Croisillons 26x8 blanc 9016 — ${f3(Math.max(d.pbMl,PB_ML_MIN)*d.qty)} ml\n`;
+    txt += `  Total   : ${eur(d.totalVit + d.totalPB)}${d.min5Applied?' (mini 5 € appliqué)':''}\n\n`;
+
+    tVit += d.totalVit || 0;
+    tPB  += d.totalPB  || 0;
+  });
+
+  txt += '═'.repeat(50) + '\n';
+  txt += `Vitrages HT  : ${eur(tVit)}\n`;
+  txt += `Petits bois  : ${eur(tPB)}\n`;
+  txt += `TOTAL HT     : ${eur(tVit + tPB)}\n`;
+
+  navigator.clipboard.writeText(txt).then(() => {
+    const btn = document.getElementById('btnCopy');
+    btn.textContent = '✓ Copié !';
+    setTimeout(() => btn.textContent = 'Copier', 2200);
+  }).catch(() => alert('Impossible de copier — utilisez Ctrl+A / Cmd+A sur le tableau.'));
+}
+
+// ════════════════════════════════════════════
+//  FORMATAGE
+// ════════════════════════════════════════════
+function eur(v) { return v.toLocaleString('fr-FR',{minimumFractionDigits:2,maximumFractionDigits:2}) + ' €'; }
+function f2(v)  { return v.toFixed(2).replace('.',','); }
+function f3(v)  { return v.toFixed(3).replace('.',','); }
+function f4(v)  { return v.toFixed(4).replace('.',','); }
+
+// ════════════════════════════════════════════
+//  INIT — une ligne vide au démarrage
+// ════════════════════════════════════════════
+addLine();
+</script>
+</body>
+</html>
