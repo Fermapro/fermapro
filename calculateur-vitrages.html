@@ -544,6 +544,8 @@ function renderAll() {
     return;
   }
 
+  calcTotals();   // affiche la section totaux/PDF dès qu'une ligne existe
+
   lines.forEach(line => {
     const lid = line.lid;
     const card = document.createElement('div');
@@ -567,7 +569,7 @@ function renderAll() {
 
           <div class="field f1">
             <label class="fl">Qté</label>
-            <input type="number" id="qty_${lid}" value="1" min="1" step="1" oninput="calc('${lid}')">
+            <input type="number" id="qty_${lid}" value="1" min="1" step="1" oninput="calc('${lid}')" onchange="calc('${lid}')">
           </div>
 
           <div class="field f1">
@@ -777,30 +779,34 @@ function calc(lid) {
   const surfFactUnit = Math.max(surfReelle, item.min_surf);
   const surfFactTotal = surfFactUnit * qty;
 
-  // Affichage
+  // Affichage surface
   surfEl.value = f4(surfReelle) + ' m²';
+  const surfTotale = surfFactUnit * qty;
   if (surfReelle < item.min_surf) {
     surfEl.classList.add('warn-applied');
-    surfHintEl.textContent = `Mini ${f2(item.min_surf)} m²/vitrage appliqué`;
+    surfHintEl.textContent = qty > 1
+      ? `Mini ${f2(item.min_surf)} m²/vit. × ${qty} = ${f2(surfTotale)} m² facturés`
+      : `Mini ${f2(item.min_surf)} m²/vitrage appliqué`;
     surfHintEl.className = 'hint warn';
   } else {
     surfEl.classList.remove('warn-applied');
-    surfHintEl.textContent = `Surf. facturée : ${f2(surfFactUnit)} m²/vitrage`;
+    surfHintEl.textContent = qty > 1
+      ? `${f2(surfFactUnit)} m²/vit. × ${qty} = ${f2(surfTotale)} m² facturés`
+      : `Surf. facturée : ${f2(surfFactUnit)} m²`;
     surfHintEl.className = 'hint';
   }
 
   // Prix unitaire vitrage
   let pu = item.prix + (hasI && item.isolant ? INTERCALAIRE_PV : 0);
 
-  // Total vitrages HT (avant minimum 5€)
-  let totalVit = qty * surfFactUnit * pu;
-
-  // Minimum 5€ par volume
+  // Total par unité — minimum 5 € par volume (par vitrage)
+  let totalVitUnit = surfFactUnit * pu;
   let min5Applied = false;
-  if (totalVit < MIN_FACTURATION && totalVit > 0) {
-    totalVit = MIN_FACTURATION;
+  if (totalVitUnit < MIN_FACTURATION && totalVitUnit > 0) {
+    totalVitUnit = MIN_FACTURATION;
     min5Applied = true;
   }
+  let totalVit = qty * totalVitUnit;
 
   // Petits bois — ml déjà calculé depuis les carreaux ci-dessus
   let totalPB = 0;
@@ -812,7 +818,9 @@ function calc(lid) {
 
   const totalLigne = totalVit + totalPB;
   ltotEl.textContent = eur(totalLigne);
-  min5El.textContent = min5Applied ? '⚠ Minimum 5 € appliqué' : '';
+  min5El.textContent = min5Applied
+    ? `⚠ Minimum 5 €/vitrage appliqué${qty > 1 ? ' × ' + qty : ''}`
+    : '';
 
   // Stocker les données pour les totaux
   store(card, {
