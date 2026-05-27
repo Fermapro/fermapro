@@ -4,6 +4,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Calculateur Vitrages — Fermapro</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
   <style>
     :root {
       --rose: #F06691;
@@ -301,6 +303,48 @@
     .des-opt { font-size: 11px; color: var(--muted); margin-top: 2px; }
     .total-bold { font-weight: 800; color: var(--bleu); }
 
+    /* ===== BON DE COMMANDE SECTION ===== */
+    .bdc-card {
+      background: white;
+      border: 2px solid var(--rose);
+      border-radius: 14px;
+      margin-top: 20px;
+      overflow: hidden;
+    }
+    .bdc-head {
+      background: var(--rose);
+      padding: 12px 18px;
+      color: white;
+      display: flex; align-items: center; gap: 10px;
+    }
+    .bdc-head-title { font-size: 14px; font-weight: 800; }
+    .bdc-head-sub { font-size: 12px; opacity: 0.8; margin-top: 1px; }
+    .bdc-body { padding: 16px 18px; }
+    .bdc-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+    .btn-pdf {
+      width: 100%;
+      background: var(--rose);
+      color: white;
+      border: none;
+      border-radius: 10px;
+      padding: 14px;
+      font-size: 15px; font-weight: 800;
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center; gap: 10px;
+      transition: opacity .15s;
+    }
+    .btn-pdf:hover { opacity: 0.88; }
+    .btn-pdf:disabled { opacity: 0.5; cursor: default; }
+    .bdc-note {
+      font-size: 11px; color: var(--muted);
+      text-align: center; margin-top: 10px;
+    }
+
     /* ===== RESPONSIVE ===== */
     @media (max-width: 640px) {
       .grid { grid-template-columns: 1fr 1fr; }
@@ -373,7 +417,36 @@
         <tbody id="cmdBody"></tbody>
       </table>
     </div>
-  </div>
+
+    <!-- ===== BON DE COMMANDE PDF ===== -->
+    <div class="bdc-card">
+      <div class="bdc-head">
+        <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="white" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+        <div>
+          <div class="bdc-head-title">Générer le bon de commande PDF</div>
+          <div class="bdc-head-sub">À envoyer à la Miroiterie du Centre</div>
+        </div>
+      </div>
+      <div class="bdc-body">
+        <div class="bdc-grid">
+          <div class="field">
+            <label class="fl">Référence projet / chantier</label>
+            <input type="text" id="bdcRef" placeholder="ex : Dupont — 12 rue des Lilas, Tours">
+          </div>
+          <div class="field">
+            <label class="fl">Délai de livraison souhaité</label>
+            <input type="text" id="bdcDelai" placeholder="ex : Semaine 24 — avant le 12/06/2026">
+          </div>
+        </div>
+        <button class="btn-pdf" id="btnPdf" onclick="generatePDF()">
+          <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+          Télécharger le bon de commande PDF
+        </button>
+        <div class="bdc-note">Le fichier PDF s'ouvre dans votre navigateur — vous pouvez le revoir puis l'envoyer par e-mail à contact@mdc37.fr</div>
+      </div>
+    </div>
+
+  </div><!-- fin totalsSection -->
 </div>
 
 <script>
@@ -499,7 +572,7 @@ function renderAll() {
 
           <div class="field f1">
             <label class="fl">Hauteur (mm)</label>
-            <input type="number" id="h_${lid}" placeholder="ex : 1200" min="1" oninput="calc('${lid}')">
+            <input type="number" id="h_${lid}" placeholder="ex : 1200" min="1" oninput="onHChange('${lid}')">
           </div>
 
           <div class="field f1">
@@ -531,14 +604,28 @@ function renderAll() {
             </select>
           </div>
 
-          <div class="field f1" id="fPBNb_${lid}" style="display:none">
-            <label class="fl">Nb traverses</label>
-            <input type="number" id="pbNb_${lid}" value="1" min="1" step="1" oninput="calcPBTraverse('${lid}')">
+          <!-- Traverse : nb carreaux -->
+          <div class="field f1" id="fPBCarreaux_${lid}" style="display:none">
+            <label class="fl">Nb carreaux</label>
+            <input type="number" id="pbCarreaux_${lid}" value="2" min="2" step="1" oninput="calcPB('${lid}')">
           </div>
 
-          <div class="field f1" id="fPBMl_${lid}" style="display:none">
-            <label class="fl">Longueur PB (ml)</label>
-            <input type="number" id="pbMl_${lid}" placeholder="ex : 0.80" min="0" step="0.01" oninput="calc('${lid}')">
+          <!-- Croisillons : colonnes -->
+          <div class="field f1" id="fPBCols_${lid}" style="display:none">
+            <label class="fl">Colonnes (nb)</label>
+            <input type="number" id="pbCols_${lid}" value="2" min="1" step="1" oninput="calcPB('${lid}')">
+          </div>
+
+          <!-- Croisillons : rangées -->
+          <div class="field f1" id="fPBRows_${lid}" style="display:none">
+            <label class="fl">Rangées (nb)</label>
+            <input type="number" id="pbRows_${lid}" value="2" min="1" step="1" oninput="calcPB('${lid}')">
+          </div>
+
+          <!-- ml calculé (commun traverse + croisillons) -->
+          <div class="field f1" id="fPBMlCalc_${lid}" style="display:none">
+            <label class="fl">Longueur facturée (ml)</label>
+            <input type="text" id="pbMlCalc_${lid}" readonly>
             <div class="hint" id="pbHint_${lid}"></div>
           </div>
 
@@ -584,29 +671,61 @@ function toggleIntercalaire(lid) {
 
 function onPBChange(lid) {
   const v = document.getElementById('pb_' + lid).value;
-  document.getElementById('fPBNb_' + lid).style.display = (v === 'traverse') ? '' : 'none';
-  document.getElementById('fPBMl_' + lid).style.display = (v !== 'none')      ? '' : 'none';
-
-  if (v === 'traverse') calcPBTraverse(lid);
-  else calc(lid);
+  document.getElementById('fPBCarreaux_' + lid).style.display = (v === 'traverse')    ? '' : 'none';
+  document.getElementById('fPBCols_' + lid).style.display     = (v === 'croisillons') ? '' : 'none';
+  document.getElementById('fPBRows_' + lid).style.display     = (v === 'croisillons') ? '' : 'none';
+  document.getElementById('fPBMlCalc_' + lid).style.display   = (v !== 'none')        ? '' : 'none';
+  calcPB(lid);
 }
 
-function onWChange(lid) {
-  // Si traverse active, recalcule les ml automatiquement
-  if (document.getElementById('pb_' + lid).value === 'traverse') {
-    calcPBTraverse(lid);
-  } else {
-    calc(lid);
-  }
-}
+function onWChange(lid) { calcPB(lid); }
+function onHChange(lid) { calcPB(lid); }
 
-function calcPBTraverse(lid) {
-  const w  = parseFloat(document.getElementById('w_' + lid).value) || 0;
-  const nb = parseInt(document.getElementById('pbNb_' + lid).value) || 1;
-  if (w > 0) {
-    const ml = Math.round(nb * w / 1000 * 1000) / 1000;
-    document.getElementById('pbMl_' + lid).value = ml.toFixed(3);
+// Calcule le ml à partir des carreaux et met à jour l'affichage
+function calcPB(lid) {
+  const h      = parseFloat(document.getElementById('h_' + lid).value) || 0;
+  const w      = parseFloat(document.getElementById('w_' + lid).value) || 0;
+  const pbType = document.getElementById('pb_' + lid).value;
+  const hintEl = document.getElementById('pbHint_' + lid);
+  const mlEl   = document.getElementById('pbMlCalc_' + lid);
+
+  let mlBrut = 0;
+  let detail = '';
+
+  if (pbType === 'traverse' && h > 0 && w > 0) {
+    const carreaux   = Math.max(2, parseInt(document.getElementById('pbCarreaux_' + lid).value) || 2);
+    const nbBarre    = carreaux - 1;
+    mlBrut           = nbBarre * (w / 1000);
+    detail = `${nbBarre} traverse${nbBarre > 1 ? 's' : ''} × ${f3(w/1000)} m = ${f3(mlBrut)} ml brut`;
+
+  } else if (pbType === 'croisillons' && h > 0 && w > 0) {
+    const cols       = Math.max(1, parseInt(document.getElementById('pbCols_' + lid).value) || 2);
+    const rows       = Math.max(1, parseInt(document.getElementById('pbRows_' + lid).value) || 2);
+    const nbVert     = cols - 1;  // barres verticales (hauteur)
+    const nbHoriz    = rows - 1;  // barres horizontales (largeur)
+    const mlVert     = nbVert  * (h / 1000);
+    const mlHoriz    = nbHoriz * (w / 1000);
+    mlBrut           = mlVert + mlHoriz;
+    const detailV    = nbVert  > 0 ? `${nbVert} vert. × ${f3(h/1000)} m` : '';
+    const detailH    = nbHoriz > 0 ? `${nbHoriz} horiz. × ${f3(w/1000)} m` : '';
+    const parts      = [detailV, detailH].filter(Boolean).join(' + ');
+    detail = `${cols}×${rows} carreaux — ${parts} = ${f3(mlBrut)} ml brut`;
   }
+
+  if (mlEl) {
+    const mlFact = Math.max(mlBrut, mlBrut > 0 ? PB_ML_MIN : 0);
+    mlEl.value = mlBrut > 0 ? f3(mlFact) + ' ml' : '—';
+    if (hintEl) {
+      if (mlBrut > 0 && mlBrut < PB_ML_MIN) {
+        hintEl.textContent = detail + ` → mini ${PB_ML_MIN} ml appliqué`;
+        hintEl.className = 'hint warn';
+      } else {
+        hintEl.textContent = detail;
+        hintEl.className = 'hint';
+      }
+    }
+  }
+
   calc(lid);
 }
 
@@ -622,7 +741,17 @@ function calc(lid) {
   const w      = parseFloat(document.getElementById('w_' + lid).value) || 0;
   const hasI   = document.getElementById('intercalaire_' + lid).checked;
   const pbType = document.getElementById('pb_' + lid).value;
-  const pbMl   = parseFloat(document.getElementById('pbMl_' + lid).value) || 0;
+
+  // Recalcule le ml depuis les carreaux (fonction commune)
+  let pbMl = 0;
+  if (pbType === 'traverse' && h > 0 && w > 0) {
+    const carreaux = Math.max(2, parseInt(document.getElementById('pbCarreaux_' + lid).value) || 2);
+    pbMl = (carreaux - 1) * (w / 1000);
+  } else if (pbType === 'croisillons' && h > 0 && w > 0) {
+    const cols = Math.max(1, parseInt(document.getElementById('pbCols_' + lid).value) || 2);
+    const rows = Math.max(1, parseInt(document.getElementById('pbRows_' + lid).value) || 2);
+    pbMl = (cols - 1) * (h / 1000) + (rows - 1) * (w / 1000);
+  }
 
   const surfEl     = document.getElementById('surf_' + lid);
   const surfHintEl = document.getElementById('surfHint_' + lid);
@@ -673,23 +802,12 @@ function calc(lid) {
     min5Applied = true;
   }
 
-  // Petits bois
+  // Petits bois — ml déjà calculé depuis les carreaux ci-dessus
   let totalPB = 0;
-  const pbHintEl = document.getElementById('pbHint_' + lid);
   if (pbType !== 'none' && pbMl > 0) {
-    const pbPrix    = pbType === 'traverse' ? PB_TRAVERSE_PRIX : PB_CROISIL_PRIX;
-    const pbMlFact  = Math.max(pbMl, PB_ML_MIN);  // mini 0.5ml/vitrage
-    totalPB         = qty * pbMlFact * pbPrix;
-
-    if (pbMl < PB_ML_MIN) {
-      pbHintEl.textContent = `Mini ${PB_ML_MIN} ml/vitrage → ${f3(pbMlFact * qty)} ml facturés`;
-      pbHintEl.className = 'hint warn';
-    } else {
-      pbHintEl.textContent = `${f3(pbMlFact)} ml × ${qty} = ${f3(pbMlFact * qty)} ml facturés`;
-      pbHintEl.className = 'hint';
-    }
-  } else {
-    if (pbHintEl) { pbHintEl.textContent = ''; pbHintEl.className = 'hint'; }
+    const pbPrix   = pbType === 'traverse' ? PB_TRAVERSE_PRIX : PB_CROISIL_PRIX;
+    const pbMlFact = Math.max(pbMl, PB_ML_MIN);
+    totalPB        = qty * pbMlFact * pbPrix;
   }
 
   const totalLigne = totalVit + totalPB;
@@ -825,6 +943,298 @@ function eur(v) { return v.toLocaleString('fr-FR',{minimumFractionDigits:2,maxim
 function f2(v)  { return v.toFixed(2).replace('.',','); }
 function f3(v)  { return v.toFixed(3).replace('.',','); }
 function f4(v)  { return v.toFixed(4).replace('.',','); }
+
+// ════════════════════════════════════════════
+//  GÉNÉRATION BON DE COMMANDE PDF
+// ════════════════════════════════════════════
+function generatePDF() {
+  if (typeof window.jspdf === 'undefined') {
+    alert('La librairie PDF est en cours de chargement. Réessayez dans quelques secondes.');
+    return;
+  }
+
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+
+  // Couleurs Fermapro
+  const BLEU  = [45, 61, 116];   // #2D3D74
+  const ROSE  = [240, 102, 145]; // #F06691
+  const GRIS  = [100, 110, 130];
+  const NOIR  = [26, 26, 46];
+  const BLANC = [255, 255, 255];
+
+  const PW = 210; // largeur page A4
+  const ML = 14;  // marge gauche
+  const MR = 14;  // marge droite
+  const CW = PW - ML - MR; // largeur utile
+  let y = 0;
+
+  // ── BANDE EN-TÊTE ──────────────────────────────────────
+  doc.setFillColor(...BLEU);
+  doc.rect(0, 0, PW, 28, 'F');
+
+  // Logo FP
+  doc.setFillColor(...ROSE);
+  doc.roundedRect(ML, 6, 16, 16, 2, 2, 'F');
+  doc.setFont('helvetica','bold');
+  doc.setFontSize(10);
+  doc.setTextColor(...BLANC);
+  doc.text('FP', ML + 8, 16.5, { align:'center' });
+
+  // Titre société
+  doc.setFontSize(16);
+  doc.setFont('helvetica','bold');
+  doc.text('FERMAPRO', ML + 20, 13);
+  doc.setFontSize(8);
+  doc.setFont('helvetica','normal');
+  doc.setTextColor(200, 210, 235);
+  doc.text('8 rue Claude Chappe — 37230 Fondettes  |  contact@fermapro.fr  |  02 47 38 91 40', ML + 20, 19);
+
+  // Titre document
+  doc.setFontSize(14);
+  doc.setFont('helvetica','bold');
+  doc.setTextColor(...BLANC);
+  doc.text('BON DE COMMANDE', PW - MR, 13, { align:'right' });
+  doc.setFontSize(8);
+  doc.setFont('helvetica','normal');
+  doc.setTextColor(200, 210, 235);
+  const dateStr = new Date().toLocaleDateString('fr-FR', { day:'2-digit', month:'2-digit', year:'numeric' });
+  doc.text('Date : ' + dateStr, PW - MR, 20, { align:'right' });
+
+  y = 34;
+
+  // ── BLOC INFOS (2 colonnes) ─────────────────────────────
+  const colW = (CW - 6) / 2;
+
+  // Bloc gauche : Destinataire (fournisseur)
+  doc.setFillColor(240, 242, 248);
+  doc.roundedRect(ML, y, colW, 30, 2, 2, 'F');
+  doc.setFontSize(7.5);
+  doc.setFont('helvetica','bold');
+  doc.setTextColor(...GRIS);
+  doc.text('FOURNISSEUR', ML + 4, y + 6);
+  doc.setFont('helvetica','bold');
+  doc.setFontSize(9);
+  doc.setTextColor(...NOIR);
+  doc.text('Miroiterie du Centre', ML + 4, y + 12);
+  doc.setFont('helvetica','normal');
+  doc.setFontSize(8.5);
+  doc.setTextColor(...GRIS);
+  doc.text('6 rue Baptiste Marcet — 37250 Montbazon', ML + 4, y + 18);
+  doc.text('02 47 73 19 69  |  contact@mdc37.fr', ML + 4, y + 23);
+  doc.text('Réf. devis : N° 26000746 du 13/05/2026', ML + 4, y + 28);
+
+  // Bloc droit : Infos commande
+  const x2 = ML + colW + 6;
+  doc.setFillColor(240, 242, 248);
+  doc.roundedRect(x2, y, colW, 30, 2, 2, 'F');
+  doc.setFontSize(7.5);
+  doc.setFont('helvetica','bold');
+  doc.setTextColor(...GRIS);
+  doc.text('INFORMATIONS COMMANDE', x2 + 4, y + 6);
+
+  const refProjet = document.getElementById('bdcRef').value.trim() || '—';
+  const delaiDem  = document.getElementById('bdcDelai').value.trim() || '—';
+
+  doc.setFont('helvetica','bold');
+  doc.setFontSize(8.5);
+  doc.setTextColor(...NOIR);
+  doc.text('Projet / Chantier :', x2 + 4, y + 13);
+  doc.setFont('helvetica','normal');
+  doc.setTextColor(...GRIS);
+  // Wrap long text
+  const refLines = doc.splitTextToSize(refProjet, colW - 8);
+  doc.text(refLines[0], x2 + 4, y + 18);
+
+  doc.setFont('helvetica','bold');
+  doc.setTextColor(...NOIR);
+  doc.text('Délai souhaité :', x2 + 4, y + 24);
+  doc.setFont('helvetica','normal');
+  doc.setTextColor(...GRIS);
+  doc.text(delaiDem, x2 + 4, y + 29);
+
+  y += 36;
+
+  // ── TABLEAU DES VITRAGES ────────────────────────────────
+  // Titre section
+  doc.setFillColor(...BLEU);
+  doc.rect(ML, y, CW, 7, 'F');
+  doc.setFont('helvetica','bold');
+  doc.setFontSize(8.5);
+  doc.setTextColor(...BLANC);
+  doc.text('DÉTAIL DE LA COMMANDE', ML + 4, y + 5);
+  y += 9;
+
+  // Construire les lignes du tableau
+  const tableRows = [];
+  let tVit = 0, tPB = 0;
+
+  lines.forEach((line, i) => {
+    const d = load(line.lid);
+    if (!d.refVal) return;
+    const item = getItem(d.refVal);
+    if (!item) return;
+
+    // Ligne principale vitrage
+    const opts = [];
+    if (d.hasI) opts.push('+ Intercalaire 18/20 mm (+2 €/m²)');
+    if (d.pbType === 'traverse')    opts.push(`+ Traverse 26×8 blanc 9016 — ${f3(Math.max(d.pbMl, PB_ML_MIN) * d.qty)} ml`);
+    if (d.pbType === 'croisillons') opts.push(`+ Croisillons 26×8 blanc 9016 — ${f3(Math.max(d.pbMl, PB_ML_MIN) * d.qty)} ml`);
+    if (d.min5Applied) opts.push('Minimum 5 € appliqué');
+
+    const desig = item.label + (opts.length ? '\n' + opts.join('\n') : '');
+
+    tableRows.push([
+      (i + 1).toString(),
+      desig,
+      d.qty.toString(),
+      d.h.toString(),
+      d.w.toString(),
+      f2(d.surfFactUnit),
+      f2(d.pu) + ' €',
+      eur(d.totalVit + d.totalPB)
+    ]);
+
+    tVit += d.totalVit || 0;
+    tPB  += d.totalPB  || 0;
+  });
+
+  doc.autoTable({
+    startY: y,
+    margin: { left: ML, right: MR },
+    head: [['N°', 'Désignation', 'Qté', 'H (mm)', 'L (mm)', 'Surf. fact. (m²)', 'P.U. HT', 'Total HT']],
+    body: tableRows,
+    headStyles: {
+      fillColor: BLEU,
+      textColor: BLANC,
+      fontStyle: 'bold',
+      fontSize: 8,
+      halign: 'center',
+      cellPadding: 3
+    },
+    bodyStyles: {
+      fontSize: 8,
+      textColor: NOIR,
+      cellPadding: { top: 3, bottom: 3, left: 3, right: 3 }
+    },
+    alternateRowStyles: { fillColor: [247, 249, 253] },
+    columnStyles: {
+      0: { halign: 'center', cellWidth: 8 },
+      1: { cellWidth: 'auto', fontStyle: 'normal' },
+      2: { halign: 'center', cellWidth: 10 },
+      3: { halign: 'right',  cellWidth: 16 },
+      4: { halign: 'right',  cellWidth: 16 },
+      5: { halign: 'right',  cellWidth: 22 },
+      6: { halign: 'right',  cellWidth: 20 },
+      7: { halign: 'right',  cellWidth: 22, fontStyle: 'bold' }
+    },
+    tableLineColor: [210, 215, 230],
+    tableLineWidth: 0.2,
+    didParseCell: (data) => {
+      // Mettre en évidence les options en gris clair
+      if (data.section === 'body' && data.column.index === 1) {
+        const text = data.cell.raw;
+        if (typeof text === 'string' && text.includes('\n')) {
+          data.cell.styles.fontSize = 7;
+        }
+      }
+    }
+  });
+
+  y = doc.lastAutoTable.finalY + 4;
+
+  // ── TOTAUX ─────────────────────────────────────────────
+  const totalHT = tVit + tPB;
+
+  // Bloc totaux aligné à droite
+  const totW = 70;
+  const totX = PW - MR - totW;
+
+  doc.setFillColor(240, 242, 248);
+  doc.roundedRect(totX, y, totW, 28, 2, 2, 'F');
+
+  doc.setFont('helvetica','normal');
+  doc.setFontSize(8.5);
+  doc.setTextColor(...GRIS);
+  doc.text('Vitrages HT', totX + 4, y + 8);
+  doc.text(eur(tVit), totX + totW - 4, y + 8, { align:'right' });
+
+  doc.text('Petits bois HT', totX + 4, y + 15);
+  doc.text(eur(tPB), totX + totW - 4, y + 15, { align:'right' });
+
+  // Ligne séparatrice
+  doc.setDrawColor(210, 215, 230);
+  doc.line(totX + 4, y + 18, totX + totW - 4, y + 18);
+
+  doc.setFont('helvetica','bold');
+  doc.setFontSize(10);
+  doc.setTextColor(...BLEU);
+  doc.text('TOTAL HT', totX + 4, y + 25);
+  doc.text(eur(totalHT), totX + totW - 4, y + 25, { align:'right' });
+
+  y += 36;
+
+  // ── ZONE SIGNATURE ─────────────────────────────────────
+  // Vérifier qu'on a de la place, sinon nouvelle page
+  if (y + 36 > 277) {
+    doc.addPage();
+    y = 14;
+  }
+
+  const sigW = (CW - 6) / 2;
+
+  // Bloc conditions
+  doc.setFillColor(255, 250, 235);
+  doc.setDrawColor(245, 158, 11);
+  doc.setLineWidth(0.4);
+  doc.roundedRect(ML, y, sigW, 30, 2, 2, 'FD');
+  doc.setFont('helvetica','bold');
+  doc.setFontSize(7.5);
+  doc.setTextColor(180, 100, 0);
+  doc.text('CONDITIONS MDC37', ML + 4, y + 6);
+  doc.setFont('helvetica','normal');
+  doc.setFontSize(7.5);
+  doc.setTextColor(...GRIS);
+  doc.text('• Paiement 100 % à la commande (chèque bancaire)', ML + 4, y + 12);
+  doc.text('• Minimum de facturation : 0,50 m²/vitrage isolant', ML + 4, y + 17);
+  doc.text('• Minimum de facturation : 5 € par volume', ML + 4, y + 22);
+  doc.text('• Minimum petits bois : 0,5 ml/vitrage', ML + 4, y + 27);
+
+  // Bloc bon pour accord
+  const sig2X = ML + sigW + 6;
+  doc.setFillColor(240, 242, 248);
+  doc.setDrawColor(...BLEU);
+  doc.setLineWidth(0.4);
+  doc.roundedRect(sig2X, y, sigW, 30, 2, 2, 'FD');
+  doc.setFont('helvetica','bold');
+  doc.setFontSize(7.5);
+  doc.setTextColor(...GRIS);
+  doc.text('BON POUR ACCORD', sig2X + 4, y + 6);
+  doc.setFont('helvetica','normal');
+  doc.setFontSize(8);
+  doc.setTextColor(...NOIR);
+  doc.text('Date : _____ / _____ / __________', sig2X + 4, y + 14);
+  doc.text('Signature :', sig2X + 4, y + 22);
+
+  // ── PIED DE PAGE ───────────────────────────────────────
+  const pageCount = doc.getNumberOfPages();
+  for (let p = 1; p <= pageCount; p++) {
+    doc.setPage(p);
+    doc.setFillColor(...BLEU);
+    doc.rect(0, 287, PW, 10, 'F');
+    doc.setFont('helvetica','normal');
+    doc.setFontSize(7);
+    doc.setTextColor(180, 190, 210);
+    doc.text('Fermapro — 8 rue Claude Chappe, 37230 Fondettes  |  contact@fermapro.fr', ML, 293);
+    doc.text(`Page ${p} / ${pageCount}`, PW - MR, 293, { align:'right' });
+  }
+
+  // ── TÉLÉCHARGEMENT ─────────────────────────────────────
+  const refSlug = document.getElementById('bdcRef').value.trim()
+    .replace(/[^a-zA-Z0-9À-ÿ\s-]/g, '').replace(/\s+/g, '_').substring(0, 30) || 'commande';
+  const filename = `BC_MDC37_${dateStr.replace(/\//g,'-')}_${refSlug}.pdf`;
+  doc.save(filename);
+}
 
 // ════════════════════════════════════════════
 //  INIT — une ligne vide au démarrage
