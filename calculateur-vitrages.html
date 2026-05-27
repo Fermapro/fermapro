@@ -894,7 +894,7 @@ function buildCmdTable() {
       <td class="td-r">${d.h}</td>
       <td class="td-r">${d.w}</td>
       <td class="td-r">${f4(d.surfReelle)}</td>
-      <td class="td-r">${f2(d.surfFactUnit)}</td>
+      <td class="td-r">${f4(d.surfFactUnit)}</td>
       <td class="td-r">${f2(d.pu)} €</td>
       <td class="td-r total-bold">${eur(d.totalVit + d.totalPB)}</td>
     `;
@@ -922,7 +922,7 @@ function copyCommande() {
     txt += `  Qté     : ${d.qty}\n`;
     txt += `  Haut.   : ${d.h} mm\n`;
     txt += `  Larg.   : ${d.w} mm\n`;
-    txt += `  Surf.   : ${f4(d.surfReelle)} m² réelle / ${f2(d.surfFactUnit)} m² facturée\n`;
+    txt += `  Surf.   : ${f4(d.surfReelle)} m² réelle / ${f4(d.surfFactUnit)} m² facturée\n`;
     if (d.hasI)  txt += `  Option  : Intercalaire 18/20 mm (+${INTERCALAIRE_PV} €/m²)\n`;
     if (d.pbType === 'traverse')    txt += `  PB      : Traverse 26x8 blanc 9016 — ${f3(Math.max(d.pbMl,PB_ML_MIN)*d.qty)} ml\n`;
     if (d.pbType === 'croisillons') txt += `  PB      : Croisillons 26x8 blanc 9016 — ${f3(Math.max(d.pbMl,PB_ML_MIN)*d.qty)} ml\n`;
@@ -1098,7 +1098,7 @@ function generatePDF() {
       d.qty.toString(),
       d.h.toString(),
       d.w.toString(),
-      f2(d.surfFactUnit),
+      f4(d.surfFactUnit),
       f2(d.pu) + ' €',
       eur(d.totalVit + d.totalPB)
     ]);
