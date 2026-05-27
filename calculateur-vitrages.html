@@ -473,6 +473,8 @@ const CAT = [
   { id:'feuillete_clair_44_2',         label:'FEUILLETE CLAIR 44/2 (ép = 8.8mm)',                                      prix:64.90,  min_surf:0.25, isolant:false, groupe:'Verre feuilleté' },
   // — Verre trempé —
   { id:'glace_trempee_4mm_jp',         label:'GLACE CLAIRE TREMPEE 4mm JP',                                            prix:75.00,  min_surf:0.50, isolant:false, groupe:'Verre trempé' },
+  // — Double vitrage décoratif — Devis N° 26000810 du 27/05/2026
+  { id:'dv_depolie_4mm_16ar_4fe_we_noir', label:'Double vitrage DEPOLIE ACIDE 4mm/16 argon /4 FE, Warm edge noir',     prix:75.23,  min_surf:0.50, isolant:true,  groupe:'Double vitrage décoratif' },
 ];
 
 // Regroupement pour les optgroup
@@ -1030,7 +1032,7 @@ function generatePDF() {
   doc.setTextColor(...GRIS);
   doc.text('6 rue Baptiste Marcet — 37250 Montbazon', ML + 4, y + 18);
   doc.text('02 47 73 19 69  |  contact@mdc37.fr', ML + 4, y + 23);
-  doc.text('Réf. devis : N° 26000746 du 13/05/2026', ML + 4, y + 28);
+  doc.text('Réf. devis : N° 26000810 du 27/05/2026', ML + 4, y + 28);
 
   // Bloc droit : Infos commande
   const x2 = ML + colW + 6;
