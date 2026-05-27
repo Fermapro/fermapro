@@ -410,7 +410,8 @@
             <th class="r">L (mm)</th>
             <th class="r">Surf. unit. (m²)</th>
             <th class="r">Surf. fact. (m²)</th>
-            <th class="r">P.U. HT</th>
+            <th class="r">€/m²</th>
+            <th class="r">P.U. HT /vit.</th>
             <th class="r">Total HT</th>
           </tr>
         </thead>
@@ -898,6 +899,7 @@ function buildCmdTable() {
       <td class="td-r">${f4(d.surfReelle)}</td>
       <td class="td-r">${f4(d.surfFactUnit)}</td>
       <td class="td-r">${f2(d.pu)} €</td>
+      <td class="td-r">${f2(d.totalVit / d.qty)} €</td>
       <td class="td-r total-bold">${eur(d.totalVit + d.totalPB)}</td>
     `;
     tbody.appendChild(tr);
@@ -1102,6 +1104,7 @@ function generatePDF() {
       d.w.toString(),
       f4(d.surfFactUnit),
       f2(d.pu) + ' €',
+      f2(d.totalVit / d.qty) + ' €',
       eur(d.totalVit + d.totalPB)
     ]);
 
@@ -1112,7 +1115,7 @@ function generatePDF() {
   doc.autoTable({
     startY: y,
     margin: { left: ML, right: MR },
-    head: [['N°', 'Désignation', 'Qté', 'H (mm)', 'L (mm)', 'Surf. fact. (m²)', 'P.U. HT', 'Total HT']],
+    head: [['N°', 'Désignation', 'Qté', 'H (mm)', 'L (mm)', 'Surf. fact. (m²)', '€/m²', 'P.U. HT /vit.', 'Total HT']],
     body: tableRows,
     headStyles: {
       fillColor: BLEU,
@@ -1132,11 +1135,12 @@ function generatePDF() {
       0: { halign: 'center', cellWidth: 8 },
       1: { cellWidth: 'auto', fontStyle: 'normal' },
       2: { halign: 'center', cellWidth: 10 },
-      3: { halign: 'right',  cellWidth: 16 },
-      4: { halign: 'right',  cellWidth: 16 },
-      5: { halign: 'right',  cellWidth: 22 },
-      6: { halign: 'right',  cellWidth: 20 },
-      7: { halign: 'right',  cellWidth: 22, fontStyle: 'bold' }
+      3: { halign: 'right',  cellWidth: 14 },
+      4: { halign: 'right',  cellWidth: 14 },
+      5: { halign: 'right',  cellWidth: 20 },
+      6: { halign: 'right',  cellWidth: 16 },
+      7: { halign: 'right',  cellWidth: 20 },
+      8: { halign: 'right',  cellWidth: 20, fontStyle: 'bold' }
     },
     tableLineColor: [210, 215, 230],
     tableLineWidth: 0.2,
