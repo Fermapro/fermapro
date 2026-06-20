@@ -4,316 +4,318 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Fermapro Marketing Suite</title>
-<script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
-<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
-<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
-body{font-family:system-ui,sans-serif;background:#f4f5fb;min-height:100vh}
+body{font-family:system-ui,-apple-system,sans-serif;background:#f4f5fb;min-height:100vh}
 textarea,input,button{font-family:inherit}
+.wrap{max-width:640px;margin:0 auto}
+.header{background:#2D3D74;padding:20px 16px 0}
+.header-inner{max-width:640px;margin:0 auto}
+.header-title{display:flex;align-items:center;gap:10px;margin-bottom:18px}
+.header-title .emoji{font-size:22px}
+.header-title .name{font-size:16px;font-weight:700;color:#fff}
+.header-title .sub{font-size:11px;color:rgba(255,255,255,.55)}
+.tabs{display:flex;gap:4px}
+.tab-btn{padding:10px 18px;border-radius:10px 10px 0 0;background:transparent;color:rgba(255,255,255,.65);border:none;cursor:pointer;font-size:13px;font-weight:600}
+.tab-btn.active{background:#f4f5fb;color:#2D3D74}
+.content{padding:20px 16px 40px}
+.card{background:#fff;border-radius:14px;padding:16px 18px;margin-bottom:12px;box-shadow:0 1px 3px rgba(0,0,0,.06)}
+.lbl{font-size:11px;font-weight:600;letter-spacing:.07em;color:#6b7280;text-transform:uppercase;display:block;margin-bottom:10px}
+.chip-grid{display:flex;flex-wrap:wrap;gap:8px}
+.chip{padding:7px 14px;border-radius:20px;border:1.5px solid #e5e7eb;font-size:13px;font-weight:500;cursor:pointer;background:#fff;color:#374151;transition:all .15s}
+.chip.sel{color:#fff}
+textarea{width:100%;border:1.5px solid #e5e7eb;border-radius:10px;padding:10px 12px;font-size:13px;color:#374151;resize:vertical;min-height:80px;outline:none}
+textarea:focus{border-color:#F06691}
+.charcount{text-align:right;font-size:11px;color:#9ca3af;margin-top:4px}
+.brand-row{display:flex;gap:10px}
+.brand-btn{flex:1;padding:10px;border-radius:10px;border:2px solid #e5e7eb;background:#fff;cursor:pointer;font-size:13px;font-weight:600;color:#6b7280}
+.brand-btn.sel-f{border-color:#F06691;color:#F06691;background:#fff5f8}
+.brand-btn.sel-r{border-color:#2D3D74;color:#2D3D74;background:#f0f2f8}
+.btn-gen{width:100%;padding:14px;border-radius:12px;border:none;font-size:15px;font-weight:600;cursor:pointer;background:linear-gradient(135deg,#F06691,#2D3D74);color:#fff;margin-top:4px}
+.btn-gen:disabled{opacity:.55;cursor:not-allowed}
+.result-box{background:#f9fafb;border-radius:10px;padding:16px 18px;font-size:13px;line-height:1.85;color:#374151;white-space:pre-wrap}
+.err{background:#fff8e1;border:1px solid #ffc107;color:#856404;border-radius:10px;padding:10px 14px;font-size:13px;margin-top:8px}
+.copy-btn{padding:5px 12px;border-radius:8px;border:1px solid #e5e7eb;background:transparent;color:#6b7280;font-size:12px;cursor:pointer}
+.copy-btn:hover{border-color:#F06691;color:#F06691}
+.apikey-row{display:flex;gap:8px}
+.apikey-row input{flex:1;border:1px solid #e5e7eb;border-radius:8px;padding:8px 12px;font-size:13px}
+.apikey-save{padding:8px 16px;background:#2D3D74;color:#fff;border:none;border-radius:8px;font-size:13px;cursor:pointer}
+.apikey-configured{display:flex;justify-content:space-between;align-items:center;padding:10px 16px}
+.hidden{display:none}
 </style>
 </head>
 <body>
-<div id="root"></div>
-<script type="text/babel">
-const {useState,useCallback}=React;
-
-const BRANDS={
-  fermapro:{id:"fermapro",name:"Fermapro",tagline:"Menuiserie · Fermetures · Domotique",emoji:"🏠",phone:"02 47 38 91 40",site:"fermapro.fr",color:"#F06691",dark:"#2D3D74",zone:"Tours et environs (37)",services:"menuiserie, fenêtres, volets roulants, portails, portes d'entrée, pergolas, motorisation Somfy, domotique, vitrerie",hashtags:"#Tours37 #Fermapro #Menuiserie"},
-  reparpro:{id:"reparpro",name:"Reparpro",tagline:"SAV & Dépannage Fermetures",emoji:"🔧",phone:"02 47 38 91 41",site:"reparpro.fr",color:"#2D3D74",dark:"#1a2548",zone:"Tours et environs (37)",services:"dépannage volet roulant, réparation porte de garage, SAV fermetures, remplacement moteur Somfy, serrurerie, vitrerie urgence",hashtags:"#Tours37 #Reparpro #Dépannage"}
-};
-
-const GBP_TYPES=[
-  {id:"realisation",label:"Réalisation client",emoji:"✅"},
-  {id:"conseil",label:"Conseil pratique",emoji:"💡"},
-  {id:"promo",label:"Offre / Promo",emoji:"🎯"},
-  {id:"sav",label:"Service / SAV",emoji:"🔧"},
-  {id:"avis",label:"Mise en avant avis",emoji:"⭐"},
-  {id:"saisonnier",label:"Conseil saisonnier",emoji:"🌟"},
-  {id:"produit",label:"Nouveauté / Produit",emoji:"🆕"},
-  {id:"actu",label:"Événement / Actu",emoji:"📢"}
-];
-
-const TONES=["Chaleureux","Professionnel","Expert","Dynamique"];
-
-const BLOG_TYPES=[
-  {id:"guide",label:"Guide complet",emoji:"📖"},
-  {id:"conseils",label:"Conseils pratiques",emoji:"💡"},
-  {id:"comparatif",label:"Comparatif",emoji:"⚖️"},
-  {id:"faq",label:"FAQ SEO",emoji:"❓"},
-  {id:"tendances",label:"Tendances",emoji:"📈"}
-];
-
-const BLOG_LENGTHS=[
-  {id:"court",label:"Court (~400 mots)"},
-  {id:"moyen",label:"Moyen (~800 mots)"},
-  {id:"long",label:"Long (~1500 mots)"}
-];
-
-const s={
-  card:{background:"#fff",borderRadius:14,padding:"16px 18px",marginBottom:12,boxShadow:"0 1px 3px rgba(0,0,0,.06)"},
-  lbl:{fontSize:11,fontWeight:600,letterSpacing:".07em",color:"#6b7280",textTransform:"uppercase",display:"block",marginBottom:10},
-  chip:(sel,color)=>({padding:"7px 14px",borderRadius:20,border:"1.5px solid "+(sel?color:"#e5e7eb"),fontSize:13,fontWeight:500,cursor:"pointer",background:sel?color:"#fff",color:sel?"#fff":"#374151",display:"inline-flex",alignItems:"center",gap:5,transition:"all .15s"}),
-  btn:(color,dark)=>({width:"100%",padding:"14px",borderRadius:12,border:"none",fontSize:15,fontWeight:600,cursor:"pointer",background:`linear-gradient(135deg,${color},${dark})`,color:"#fff",marginTop:4}),
-  result:{background:"#f9fafb",borderRadius:10,padding:"16px 18px",fontSize:13,lineHeight:1.85,color:"#374151",whiteSpace:"pre-wrap"},
-  err:{background:"#fff8e1",border:"1px solid #ffc107",color:"#856404",borderRadius:10,padding:"10px 14px",fontSize:13,marginTop:8},
-  copyBtn:{padding:"5px 12px",borderRadius:8,border:"1px solid #e5e7eb",background:"transparent",color:"#6b7280",fontSize:12,cursor:"pointer"}
-};
-
-function ApiKeyBanner({apiKey,setApiKey}){
-  const [show,setShow]=useState(false);
-  const save=()=>{localStorage.setItem("fmk_api_key",apiKey);setShow(false)};
-  if(!show&&apiKey) return(
-    <div style={{...s.card,display:"flex",justifyContent:"space-between",alignItems:"center",padding:"10px 16px"}}>
-      <span style={{fontSize:12,color:"#6b7280"}}>🔑 Clé API configurée</span>
-      <button onClick={()=>setShow(true)} style={{...s.copyBtn,fontSize:11}}>Modifier</button>
-    </div>
-  );
-  return(
-    <div style={{...s.card,border:"1.5px solid #fbbf24"}}>
-      <span style={s.lbl}>Clé API Anthropic</span>
-      <p style={{fontSize:12,color:"#6b7280",marginBottom:8}}>Requise uniquement en mode fichier standalone. Dans Claude.ai, laisser vide.</p>
-      <div style={{display:"flex",gap:8}}>
-        <input type="password" value={apiKey} onChange={e=>setApiKey(e.target.value)} placeholder="sk-ant-..." style={{flex:1,border:"1px solid #e5e7eb",borderRadius:8,padding:"8px 12px",fontSize:13}}/>
-        <button onClick={save} style={{padding:"8px 16px",background:"#2D3D74",color:"#fff",border:"none",borderRadius:8,fontSize:13,cursor:"pointer"}}>Sauvegarder</button>
+<div class="header">
+  <div class="header-inner">
+    <div class="header-title">
+      <span class="emoji">🚀</span>
+      <div>
+        <div class="name">Fermapro Marketing Suite</div>
+        <div class="sub">AI Content Generator</div>
       </div>
     </div>
-  );
+    <div class="tabs">
+      <button class="tab-btn active" id="tab-gbp" onclick="switchTab('gbp')">📍 Google Business</button>
+      <button class="tab-btn" id="tab-blog" onclick="switchTab('blog')">✍️ Blog SEO</button>
+    </div>
+  </div>
+</div>
+
+<div class="content wrap">
+
+  <!-- API KEY BANNER -->
+  <div class="card" id="apikey-edit">
+    <span class="lbl">Clé API Anthropic</span>
+    <p style="font-size:12px;color:#6b7280;margin-bottom:8px">Ta clé est stockée uniquement dans ce navigateur (localStorage), jamais envoyée ailleurs.</p>
+    <div class="apikey-row">
+      <input type="password" id="apikey-input" placeholder="sk-ant-...">
+      <button class="apikey-save" onclick="saveApiKey()">Sauvegarder</button>
+    </div>
+  </div>
+  <div class="card hidden" id="apikey-saved">
+    <div class="apikey-configured">
+      <span style="font-size:12px;color:#6b7280">🔑 Clé API configurée</span>
+      <button class="copy-btn" onclick="editApiKey()">Modifier</button>
+    </div>
+  </div>
+
+  <!-- GBP TAB -->
+  <div id="pane-gbp">
+    <div class="card">
+      <span class="lbl">Entreprise</span>
+      <div class="brand-row">
+        <button class="brand-btn sel-f" id="brand-f" onclick="selectBrand('fermapro')">🏠 Fermapro</button>
+        <button class="brand-btn" id="brand-r" onclick="selectBrand('reparpro')">🔧 Reparpro</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <span class="lbl">Type de post</span>
+      <div class="chip-grid" id="type-chips">
+        <button class="chip sel" data-val="realisation" onclick="selChip(this,'type')">✅ Réalisation client</button>
+        <button class="chip" data-val="conseil" onclick="selChip(this,'type')">💡 Conseil pratique</button>
+        <button class="chip" data-val="promo" onclick="selChip(this,'type')">🎯 Offre / Promo</button>
+        <button class="chip" data-val="sav" onclick="selChip(this,'type')">🔧 Service / SAV</button>
+        <button class="chip" data-val="avis" onclick="selChip(this,'type')">⭐ Mise en avant avis</button>
+        <button class="chip" data-val="saisonnier" onclick="selChip(this,'type')">🌟 Conseil saisonnier</button>
+        <button class="chip" data-val="produit" onclick="selChip(this,'type')">🆕 Nouveauté / Produit</button>
+        <button class="chip" data-val="actu" onclick="selChip(this,'type')">📢 Événement / Actu</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <span class="lbl">Ton</span>
+      <div class="chip-grid" id="tone-chips">
+        <button class="chip sel" data-val="Chaleureux" onclick="selChip(this,'tone')">Chaleureux</button>
+        <button class="chip" data-val="Professionnel" onclick="selChip(this,'tone')">Professionnel</button>
+        <button class="chip" data-val="Expert" onclick="selChip(this,'tone')">Expert</button>
+        <button class="chip" data-val="Dynamique" onclick="selChip(this,'tone')">Dynamique</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <span class="lbl">Sujet / Contexte</span>
+      <textarea id="gbp-subject" maxlength="500" placeholder="Ex : installation pergola bioclimatique à Joué-lès-Tours…" oninput="document.getElementById('gbp-cc').textContent=this.value.length+' / 500 caractères'"></textarea>
+      <div class="charcount" id="gbp-cc">0 / 500 caractères</div>
+    </div>
+
+    <button class="btn-gen" id="gbp-btn" onclick="generateGBP()">✨ Générer le post</button>
+    <div id="gbp-error" class="err hidden"></div>
+    <div id="gbp-result" class="card hidden" style="margin-top:12px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+        <span style="font-size:13px;font-weight:600;color:#374151">Post Google Business</span>
+        <div style="display:flex;gap:8px">
+          <button class="copy-btn" onclick="generateGBP()">🔄 Variante</button>
+          <button class="copy-btn" onclick="copyText('gbp-out')">Copier</button>
+        </div>
+      </div>
+      <div class="result-box" id="gbp-out"></div>
+    </div>
+  </div>
+
+  <!-- BLOG TAB -->
+  <div id="pane-blog" class="hidden">
+    <div class="card">
+      <span class="lbl">Entreprise</span>
+      <div class="brand-row">
+        <button class="brand-btn sel-f" id="brand-bf" onclick="selectBlogBrand('fermapro')">🏠 Fermapro</button>
+        <button class="brand-btn" id="brand-br" onclick="selectBlogBrand('reparpro')">🔧 Reparpro</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <span class="lbl">Type d'article</span>
+      <div class="chip-grid" id="btype-chips">
+        <button class="chip sel" data-val="guide" onclick="selChip(this,'btype')">📖 Guide complet</button>
+        <button class="chip" data-val="conseils" onclick="selChip(this,'btype')">💡 Conseils pratiques</button>
+        <button class="chip" data-val="comparatif" onclick="selChip(this,'btype')">⚖️ Comparatif</button>
+        <button class="chip" data-val="faq" onclick="selChip(this,'btype')">❓ FAQ SEO</button>
+        <button class="chip" data-val="tendances" onclick="selChip(this,'btype')">📈 Tendances</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <span class="lbl">Longueur</span>
+      <div class="chip-grid" id="len-chips">
+        <button class="chip sel" data-val="court" onclick="selChip(this,'len')">Court (~400 mots)</button>
+        <button class="chip" data-val="moyen" onclick="selChip(this,'len')">Moyen (~800 mots)</button>
+        <button class="chip" data-val="long" onclick="selChip(this,'len')">Long (~1500 mots)</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <span class="lbl">Sujet / Mot-clé principal</span>
+      <textarea id="blog-subject" maxlength="500" placeholder="Ex : volets roulants solaires, avantages et installation…"></textarea>
+    </div>
+
+    <button class="btn-gen" id="blog-btn" onclick="generateBlog()">✨ Générer l'article</button>
+    <div id="blog-error" class="err hidden"></div>
+    <div id="blog-result" class="card hidden" style="margin-top:12px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+        <span style="font-size:13px;font-weight:600;color:#374151">Article SEO</span>
+        <div style="display:flex;gap:8px">
+          <button class="copy-btn" onclick="generateBlog()">🔄 Variante</button>
+          <button class="copy-btn" onclick="copyText('blog-out')">Copier</button>
+        </div>
+      </div>
+      <div class="result-box" id="blog-out"></div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+const BRANDS={
+  fermapro:{name:"Fermapro",phone:"02 47 38 91 40",site:"fermapro.fr",zone:"Tours et environs (37)",hashtags:"#Tours37 #Fermapro #Menuiserie",services:"menuiserie, fenêtres, volets roulants, portails, portes d'entrée, pergolas, motorisation Somfy, domotique"},
+  reparpro:{name:"Reparpro",phone:"02 47 38 91 41",site:"reparpro.fr",zone:"Tours et environs (37)",hashtags:"#Tours37 #Reparpro #Dépannage",services:"dépannage volet roulant, réparation porte de garage, SAV fermetures, remplacement moteur Somfy, serrurerie"}
+};
+const st={brand:"fermapro",type:"realisation",tone:"Chaleureux",blogBrand:"fermapro",btype:"guide",len:"court"};
+
+// API key management
+function loadApiKey(){return localStorage.getItem("fmk_api_key")||""}
+function saveApiKey(){
+  const v=document.getElementById("apikey-input").value.trim();
+  if(!v){alert("Merci de coller une clé API.");return}
+  localStorage.setItem("fmk_api_key",v);
+  refreshApiKeyUI();
+}
+function editApiKey(){
+  document.getElementById("apikey-input").value=loadApiKey();
+  document.getElementById("apikey-edit").classList.remove("hidden");
+  document.getElementById("apikey-saved").classList.add("hidden");
+}
+function refreshApiKeyUI(){
+  const k=loadApiKey();
+  if(k){
+    document.getElementById("apikey-edit").classList.add("hidden");
+    document.getElementById("apikey-saved").classList.remove("hidden");
+  }else{
+    document.getElementById("apikey-edit").classList.remove("hidden");
+    document.getElementById("apikey-saved").classList.add("hidden");
+  }
+}
+refreshApiKeyUI();
+
+function switchTab(t){
+  document.getElementById("pane-gbp").classList.toggle("hidden",t!=="gbp");
+  document.getElementById("pane-blog").classList.toggle("hidden",t!=="blog");
+  document.getElementById("tab-gbp").className="tab-btn"+(t==="gbp"?" active":"");
+  document.getElementById("tab-blog").className="tab-btn"+(t==="blog"?" active":"");
+}
+function selectBrand(b){
+  st.brand=b;
+  document.getElementById("brand-f").className="brand-btn"+(b==="fermapro"?" sel-f":"");
+  document.getElementById("brand-r").className="brand-btn"+(b==="reparpro"?" sel-r":"");
+}
+function selectBlogBrand(b){
+  st.blogBrand=b;
+  document.getElementById("brand-bf").className="brand-btn"+(b==="fermapro"?" sel-f":"");
+  document.getElementById("brand-br").className="brand-btn"+(b==="reparpro"?" sel-r":"");
+}
+function chipColor(grp){
+  return (grp==="type"||grp==="tone") ? (st.brand==="fermapro"?"#F06691":"#2D3D74") : (st.blogBrand==="fermapro"?"#F06691":"#2D3D74");
+}
+function selChip(el,grp){
+  const map={type:"type-chips",tone:"tone-chips",btype:"btype-chips",len:"len-chips"};
+  const color=chipColor(grp);
+  document.querySelectorAll("#"+map[grp]+" .chip").forEach(c=>{c.classList.remove("sel");c.style.background="#fff";c.style.borderColor="#e5e7eb";c.style.color="#374151"});
+  el.classList.add("sel");
+  el.style.background=color;el.style.borderColor=color;el.style.color="#fff";
+  st[grp]=el.dataset.val;
 }
 
-function CopyBtn({text}){
-  const [copied,setCopied]=useState(false);
-  const copy=()=>{navigator.clipboard.writeText(text).then(()=>{setCopied(true);setTimeout(()=>setCopied(false),2000)})};
-  return <button onClick={copy} style={s.copyBtn}>{copied?"✅ Copié !":"Copier"}</button>;
-}
-
-async function callClaude(prompt,apiKey){
-  const headers={"Content-Type":"application/json","anthropic-version":"2023-06-01","anthropic-dangerous-direct-browser-access":"true"};
-  if(apiKey) headers["x-api-key"]=apiKey;
+async function callClaude(prompt){
+  const apiKey=loadApiKey();
+  if(!apiKey){throw new Error("Merci de renseigner ta clé API Anthropic ci-dessus.")}
   const r=await fetch("https://api.anthropic.com/v1/messages",{
     method:"POST",
-    headers,
-    body:JSON.stringify({
-      model:"claude-sonnet-4-20250514",
-      max_tokens:1000,
-      messages:[{role:"user",content:prompt}]
-    })
+    headers:{
+      "Content-Type":"application/json",
+      "x-api-key":apiKey,
+      "anthropic-version":"2023-06-01",
+      "anthropic-dangerous-direct-browser-access":"true"
+    },
+    body:JSON.stringify({model:"claude-sonnet-4-20250514",max_tokens:1000,messages:[{role:"user",content:prompt}]})
   });
-  if(!r.ok){const e=await r.json().catch(()=>({error:{message:r.statusText}}));throw new Error(e?.error?.message||r.statusText)}
+  if(!r.ok){const e=await r.json().catch(()=>({}));throw new Error(e?.error?.message||r.statusText)}
   const d=await r.json();
   return d.content.map(i=>i.text||"").join("");
 }
 
-function GoogleBusinessTab({apiKey}){
-  const [brand,setBrand]=useState("fermapro");
-  const [type,setType]=useState("realisation");
-  const [tone,setTone]=useState("Chaleureux");
-  const [subject,setSubject]=useState("");
-  const [loading,setLoading]=useState(false);
-  const [result,setResult]=useState(null);
-  const [error,setError]=useState(null);
-
-  const b=BRANDS[brand];
-
-  const generate=async()=>{
-    if(!subject.trim()){alert("Merci de renseigner un sujet.");return}
-    setLoading(true);setError(null);setResult(null);
-    const typeLabels={realisation:"réalisation client",conseil:"conseil pratique",promo:"offre/promo",sav:"service SAV",avis:"mise en avant avis clients",saisonnier:"conseil saisonnier",produit:"nouveauté produit",actu:"événement/actu"};
-    const prompt=`Tu es expert en marketing local pour ${b.name}, entreprise spécialisée en ${b.services} basée à ${b.zone}.
-
-Rédige un post Google Business de type "${typeLabels[type]}" sur le sujet : "${subject}".
-Ton : ${tone}.
-Longueur : 150-300 mots.
-Intègre naturellement : numéro ${b.phone} | site ${b.site} | hashtags ${b.hashtags}.
-Utilise 2-3 emojis pertinents. Termine par un appel à l'action clair. Écris directement le post sans introduction ni explication. Texte brut uniquement : aucun markdown, pas de **, pas de #, pas de tirets listes.`;
-    try{const t=await callClaude(prompt,apiKey);setResult(t)}
-    catch(e){setError(e.message)}
-    setLoading(false);
-  };
-
-  return(
-    <div>
-      <div style={s.card}>
-        <span style={s.lbl}>Entreprise</span>
-        <div style={{display:"flex",gap:10}}>
-          {Object.values(BRANDS).map(br=>(
-            <button key={br.id} onClick={()=>setBrand(br.id)} style={{flex:1,padding:10,borderRadius:10,border:"2px solid "+(brand===br.id?br.color:"#e5e7eb"),background:brand===br.id?br.color+"15":"#fff",cursor:"pointer",fontSize:13,fontWeight:600,color:brand===br.id?br.color:"#6b7280"}}>
-              {br.emoji} {br.name}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      <div style={s.card}>
-        <span style={s.lbl}>Type de post</span>
-        <div style={{display:"flex",flexWrap:"wrap",gap:8}}>
-          {GBP_TYPES.map(t=>(
-            <button key={t.id} onClick={()=>setType(t.id)} style={s.chip(type===t.id,b.color)}>
-              {t.emoji} {t.label}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      <div style={s.card}>
-        <span style={s.lbl}>Ton</span>
-        <div style={{display:"flex",flexWrap:"wrap",gap:8}}>
-          {TONES.map(t=>(
-            <button key={t} onClick={()=>setTone(t)} style={s.chip(tone===t,b.color)}>{t}</button>
-          ))}
-        </div>
-      </div>
-
-      <div style={s.card}>
-        <span style={s.lbl}>Sujet / Contexte</span>
-        <textarea value={subject} onChange={e=>setSubject(e.target.value)} placeholder="Ex : installation pergola bioclimatique à Joué-lès-Tours…" maxLength={500} style={{width:"100%",border:"1.5px solid "+(subject?"#e5e7eb":"#e5e7eb"),borderRadius:10,padding:"10px 12px",fontSize:13,color:"#374151",resize:"vertical",minHeight:80,outline:"none"}}/>
-        <div style={{textAlign:"right",fontSize:11,color:"#9ca3af",marginTop:4}}>{subject.length} / 500 caractères</div>
-      </div>
-
-      <button onClick={generate} disabled={loading} style={{...s.btn(b.color,b.dark),opacity:loading?.6:1}}>
-        {loading?"⏳ Génération en cours…":"✨ Générer le post"}
-      </button>
-
-      {error&&<div style={s.err}>⚠️ Erreur : {error}</div>}
-
-      {result&&(
-        <div style={{...s.card,marginTop:12,border:"1.5px solid "+b.color+"40"}}>
-          <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:12}}>
-            <span style={{fontSize:13,fontWeight:600,color:"#374151"}}>Post Google Business</span>
-            <div style={{display:"flex",gap:8}}>
-              <button onClick={generate} style={{...s.copyBtn,borderColor:b.color,color:b.color}}>🔄 Variante</button>
-              <CopyBtn text={result}/>
-            </div>
-          </div>
-          <div style={s.result}>{result}</div>
-        </div>
-      )}
-    </div>
-  );
+async function generateGBP(){
+  const subj=document.getElementById("gbp-subject").value.trim();
+  if(!subj){alert("Merci de renseigner un sujet.");return}
+  const btn=document.getElementById("gbp-btn");
+  const errEl=document.getElementById("gbp-error");
+  const resEl=document.getElementById("gbp-result");
+  errEl.classList.add("hidden");resEl.classList.add("hidden");
+  btn.disabled=true;btn.textContent="⏳ Génération en cours…";
+  const b=BRANDS[st.brand];
+  const tl={realisation:"réalisation client",conseil:"conseil pratique",promo:"offre/promo",sav:"service SAV",avis:"mise en avant avis clients",saisonnier:"conseil saisonnier",produit:"nouveauté produit",actu:"événement/actu"};
+  const prompt=`Tu es expert en marketing local pour ${b.name}, spécialisé en ${b.services}, basé à ${b.zone}.
+Rédige un post Google Business de type "${tl[st.type]}" sur le sujet : "${subj}".
+Ton : ${st.tone}. Longueur : 150-300 mots.
+Intègre naturellement : ${b.phone} | ${b.site} | ${b.hashtags}.
+Utilise 2-3 emojis pertinents. Termine par un appel à l'action clair.
+Texte brut uniquement : aucun markdown, pas de **, pas de #, pas de tirets listes. Écris directement le post.`;
+  try{
+    const t=await callClaude(prompt);
+    document.getElementById("gbp-out").textContent=t;
+    resEl.classList.remove("hidden");
+  }catch(e){errEl.textContent="⚠️ Erreur : "+e.message;errEl.classList.remove("hidden")}
+  btn.disabled=false;btn.textContent="✨ Générer le post";
 }
 
-function BlogSeoTab({apiKey}){
-  const [brand,setBrand]=useState("fermapro");
-  const [type,setType]=useState("guide");
-  const [len,setLen]=useState("court");
-  const [subject,setSubject]=useState("");
-  const [loading,setLoading]=useState(false);
-  const [result,setResult]=useState(null);
-  const [error,setError]=useState(null);
-
-  const b=BRANDS[brand];
-
-  const generate=async()=>{
-    if(!subject.trim()){alert("Merci de renseigner un sujet.");return}
-    setLoading(true);setError(null);setResult(null);
-    const lenMap={court:"400 mots",moyen:"800 mots",long:"1500 mots"};
-    const typeMap={guide:"guide complet avec introduction, chapitres et conclusion",conseils:"article conseils pratiques",comparatif:"article comparatif objectif",faq:"article FAQ optimisé SEO avec questions/réponses",tendances:"article tendances du secteur"};
-    const prompt=`Tu es expert SEO et content marketing pour ${b.name} (${b.services}, ${b.zone}).
-
-Rédige un ${typeMap[type]} sur : "${subject}".
-Longueur cible : ${lenMap[len]}.
-Structure : titre H1, sous-titres H2, paragraphes bien développés.
-SEO : intègre le mot-clé principal et ses variantes naturellement.
-Mentionne ${b.name} et ${b.zone} de façon naturelle.
-Ton professionnel et local. Texte brut uniquement : aucun markdown, pas de **, pas de #, pas de tirets listes. Écris directement l'article sans introduction ni explication préalable.`;
-    try{const t=await callClaude(prompt,apiKey);setResult(t)}
-    catch(e){setError(e.message)}
-    setLoading(false);
-  };
-
-  return(
-    <div>
-      <div style={s.card}>
-        <span style={s.lbl}>Entreprise</span>
-        <div style={{display:"flex",gap:10}}>
-          {Object.values(BRANDS).map(br=>(
-            <button key={br.id} onClick={()=>setBrand(br.id)} style={{flex:1,padding:10,borderRadius:10,border:"2px solid "+(brand===br.id?br.color:"#e5e7eb"),background:brand===br.id?br.color+"15":"#fff",cursor:"pointer",fontSize:13,fontWeight:600,color:brand===br.id?br.color:"#6b7280"}}>
-              {br.emoji} {br.name}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      <div style={s.card}>
-        <span style={s.lbl}>Type d'article</span>
-        <div style={{display:"flex",flexWrap:"wrap",gap:8}}>
-          {BLOG_TYPES.map(t=>(
-            <button key={t.id} onClick={()=>setType(t.id)} style={s.chip(type===t.id,b.color)}>
-              {t.emoji} {t.label}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      <div style={s.card}>
-        <span style={s.lbl}>Longueur</span>
-        <div style={{display:"flex",flexWrap:"wrap",gap:8}}>
-          {BLOG_LENGTHS.map(l=>(
-            <button key={l.id} onClick={()=>setLen(l.id)} style={s.chip(len===l.id,b.color)}>{l.label}</button>
-          ))}
-        </div>
-      </div>
-
-      <div style={s.card}>
-        <span style={s.lbl}>Sujet / Mot-clé principal</span>
-        <textarea value={subject} onChange={e=>setSubject(e.target.value)} placeholder="Ex : volets roulants solaires, avantages et installation…" maxLength={500} style={{width:"100%",border:"1.5px solid #e5e7eb",borderRadius:10,padding:"10px 12px",fontSize:13,color:"#374151",resize:"vertical",minHeight:80,outline:"none"}}/>
-      </div>
-
-      <button onClick={generate} disabled={loading} style={{...s.btn(b.color,b.dark),opacity:loading?.6:1}}>
-        {loading?"⏳ Génération en cours…":"✨ Générer l'article"}
-      </button>
-
-      {error&&<div style={s.err}>⚠️ Erreur : {error}</div>}
-
-      {result&&(
-        <div style={{...s.card,marginTop:12,border:"1.5px solid "+b.color+"40"}}>
-          <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:12}}>
-            <span style={{fontSize:13,fontWeight:600,color:"#374151"}}>Article SEO</span>
-            <div style={{display:"flex",gap:8}}>
-              <button onClick={generate} style={{...s.copyBtn,borderColor:b.color,color:b.color}}>🔄 Variante</button>
-              <CopyBtn text={result}/>
-            </div>
-          </div>
-          <div style={s.result}>{result}</div>
-        </div>
-      )}
-    </div>
-  );
+async function generateBlog(){
+  const subj=document.getElementById("blog-subject").value.trim();
+  if(!subj){alert("Merci de renseigner un sujet.");return}
+  const btn=document.getElementById("blog-btn");
+  const errEl=document.getElementById("blog-error");
+  const resEl=document.getElementById("blog-result");
+  errEl.classList.add("hidden");resEl.classList.add("hidden");
+  btn.disabled=true;btn.textContent="⏳ Génération en cours…";
+  const b=BRANDS[st.blogBrand];
+  const lenMap={court:"400 mots",moyen:"800 mots",long:"1500 mots"};
+  const typeMap={guide:"guide complet avec introduction, chapitres et conclusion",conseils:"article conseils pratiques",comparatif:"article comparatif objectif",faq:"article FAQ optimisé SEO avec questions/réponses",tendances:"article tendances du secteur"};
+  const prompt=`Tu es expert SEO et content marketing pour ${b.name} (${b.services}, ${b.zone}).
+Rédige un ${typeMap[st.btype]} sur : "${subj}".
+Longueur cible : ${lenMap[st.len]}.
+SEO : intègre le mot-clé principal et ses variantes naturellement. Mentionne ${b.name} et ${b.zone} de façon naturelle.
+Texte brut uniquement : aucun markdown, pas de **, pas de #, pas de tirets listes. Structure avec des sauts de ligne entre les paragraphes. Écris directement l'article.`;
+  try{
+    const t=await callClaude(prompt);
+    document.getElementById("blog-out").textContent=t;
+    resEl.classList.remove("hidden");
+  }catch(e){errEl.textContent="⚠️ Erreur : "+e.message;errEl.classList.remove("hidden")}
+  btn.disabled=false;btn.textContent="✨ Générer l'article";
 }
 
-function App(){
-  const [tab,setTab]=useState("gbp");
-  const [apiKey,setApiKey]=useState(()=>localStorage.getItem("fmk_api_key")||"");
-  const tabs=[{id:"gbp",label:"Google Business",icon:"📍"},{id:"blog",label:"Blog SEO",icon:"✍️"}];
-  return(
-    <div style={{minHeight:"100vh",background:"#f4f5fb"}}>
-      <div style={{background:"#2D3D74",padding:"20px 16px 0"}}>
-        <div style={{maxWidth:640,margin:"0 auto"}}>
-          <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:18}}>
-            <span style={{fontSize:22}}>🚀</span>
-            <div>
-              <div style={{fontSize:16,fontWeight:700,color:"#fff"}}>Fermapro Marketing Suite</div>
-              <div style={{fontSize:11,color:"rgba(255,255,255,.55)"}}>AI Content Generator</div>
-            </div>
-          </div>
-          <div style={{display:"flex",gap:4}}>
-            {tabs.map(t=>(
-              <button key={t.id} onClick={()=>setTab(t.id)} style={{padding:"10px 18px",borderRadius:"10px 10px 0 0",background:tab===t.id?"#f4f5fb":"transparent",color:tab===t.id?"#2D3D74":"rgba(255,255,255,.65)",border:"none",cursor:"pointer",fontSize:13,fontWeight:600}}>
-                {t.icon} {t.label}
-              </button>
-            ))}
-          </div>
-        </div>
-      </div>
-      <div style={{padding:"20px 16px 40px",maxWidth:640,margin:"0 auto"}}>
-        <ApiKeyBanner apiKey={apiKey} setApiKey={setApiKey}/>
-        {tab==="gbp"?<GoogleBusinessTab apiKey={apiKey}/>:<BlogSeoTab apiKey={apiKey}/>}
-      </div>
-    </div>
-  );
+function copyText(id){
+  const t=document.getElementById(id).textContent;
+  navigator.clipboard.writeText(t).then(()=>{
+    const b=event.target;const orig=b.textContent;b.textContent="✅ Copié !";setTimeout(()=>b.textContent=orig,2000);
+  });
 }
-
-ReactDOM.createRoot(document.getElementById("root")).render(<App/>);
 </script>
 </body>
 </html>
