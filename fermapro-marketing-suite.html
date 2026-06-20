@@ -26,7 +26,7 @@ textarea,input,button{font-family:inherit}
 .lbl{font-size:11px;font-weight:600;letter-spacing:.07em;color:#6b7280;text-transform:uppercase;display:block;margin-bottom:10px}
 .chip-grid{display:flex;flex-wrap:wrap;gap:8px}
 .chip{padding:7px 14px;border-radius:20px;border:1.5px solid #e5e7eb;font-size:13px;font-weight:500;cursor:pointer;background:#fff;color:#374151;transition:all .15s}
-.chip.sel{color:#fff}
+.chip.sel{background:var(--accent,#F06691);border-color:var(--accent,#F06691);color:#fff}
 textarea{width:100%;border:1.5px solid #e5e7eb;border-radius:10px;padding:10px 12px;font-size:13px;color:#374151;resize:vertical;min-height:80px;outline:none}
 textarea:focus{border-color:#F06691}
 .charcount{text-align:right;font-size:11px;color:#9ca3af;margin-top:4px}
@@ -229,21 +229,18 @@ function selectBrand(b){
   st.brand=b;
   document.getElementById("brand-f").className="brand-btn"+(b==="fermapro"?" sel-f":"");
   document.getElementById("brand-r").className="brand-btn"+(b==="reparpro"?" sel-r":"");
+  document.getElementById("pane-gbp").style.setProperty("--accent",b==="fermapro"?"#F06691":"#2D3D74");
 }
 function selectBlogBrand(b){
   st.blogBrand=b;
   document.getElementById("brand-bf").className="brand-btn"+(b==="fermapro"?" sel-f":"");
   document.getElementById("brand-br").className="brand-btn"+(b==="reparpro"?" sel-r":"");
-}
-function chipColor(grp){
-  return (grp==="type"||grp==="tone") ? (st.brand==="fermapro"?"#F06691":"#2D3D74") : (st.blogBrand==="fermapro"?"#F06691":"#2D3D74");
+  document.getElementById("pane-blog").style.setProperty("--accent",b==="fermapro"?"#F06691":"#2D3D74");
 }
 function selChip(el,grp){
   const map={type:"type-chips",tone:"tone-chips",btype:"btype-chips",len:"len-chips"};
-  const color=chipColor(grp);
-  document.querySelectorAll("#"+map[grp]+" .chip").forEach(c=>{c.classList.remove("sel");c.style.background="#fff";c.style.borderColor="#e5e7eb";c.style.color="#374151"});
+  document.querySelectorAll("#"+map[grp]+" .chip").forEach(c=>c.classList.remove("sel"));
   el.classList.add("sel");
-  el.style.background=color;el.style.borderColor=color;el.style.color="#fff";
   st[grp]=el.dataset.val;
 }
 
