@@ -1,0 +1,648 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<title>Auto-contrôle pose — Fermapro</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<style>
+:root{
+  --rose:#F06691; --bleu:#2D3D74; --bleu-fonce:#22305C;
+  --fond:#F2F3F7; --carte:#FFFFFF; --trait:#D8DCE8;
+  --ok:#1E9E62; --nc:#D93A4A; --so:#8A93AB; --encre:#20263A;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html{font-size:16px}
+body{font-family:'Barlow',system-ui,sans-serif;background:var(--fond);color:var(--encre);padding-bottom:96px}
+header{background:var(--bleu);color:#fff;padding:14px 16px 12px;position:sticky;top:0;z-index:20;box-shadow:0 2px 8px rgba(34,48,92,.25)}
+.brand{display:flex;align-items:baseline;justify-content:space-between}
+.brand h1{font-family:'Barlow Condensed';font-size:1.35rem;font-weight:700;letter-spacing:.03em;text-transform:uppercase}
+.badge{background:var(--rose);color:#fff;font-family:'Barlow Condensed';font-weight:700;font-size:.95rem;letter-spacing:.06em;padding:3px 10px;border-radius:4px}
+.sub{font-size:.78rem;opacity:.75;margin-top:2px}
+main{max-width:640px;margin:0 auto;padding:14px 12px}
+.carte{background:var(--carte);border:1px solid var(--trait);border-radius:12px;padding:14px;margin-bottom:14px}
+h2{font-family:'Barlow Condensed';font-size:1.05rem;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--bleu);margin-bottom:10px}
+/* Produits */
+.produits{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
+.produits button{border:1.5px solid var(--trait);background:#fff;border-radius:10px;padding:12px 8px;font-family:'Barlow';font-weight:600;font-size:.88rem;color:var(--encre);cursor:pointer;line-height:1.25}
+.produits button.actif{border-color:var(--rose);background:var(--rose);color:#fff}
+.produits button:last-child{grid-column:1/-1}
+/* Infos */
+.champ{margin-bottom:10px}
+.champ label{display:block;font-size:.78rem;font-weight:600;color:var(--bleu);text-transform:uppercase;letter-spacing:.04em;margin-bottom:4px}
+.champ input{width:100%;border:1.5px solid var(--trait);border-radius:8px;padding:11px 12px;font-family:'Barlow';font-size:1rem;background:#fff}
+.champ input:focus{outline:none;border-color:var(--bleu)}
+.infos-grille{display:grid;grid-template-columns:1fr 1fr;gap:0 10px}
+.infos-grille .champ:first-child{grid-column:1/-1}
+/* Checklist */
+.section-titre{display:flex;align-items:center;justify-content:space-between;background:var(--fond);border-radius:8px;padding:8px 10px;margin:14px 0 6px}
+.section-titre span{font-family:'Barlow Condensed';font-weight:700;font-size:.95rem;letter-spacing:.05em;text-transform:uppercase;color:var(--rose)}
+.tout-c{border:none;background:var(--bleu);color:#fff;font-family:'Barlow';font-weight:600;font-size:.72rem;padding:6px 10px;border-radius:6px;cursor:pointer}
+.point{padding:11px 2px;border-bottom:1px solid var(--fond)}
+.point:last-child{border-bottom:none}
+.point .pt{font-size:.92rem;font-weight:600;line-height:1.3;margin-bottom:5px}
+.point .crit{font-size:.82rem;line-height:1.42;color:#4A5573;background:#F7F8FB;border-left:3px solid var(--rose);border-radius:0 6px 6px 0;padding:7px 9px;margin-bottom:9px}
+.point .crit b{color:var(--bleu);font-weight:600}
+.etats{display:flex;gap:6px}
+.etats button{flex:1;border:1.5px solid var(--trait);background:#fff;border-radius:8px;padding:9px 0;font-family:'Barlow';font-weight:600;font-size:.82rem;color:var(--so);cursor:pointer;transition:background .1s}
+.etats button.c.actif{background:var(--ok);border-color:var(--ok);color:#fff}
+.etats button.nc.actif{background:var(--nc);border-color:var(--nc);color:#fff}
+.etats button.so.actif{background:var(--so);border-color:var(--so);color:#fff}
+.obs-point{display:none;margin-top:8px}
+.obs-point.visible{display:block}
+.obs-point input{width:100%;border:1.5px solid var(--nc);border-radius:8px;padding:9px 10px;font-family:'Barlow';font-size:.9rem;background:#FFF6F7}
+textarea{width:100%;border:1.5px solid var(--trait);border-radius:8px;padding:11px 12px;font-family:'Barlow';font-size:.95rem;min-height:88px;resize:vertical;background:#fff}
+textarea:focus{outline:none;border-color:var(--bleu)}
+/* Signatures */
+.sig-bloc{margin-bottom:14px}
+.sig-bloc:last-child{margin-bottom:0}
+.sig-entete{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
+.sig-entete label{font-size:.78rem;font-weight:600;color:var(--bleu);text-transform:uppercase;letter-spacing:.04em}
+.sig-entete button{border:none;background:none;color:var(--rose);font-family:'Barlow';font-weight:600;font-size:.78rem;cursor:pointer;padding:4px}
+.sig-bloc input{width:100%;border:1.5px solid var(--trait);border-radius:8px;padding:10px 12px;font-family:'Barlow';font-size:.95rem;margin-bottom:6px;background:#fff}
+canvas.sig{width:100%;height:120px;border:1.5px dashed var(--trait);border-radius:8px;background:#fff;touch-action:none;display:block}
+/* Barre basse */
+.barre{position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px solid var(--trait);padding:10px 12px calc(10px + env(safe-area-inset-bottom));z-index:30}
+.barre-in{max-width:640px;margin:0 auto;display:flex;align-items:center;gap:10px}
+.progres{flex:1;font-size:.8rem;color:var(--so);line-height:1.3}
+.progres b{color:var(--bleu);font-size:.95rem}
+.btn-pdf{border:none;background:var(--rose);color:#fff;font-family:'Barlow';font-weight:600;font-size:.95rem;padding:13px 18px;border-radius:10px;cursor:pointer;white-space:nowrap}
+.btn-pdf:disabled{background:var(--so);opacity:.55}
+.btn-share{border:1.5px solid var(--bleu);background:#fff;color:var(--bleu);font-weight:600;font-size:.95rem;padding:12px 14px;border-radius:10px;cursor:pointer;font-family:'Barlow';display:none}
+.note-trello{font-size:.78rem;color:var(--so);text-align:center;margin:4px 0 10px}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:100px;background:var(--bleu);color:#fff;padding:10px 16px;border-radius:8px;font-size:.85rem;opacity:0;pointer-events:none;transition:opacity .25s;z-index:40}
+.toast.visible{opacity:1}
+@media(min-width:520px){.produits{grid-template-columns:repeat(3,1fr)}.produits button:last-child{grid-column:auto}}
+</style>
+</head>
+<body>
+<header>
+  <div class="brand"><h1>Auto-contrôle pose</h1><span class="badge">FERMAPRO</span></div>
+  <div class="sub">Usage interne — contrôle qualité et formation des techniciens</div>
+</header>
+
+<main>
+  <div class="carte">
+    <h2>1 · Produit posé</h2>
+    <div class="produits" id="produits"></div>
+  </div>
+
+  <div class="carte">
+    <h2>2 · Chantier</h2>
+    <div class="infos-grille">
+      <div class="champ"><label for="client">Client</label><input id="client" type="text" autocomplete="off" placeholder="Nom du client"></div>
+      <div class="champ"><label for="datePose">Date de pose</label><input id="datePose" type="date"></div>
+      <div class="champ"><label for="repere">Repère / pièce</label><input id="repere" type="text" autocomplete="off" placeholder="Ex. F2 séjour"></div>
+    </div>
+    <div class="champ" style="margin-bottom:0"><label for="poseur">Technicien poseur</label><input id="poseur" type="text" autocomplete="off" placeholder="Prénom Nom"></div>
+  </div>
+
+  <div class="carte" id="carteChecklist" style="display:none">
+    <h2>3 · Points de contrôle</h2>
+    <div id="checklist"></div>
+  </div>
+
+  <div class="carte" id="carteObs" style="display:none">
+    <h2>4 · Observations / actions correctives / formation</h2>
+    <textarea id="observations" placeholder="Points à revoir, actions correctives, remarques de formation…"></textarea>
+  </div>
+
+  <div class="carte" id="carteSig" style="display:none">
+    <h2>5 · Signatures</h2>
+    <div class="sig-bloc">
+      <div class="sig-entete"><label>Technicien poseur</label><button type="button" data-clear="sigTech">Effacer</button></div>
+      <canvas class="sig" id="sigTech"></canvas>
+    </div>
+    <div class="sig-bloc">
+      <div class="sig-entete"><label>Contrôle interne (responsable / tuteur)</label><button type="button" data-clear="sigCtrl">Effacer</button></div>
+      <input id="ctrlNom" type="text" autocomplete="off" placeholder="Nom du contrôleur (optionnel)">
+      <canvas class="sig" id="sigCtrl"></canvas>
+    </div>
+    <p class="note-trello" style="margin-top:12px;margin-bottom:0">Le PDF généré est à joindre à la fiche client dans Trello.</p>
+  </div>
+</main>
+
+<div class="barre">
+  <div class="barre-in">
+    <div class="progres" id="progres">Choisir un produit pour démarrer</div>
+    <button class="btn-share" id="btnShare" type="button">Partager</button>
+    <button class="btn-pdf" id="btnPdf" type="button" disabled>Exporter en PDF</button>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+"use strict";
+/* ============ DONNÉES ============
+   Chaque point : t = point de contrôle, c = critère de conformité
+   (valeur attendue, tolérance, méthode de vérification) */
+
+const FIN_CHANTIER = { titre: "Fin de chantier", points: [
+  { t: "Nettoyage du produit",
+    c: "Films de protection retirés, vitrages et profils nettoyés, sans trace de mastic ni de colle." },
+  { t: "Nettoyage du chantier et déchets",
+    c: "Zone de travail rendue propre, protections retirées, déchets triés et évacués (bordereau si nécessaire)." },
+  { t: "Démonstration au client",
+    c: "Fonctionnement montré, consignes d'entretien expliquées, questions du client traitées." },
+  { t: "Photos avant / après",
+    c: "Photos nettes du produit posé et des finitions, archivées dans le dossier client." },
+  { t: "Remontée d'information",
+    c: "Anomalies, difficultés ou adaptations de pose signalées au responsable avant de quitter le chantier." }
+]};
+
+const PRODUITS = {
+  "Fenêtres / baies": { ref: "Réf. NF DTU 36.5", sections: [
+    { titre: "Avant pose", points: [
+      { t: "Dimensions du dormant",
+        c: "Cotes conformes au métré / bon de commande. Jeu périphérique régulier et compatible avec le calfeutrement prévu." },
+      { t: "Conformité de la commande",
+        c: "Sens d'ouverture, coloris et vitrage identiques ligne à ligne au bon de commande (étiquette produit = BC)." },
+      { t: "Contrôle du produit à la livraison",
+        c: "Aucun choc, rayure ou casse visible à 1 m sous lumière naturelle. Vitrage sans fissure ni rayure traversante." },
+      { t: "État du support",
+        c: "Tableau ou dormant existant plan, sec, sain et dépoussiéré. En rénovation : ancien dormant sans pourriture ni jeu, fixé solidement." }
+    ]},
+    { titre: "Mise en oeuvre", points: [
+      { t: "Aplomb, niveau et équerrage",
+        c: "Aplomb et niveau : écart <= 2 mm/m (niveau à bulle ou laser). Équerrage : différence des diagonales <= 2 mm." },
+      { t: "Fixations",
+        c: "Entraxe <= 800 mm, première fixation à moins de 250 mm de chaque angle. Chevilles adaptées à la nature du support." },
+      { t: "Calage du dormant",
+        c: "Cales d'assise en place sous les montants. Traverses rectilignes, aucune déformation visible, ouvrant manoeuvrable avant calfeutrement." },
+      { t: "Calfeutrement périphérique",
+        c: "Cordon continu sans manque : mousse imprégnée comprimée ou mastic extrudé sur fond de joint, sur toute la périphérie." },
+      { t: "Étanchéité air / eau",
+        c: "Barrière intérieure étanche à l'air continue, rejet d'eau vers l'extérieur. Aucune lumière visible entre dormant et gros oeuvre." },
+      { t: "Drainage",
+        c: "Orifices de drainage ouverts, non obstrués par le calfeutrement, orientés vers l'extérieur, déflecteurs en place." },
+      { t: "Vitrage",
+        c: "Cales positionnées selon le type d'ouvrant, parcloses clipsées à fond, joints de vitrage continus, sans pincement." }
+    ]},
+    { titre: "Fonctionnement et réglages", points: [
+      { t: "Jeu ouvrant / dormant",
+        c: "Jeu visuellement régulier sur toute la périphérie (écart constant), aucun frottement en manoeuvre." },
+      { t: "Manoeuvre",
+        c: "Ouverture et fermeture sans effort excessif ni point dur. Oscillo-battant : bascule et refermeture correctes." },
+      { t: "Compression des joints et verrouillage",
+        c: "Test de la feuille de papier : résistance à l'arrachement sur les 4 côtés, fenêtre verrouillée. Tous les points de verrouillage engagés." },
+      { t: "Poignées et quincaillerie",
+        c: "Poignée alignée et sans jeu, vis serrées, caches posés, fonctionnement fluide." },
+      { t: "Habillages et finitions",
+        c: "Habillages plans et jointifs, cordon silicone lisse, régulier et continu, sans bavure." }
+    ]}
+  ]},
+
+  "Porte d'entrée": { ref: "Réf. NF DTU 36.5", sections: [
+    { titre: "Avant pose", points: [
+      { t: "Conformité de la commande",
+        c: "Dimensions, sens d'ouverture, coloris et vitrage identiques au bon de commande (étiquette produit = BC)." },
+      { t: "Contrôle du produit à la livraison",
+        c: "Aucun choc ni rayure visible à 1 m sous lumière naturelle, panneau non voilé." },
+      { t: "État du support et du seuil",
+        c: "Support plan et sain, réservation du seuil propre, sèche et de niveau." }
+    ]},
+    { titre: "Mise en oeuvre", points: [
+      { t: "Aplomb et niveau du dormant",
+        c: "Écart <= 2 mm/m au niveau à bulle ou laser, dormant non vrillé (diagonales égales à 2 mm près)." },
+      { t: "Seuil",
+        c: "Ressaut <= 20 mm si accessibilité PMR requise. Seuil calé, fixé et étanché au sol sur toute la largeur." },
+      { t: "Fixations",
+        c: "Entraxe <= 800 mm, fixations à moins de 250 mm des angles, renfort côté paumelles." },
+      { t: "Calfeutrement",
+        c: "Cordon continu intérieur et extérieur sur toute la périphérie, aucune lumière visible dormant / gros oeuvre." }
+    ]},
+    { titre: "Fonctionnement et réglages", points: [
+      { t: "Jeu ouvrant / dormant",
+        c: "Jeu régulier sur les 4 côtés, aucun frottement ni point de contact en manoeuvre." },
+      { t: "Serrure multipoints",
+        c: "Porte fermée : tous les points s'engagent sans forcer, gâches réglées, condamnation complète à la clé." },
+      { t: "Cylindre et clés",
+        c: "Chaque clé testée : rotation complète des deux côtés. Clés remises au client en fin de chantier." },
+      { t: "Compression du joint",
+        c: "Test de la feuille de papier : résistance à l'arrachement sur les 4 côtés, porte verrouillée." },
+      { t: "Accessoires",
+        c: "Ferme-porte réglé (fermeture complète sans claquer), tirant / heurtoir / entrebâilleur fixés sans jeu, le cas échéant." },
+      { t: "Habillages et finitions",
+        c: "Habillages jointifs, cordon silicone lisse et continu, sans bavure." }
+    ]}
+  ]},
+
+  "Volet roulant": { ref: "Prescriptions Somfy", sections: [
+    { titre: "Avant pose", points: [
+      { t: "Dimensions et coloris",
+        c: "Cotes coffre et tablier conformes au métré / bon de commande, coloris conforme." },
+      { t: "Type de manoeuvre",
+        c: "Manoeuvre conforme à la commande : filaire, RTS, IO ou solaire." },
+      { t: "Contrôle du produit à la livraison",
+        c: "Lames, coffre et coulisses sans choc, rayure ni déformation." }
+    ]},
+    { titre: "Mise en oeuvre", points: [
+      { t: "Coulisses",
+        c: "Aplomb <= 2 mm/m, parallélisme constant (écart identique en haut et en bas), fixation sur tous les points prévus." },
+      { t: "Coffre",
+        c: "De niveau, fixé sans porte-à-faux, trappe de visite accessible pour le SAV." },
+      { t: "Tablier",
+        c: "Centré dans les coulisses (jeu identique des deux côtés), attaches tablier toutes verrouillées." },
+      { t: "Étanchéité du coffre",
+        c: "Jonction coffre / traverse haute calfeutrée, aucune lumière visible." },
+      { t: "Raccordement électrique",
+        c: "Câblage réalisé hors tension, raccordement protégé, aucun câble pincé ni apparent dans la zone de mouvement." }
+    ]},
+    { titre: "Motorisation et réglages (Somfy)", points: [
+      { t: "Fins de course",
+        c: "Sens de rotation vérifié. Arrêt haut : sans contrainte sur le coffre. Arrêt bas : lames jointives, lame finale au contact du sol ou de l'appui." },
+      { t: "Points de commande",
+        c: "Chaque télécommande / commande murale appairée et testée : montée, descente, stop." },
+      { t: "Programmation",
+        c: "Position favorite (my) enregistrée si demandée, canaux nommés en cas de centralisation, retour d'info IO vérifié." },
+      { t: "Sécurités",
+        c: "Détection d'obstacle : le tablier s'arrête ou remonte sur obstacle. Manoeuvre de secours fonctionnelle le cas échéant." },
+      { t: "Verrouillage",
+        c: "Verrous anti-relevage engagés, descente complète sans jour latéral." },
+      { t: "Cycles de validation",
+        c: "3 cycles complets montée / descente sans point dur, à-coup ni bruit anormal." }
+    ]}
+  ]},
+
+  "Portail": { ref: "Réf. NF EN 13241 / EN 12453", sections: [
+    { titre: "Avant pose", points: [
+      { t: "Dimensions entre piliers",
+        c: "Écartement conforme au métré, mesuré en haut, au milieu et en bas : valeurs identiques (piliers parallèles)." },
+      { t: "État des piliers / supports",
+        c: "Piliers sains, d'aplomb (écart <= 5 mm sur la hauteur), capables de reprendre le poids et les efforts du portail." },
+      { t: "Contrôle du produit à la livraison",
+        c: "Vantaux / coulissant sans choc, rayure ni déformation, remplissage conforme à la commande." }
+    ]},
+    { titre: "Mise en oeuvre", points: [
+      { t: "Scellements et fixations",
+        c: "Platines ou scellements complets, chevilles adaptées au support (scellement chimique si support creux), serrage contrôlé." },
+      { t: "Alignement des vantaux",
+        c: "Vantaux ou coulissant d'aplomb et de niveau, traverses alignées en position fermée (affleurement régulier)." },
+      { t: "Jeu au sol et butées",
+        c: "Garde au sol régulière sur toute la course, butées d'ouverture et de fermeture posées et testées." },
+      { t: "Verrouillage mécanique",
+        c: "Gâche, serrure ou verrou de coulissant fonctionnent sans forcer, portail en position fermée." }
+    ]},
+    { titre: "Motorisation et sécurité (NF EN 13241)", points: [
+      { t: "Fins de course",
+        c: "Arrêt aux positions réglées d'ouverture et de fermeture, sans contrainte mécanique sur les butées." },
+      { t: "Détection d'obstacle",
+        c: "Inversion ou arrêt au contact d'un obstacle, effort moteur réglé au minimum fonctionnel (EN 12453)." },
+      { t: "Photocellules",
+        c: "Coupure du faisceau pendant la fermeture = arrêt / réouverture immédiate. Cellules alignées et propres." },
+      { t: "Signalisation",
+        c: "Feu clignotant actif pendant tout mouvement, visible depuis les deux côtés du portail." },
+      { t: "Débrayage manuel",
+        c: "Portail manoeuvrable à la main après débrayage, clé de débrayage remise au client avec démonstration." },
+      { t: "Points de commande",
+        c: "Chaque télécommande, digicode et interphone appairé et testé en ouverture et fermeture." },
+      { t: "Cycles et zones de pincement",
+        c: "3 cycles complets sans point dur. Jeux résiduels aux zones de pincement < 8 mm ou > 25 mm (protection des doigts)." }
+    ]}
+  ]},
+
+  "Porte de garage": { ref: "Réf. NF EN 13241 / EN 12453", sections: [
+    { titre: "Avant pose", points: [
+      { t: "Dimensions de la baie",
+        c: "Largeur, hauteur, écoinçons et retombée de linteau conformes au métré." },
+      { t: "Conformité de la commande",
+        c: "Type de porte (sectionnelle, enroulable, basculante) et coloris identiques au bon de commande." },
+      { t: "Contrôle du produit à la livraison",
+        c: "Panneaux / lames sans choc, rayure ni déformation." }
+    ]},
+    { titre: "Mise en oeuvre", points: [
+      { t: "Rails et coulisses",
+        c: "D'aplomb et parallèles (écart constant sur toute la hauteur), fixés sur tous les points prévus par le fabricant." },
+      { t: "Équilibrage du tablier",
+        c: "Ressorts ou sangles tendus : le tablier débrayé reste immobile à mi-course, sans remonter ni descendre seul." },
+      { t: "Assemblage des panneaux",
+        c: "Panneaux alignés, jeux inter-panneaux réguliers, joints d'étanchéité intermédiaires en place." },
+      { t: "Étanchéité périphérique",
+        c: "Joints latéraux et de linteau comprimés, joint de sol au contact sur toute la largeur, sans jour visible." },
+      { t: "Raccordement électrique",
+        c: "Raccordement protégé, câbles fixés hors des zones de mouvement du tablier." }
+    ]},
+    { titre: "Motorisation et sécurité (NF EN 13241)", points: [
+      { t: "Fins de course",
+        c: "Arrêt haut et bas aux positions réglées, joint de sol comprimé sans effort excessif du moteur." },
+      { t: "Détection d'obstacle",
+        c: "Inversion du mouvement au contact d'un obstacle de 50 mm posé au sol (cale de test)." },
+      { t: "Photocellules",
+        c: "Coupure du faisceau pendant la fermeture = arrêt / inversion immédiate, le cas échéant." },
+      { t: "Débrayage manuel",
+        c: "Testé de l'intérieur, et de l'extérieur si le garage n'a pas d'autre accès. Fonctionnement expliqué au client." },
+      { t: "Points de commande",
+        c: "Télécommandes et commande murale appairées et testées, hors de portée des enfants pour le bouton mural." },
+      { t: "Portillon incorporé",
+        c: "Contact de sécurité testé : moteur inactif tant que le portillon est ouvert, le cas échéant." },
+      { t: "Cycles de validation",
+        c: "3 cycles complets ouverture / fermeture sans point dur ni bruit anormal." }
+    ]}
+  ]}
+};
+
+/* ============ ÉTAT ============ */
+let produitActif = null;
+let etats = [];   // [{si, section, point, critere, etat: 'C'|'NC'|'SO'|null, obs: ''}]
+
+/* ============ UI PRODUITS ============ */
+const elProduits = document.getElementById("produits");
+Object.keys(PRODUITS).forEach(nom => {
+  const b = document.createElement("button");
+  b.type = "button"; b.textContent = nom;
+  b.addEventListener("click", () => choisirProduit(nom, b));
+  elProduits.appendChild(b);
+});
+
+function choisirProduit(nom, btn){
+  if (produitActif && etats.some(p => p.etat) &&
+      !confirm("Changer de produit remet la checklist à zéro. Continuer ?")) return;
+  produitActif = nom;
+  [...elProduits.children].forEach(x => x.classList.toggle("actif", x === btn));
+  construireChecklist();
+  document.getElementById("carteChecklist").style.display = "";
+  document.getElementById("carteObs").style.display = "";
+  document.getElementById("carteSig").style.display = "";
+  majProgres();
+}
+
+/* ============ UI CHECKLIST ============ */
+function sectionsDuProduit(){ return [...PRODUITS[produitActif].sections, FIN_CHANTIER]; }
+
+function construireChecklist(){
+  const zone = document.getElementById("checklist");
+  zone.innerHTML = ""; etats = [];
+  sectionsDuProduit().forEach((sec, si) => {
+    const st = document.createElement("div");
+    st.className = "section-titre";
+    st.innerHTML = "<span>" + sec.titre + "</span>";
+    const tc = document.createElement("button");
+    tc.type = "button"; tc.className = "tout-c"; tc.textContent = "Tout conforme";
+    tc.addEventListener("click", () => {
+      etats.filter(p => p.si === si).forEach(p => { p.etat = "C"; p.obs = ""; });
+      rafraichirSection(si); majProgres();
+    });
+    st.appendChild(tc);
+    zone.appendChild(st);
+    sec.points.forEach(pt => {
+      const idx = etats.length;
+      etats.push({ si, section: sec.titre, point: pt.t, critere: pt.c, etat: null, obs: "" });
+      const d = document.createElement("div");
+      d.className = "point"; d.dataset.idx = idx; d.dataset.si = si;
+      d.innerHTML = '<p class="pt">' + pt.t + '</p>' +
+        '<p class="crit"><b>Critère :</b> ' + pt.c + '</p>' +
+        '<div class="etats">' +
+        '<button type="button" class="c">Conforme</button>' +
+        '<button type="button" class="nc">Non conf.</button>' +
+        '<button type="button" class="so">Sans objet</button></div>' +
+        '<div class="obs-point"><input type="text" placeholder="Préciser l\u2019écart constaté…"></div>';
+      const [bc, bnc, bso] = d.querySelectorAll(".etats button");
+      const obsWrap = d.querySelector(".obs-point");
+      const obsInput = obsWrap.querySelector("input");
+      const setEtat = v => {
+        etats[idx].etat = (etats[idx].etat === v) ? null : v;
+        if (etats[idx].etat !== "NC") { etats[idx].obs = ""; obsInput.value = ""; }
+        peindre(); majProgres();
+      };
+      const peindre = () => {
+        bc.classList.toggle("actif", etats[idx].etat === "C");
+        bnc.classList.toggle("actif", etats[idx].etat === "NC");
+        bso.classList.toggle("actif", etats[idx].etat === "SO");
+        obsWrap.classList.toggle("visible", etats[idx].etat === "NC");
+      };
+      bc.addEventListener("click", () => setEtat("C"));
+      bnc.addEventListener("click", () => setEtat("NC"));
+      bso.addEventListener("click", () => setEtat("SO"));
+      obsInput.addEventListener("input", () => { etats[idx].obs = obsInput.value; });
+      d._peindre = peindre;
+      zone.appendChild(d);
+    });
+  });
+}
+function rafraichirSection(si){
+  document.querySelectorAll('.point[data-si="' + si + '"]').forEach(d => d._peindre());
+}
+
+/* ============ PROGRÈS ============ */
+function majProgres(){
+  const el = document.getElementById("progres");
+  const btn = document.getElementById("btnPdf");
+  if (!produitActif){ el.textContent = "Choisir un produit pour démarrer"; btn.disabled = true; return; }
+  const faits = etats.filter(p => p.etat).length;
+  const nc = etats.filter(p => p.etat === "NC").length;
+  el.innerHTML = "<b>" + faits + " / " + etats.length + "</b> points renseignés" + (nc ? " · " + nc + " NC" : "");
+  btn.disabled = faits === 0;
+}
+
+/* ============ SIGNATURES ============ */
+function initSignature(canvas){
+  const ctx = canvas.getContext("2d");
+  let dessin = false, vide = true;
+  function redim(){
+    const r = canvas.getBoundingClientRect();
+    if (!r.width) return;
+    const dpr = window.devicePixelRatio || 1;
+    const ancien = vide ? null : canvas.toDataURL();
+    canvas.width = r.width * dpr; canvas.height = r.height * dpr;
+    ctx.scale(dpr, dpr);
+    ctx.lineWidth = 2; ctx.lineCap = "round"; ctx.lineJoin = "round"; ctx.strokeStyle = "#20263A";
+    if (ancien){ const img = new Image(); img.onload = () => ctx.drawImage(img, 0, 0, r.width, r.height); img.src = ancien; }
+  }
+  // Les canvas sont dans des cartes masquées au chargement : initialiser à l'affichage
+  new ResizeObserver(redim).observe(canvas);
+  const pos = e => { const r = canvas.getBoundingClientRect(); return [e.clientX - r.left, e.clientY - r.top]; };
+  canvas.addEventListener("pointerdown", e => { dessin = true; vide = false; const [x, y] = pos(e); ctx.beginPath(); ctx.moveTo(x, y); e.preventDefault(); });
+  canvas.addEventListener("pointermove", e => { if (!dessin) return; const [x, y] = pos(e); ctx.lineTo(x, y); ctx.stroke(); e.preventDefault(); });
+  ["pointerup", "pointerleave", "pointercancel"].forEach(ev => canvas.addEventListener(ev, () => { dessin = false; }));
+  return {
+    effacer(){ ctx.save(); ctx.setTransform(1,0,0,1,0,0); ctx.clearRect(0, 0, canvas.width, canvas.height); ctx.restore(); vide = true; },
+    estVide(){ return vide; },
+    image(){ return vide ? null : canvas.toDataURL("image/png"); }
+  };
+}
+const sigTech = initSignature(document.getElementById("sigTech"));
+const sigCtrl = initSignature(document.getElementById("sigCtrl"));
+document.querySelectorAll("[data-clear]").forEach(b =>
+  b.addEventListener("click", () => (b.dataset.clear === "sigTech" ? sigTech : sigCtrl).effacer()));
+
+/* ============ DATE PAR DÉFAUT ============ */
+document.getElementById("datePose").value = new Date().toISOString().slice(0, 10);
+
+/* ============ EXPORT PDF ============ */
+const ROSE = [240, 102, 145], BLEU = [45, 61, 116], GRIS = [120, 128, 150],
+      VERT = [30, 158, 98], ROUGE = [217, 58, 74], LIGNE = [200, 205, 220];
+
+function nettoie(s){ return (s || "").normalize("NFC").replaceAll("≤", "<=").replaceAll("≥", ">="); }
+function dateFr(iso){
+  if (!iso) return "";
+  const [a, m, j] = iso.split("-"); return j + "/" + m + "/" + a;
+}
+
+function genererPdf(){
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({ unit: "mm", format: "a4" });
+  const L = 210, M = 12, W = L - 2 * M;
+  let y = M;
+
+  function entetePage(){
+    doc.setFillColor(...BLEU); doc.rect(M, y, W - 42, 16, "F");
+    doc.setFillColor(...ROSE); doc.rect(M + W - 42, y, 42, 16, "F");
+    doc.setTextColor(255, 255, 255);
+    doc.setFont("helvetica", "bold"); doc.setFontSize(8);
+    doc.text("FICHE D'AUTO-CONTRÔLE POSE — USAGE INTERNE", M + 3, y + 6);
+    doc.setFontSize(12); doc.setTextColor(...ROSE);
+    doc.text(nettoie(produitActif).toUpperCase(), M + 3, y + 12.5);
+    doc.setTextColor(255, 255, 255); doc.setFontSize(11);
+    doc.text("FERMAPRO", M + W - 3, y + 7, { align: "right" });
+    doc.setFont("helvetica", "normal"); doc.setFontSize(6.5);
+    doc.text(nettoie(PRODUITS[produitActif].ref), M + W - 3, y + 12.5, { align: "right" });
+    y += 20;
+  }
+  function nouvellePageSiBesoin(h){
+    if (y + h > 285){ doc.addPage(); y = M; enteteTableau(); }
+  }
+  function enteteTableau(){
+    doc.setFillColor(...BLEU); doc.rect(M, y, W, 6, "F");
+    doc.setTextColor(255, 255, 255); doc.setFont("helvetica", "bold"); doc.setFontSize(7);
+    doc.text("POINT DE CONTRÔLE ET CRITÈRE DE CONFORMITÉ", M + 2, y + 4);
+    doc.text("ÉTAT", M + 118, y + 4);
+    doc.text("OBSERVATIONS", M + 136, y + 4);
+    y += 6;
+  }
+
+  entetePage();
+
+  // Bloc infos
+  const infos = [
+    ["Client", document.getElementById("client").value],
+    ["Date de pose", dateFr(document.getElementById("datePose").value)],
+    ["Technicien poseur", document.getElementById("poseur").value],
+    ["Repère / pièce", document.getElementById("repere").value]
+  ];
+  doc.setDrawColor(...LIGNE); doc.setLineWidth(0.25);
+  const colW = W / 2, rowH = 9;
+  infos.forEach((it, i) => {
+    const cx = M + (i % 2) * colW, cy = y + Math.floor(i / 2) * rowH;
+    doc.rect(cx, cy, colW, rowH);
+    doc.setTextColor(...BLEU); doc.setFont("helvetica", "bold"); doc.setFontSize(7);
+    doc.text(it[0].toUpperCase() + " :", cx + 2, cy + 3.5);
+    doc.setTextColor(30, 30, 30); doc.setFont("helvetica", "normal"); doc.setFontSize(9);
+    doc.text(nettoie(it[1]) || "—", cx + 2, cy + 7.3);
+  });
+  y += 2 * rowH + 4;
+
+  enteteTableau();
+
+  // Lignes : point en gras + critère en dessous
+  sectionsDuProduit().forEach((sec, si) => {
+    nouvellePageSiBesoin(6);
+    doc.setFillColor(242, 243, 247); doc.rect(M, y, W, 5.5, "F");
+    doc.setTextColor(...ROSE); doc.setFont("helvetica", "bold"); doc.setFontSize(7.5);
+    doc.text(nettoie(sec.titre).toUpperCase(), M + 2, y + 3.8);
+    y += 5.5;
+    etats.filter(p => p.si === si).forEach(p => {
+      doc.setFont("helvetica", "bold"); doc.setFontSize(7.5);
+      const lignesTitre = doc.splitTextToSize(nettoie(p.point), 100);
+      doc.setFont("helvetica", "normal"); doc.setFontSize(6.6);
+      const lignesCrit = doc.splitTextToSize("Critère : " + nettoie(p.critere), 100);
+      const lignesObs = p.obs ? doc.splitTextToSize(nettoie(p.obs), 58) : [];
+      const hGauche = lignesTitre.length * 3.1 + lignesCrit.length * 2.75 + 3.4;
+      const hDroite = lignesObs.length * 2.9 + 2.8;
+      const h = Math.max(6, hGauche, hDroite);
+      nouvellePageSiBesoin(h);
+      doc.setDrawColor(...LIGNE); doc.rect(M, y, W, h);
+      doc.setTextColor(30, 30, 30); doc.setFont("helvetica", "bold"); doc.setFontSize(7.5);
+      doc.text(lignesTitre, M + 2, y + 3.4);
+      doc.setTextColor(90, 98, 125); doc.setFont("helvetica", "normal"); doc.setFontSize(6.6);
+      doc.text(lignesCrit, M + 2, y + 3.4 + lignesTitre.length * 3.1);
+      // État
+      doc.setFont("helvetica", "bold"); doc.setFontSize(8);
+      if (p.etat === "C"){ doc.setTextColor(...VERT); doc.text("C", M + 120, y + 3.9); }
+      else if (p.etat === "NC"){ doc.setTextColor(...ROUGE); doc.text("NC", M + 118.6, y + 3.9); }
+      else if (p.etat === "SO"){ doc.setTextColor(...GRIS); doc.text("SO", M + 118.6, y + 3.9); }
+      else { doc.setTextColor(...GRIS); doc.setFont("helvetica", "normal"); doc.text("–", M + 120.4, y + 3.9); }
+      if (lignesObs.length){
+        doc.setTextColor(...ROUGE); doc.setFont("helvetica", "normal"); doc.setFontSize(7);
+        doc.text(lignesObs, M + 136, y + 3.6);
+      }
+      y += h;
+    });
+  });
+
+  // Observations générales
+  const obsG = nettoie(document.getElementById("observations").value.trim());
+  y += 4; nouvellePageSiBesoin(20);
+  doc.setTextColor(...BLEU); doc.setFont("helvetica", "bold"); doc.setFontSize(8);
+  doc.text("OBSERVATIONS / ACTIONS CORRECTIVES / POINTS DE FORMATION", M, y);
+  y += 4;
+  doc.setTextColor(30, 30, 30); doc.setFont("helvetica", "normal"); doc.setFontSize(8);
+  const lignesObsG = obsG ? doc.splitTextToSize(obsG, W - 4) : ["—"];
+  nouvellePageSiBesoin(lignesObsG.length * 3.6 + 4);
+  doc.text(lignesObsG, M, y);
+  y += lignesObsG.length * 3.6 + 5;
+
+  // Signatures
+  nouvellePageSiBesoin(34);
+  const sigW = (W - 6) / 2, sigH = 26;
+  const blocs = [
+    ["TECHNICIEN POSEUR", nettoie(document.getElementById("poseur").value), sigTech.image(), M],
+    ["CONTRÔLE INTERNE (responsable / tuteur)", nettoie(document.getElementById("ctrlNom").value), sigCtrl.image(), M + sigW + 6]
+  ];
+  blocs.forEach(b => {
+    doc.setDrawColor(...LIGNE); doc.rect(b[3], y, sigW, sigH);
+    doc.setTextColor(...BLEU); doc.setFont("helvetica", "bold"); doc.setFontSize(7);
+    doc.text(b[0], b[3] + 2, y + 4);
+    doc.setTextColor(30, 30, 30); doc.setFont("helvetica", "normal"); doc.setFontSize(8);
+    doc.text((b[1] || "") + "  —  " + dateFr(document.getElementById("datePose").value), b[3] + 2, y + 8.5);
+    if (b[2]) doc.addImage(b[2], "PNG", b[3] + 2, y + 10, sigW - 4, sigH - 12);
+  });
+  y += sigH + 4;
+
+  // Note de bas
+  nouvellePageSiBesoin(10);
+  doc.setTextColor(...GRIS); doc.setFont("helvetica", "italic"); doc.setFontSize(6.5);
+  doc.text(doc.splitTextToSize("Document à usage interne Fermapro — contrôle qualité et formation des techniciens. Tout point NC fait l'objet d'une action corrective et d'un point de formation si nécessaire. " + nettoie(PRODUITS[produitActif].ref) + ".", W), M, y);
+
+  return doc;
+}
+
+function nomFichier(){
+  const client = (document.getElementById("client").value || "client").trim()
+    .normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-zA-Z0-9]+/g, "_").replace(/^_+|_+$/g, "");
+  const prod = produitActif.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-zA-Z0-9]+/g, "_").replace(/^_+|_+$/g, "");
+  const d = (document.getElementById("datePose").value || new Date().toISOString().slice(0, 10)).replaceAll("-", "");
+  return "Autocontrole_" + prod + "_" + client + "_" + d + ".pdf";
+}
+
+function toast(msg){
+  const t = document.getElementById("toast");
+  t.textContent = msg; t.classList.add("visible");
+  setTimeout(() => t.classList.remove("visible"), 2600);
+}
+
+document.getElementById("btnPdf").addEventListener("click", () => {
+  try {
+    genererPdf().save(nomFichier());
+    toast("PDF généré — à joindre à la fiche client Trello");
+  } catch (e) { toast("Erreur lors de la génération du PDF"); console.error(e); }
+});
+
+// Partage natif (mobile) : envoi direct vers l'app Trello via la feuille de partage
+const btnShare = document.getElementById("btnShare");
+if (navigator.canShare) {
+  const test = new File(["x"], "t.pdf", { type: "application/pdf" });
+  if (navigator.canShare({ files: [test] })) btnShare.style.display = "";
+}
+btnShare.addEventListener("click", async () => {
+  if (!produitActif || !etats.some(p => p.etat)) { toast("Renseigner au moins un point avant de partager"); return; }
+  try {
+    const blob = genererPdf().output("blob");
+    const fichier = new File([blob], nomFichier(), { type: "application/pdf" });
+    await navigator.share({ files: [fichier], title: "Auto-contrôle pose Fermapro" });
+  } catch (e) { if (e.name !== "AbortError") toast("Partage impossible sur cet appareil"); }
+});
+</script>
+</body>
+</html>
