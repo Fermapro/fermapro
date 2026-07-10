@@ -1,0 +1,1118 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Fermapro — Calcul déplacement &amp; intervention</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --rose:#F06691;
+    --rose-dark:#d84f79;
+    --bleu:#2D3D74;
+    --bleu-clair:#4a5c9e;
+    --fond:#F6F7FB;
+    --carte:#FFFFFF;
+    --texte:#22284a;
+    --texte-doux:#6a7091;
+    --ligne:#e5e7f2;
+    --ok:#2e9e6b;
+    --err:#c9435c;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    font-family:'Inter',system-ui,sans-serif;
+    background:var(--fond);
+    color:var(--texte);
+    min-height:100vh;
+  }
+  h1,h2,h3,.chiffre{font-family:'Manrope',system-ui,sans-serif;}
+
+  .entete{
+    background:linear-gradient(120deg, var(--bleu) 0%, #34447f 55%, var(--rose) 160%);
+    padding:36px 24px 46px;
+    color:#fff;
+    position:relative;
+    overflow:hidden;
+  }
+  .entete::after{
+    content:"";
+    position:absolute;
+    right:-60px; top:-60px;
+    width:220px; height:220px;
+    border-radius:50%;
+    background:rgba(255,255,255,0.08);
+  }
+  .entete-contenu{
+    max-width:760px;
+    margin:0 auto;
+    position:relative;
+    z-index:1;
+  }
+  .marque{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    font-size:13px;
+    letter-spacing:.08em;
+    text-transform:uppercase;
+    opacity:.85;
+    margin-bottom:14px;
+  }
+  .pastille{
+    width:8px;height:8px;border-radius:50%;
+    background:var(--rose);
+  }
+  .entete h1{
+    margin:0 0 8px;
+    font-size:28px;
+    font-weight:800;
+    letter-spacing:-0.01em;
+  }
+  .entete p{
+    margin:0;
+    opacity:.88;
+    font-size:15px;
+    max-width:560px;
+    line-height:1.5;
+  }
+
+  .conteneur{
+    max-width:760px;
+    margin:-26px auto 60px;
+    padding:0 24px;
+  }
+  .carte{
+    background:var(--carte);
+    border-radius:18px;
+    padding:28px;
+    box-shadow:0 12px 32px rgba(45,61,116,0.08);
+    margin-bottom:20px;
+  }
+  .carte h2{
+    font-size:15px;
+    text-transform:uppercase;
+    letter-spacing:.06em;
+    color:var(--bleu);
+    margin:0 0 20px;
+    display:flex;
+    align-items:center;
+    gap:8px;
+  }
+  .num-etape{
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    width:22px;height:22px;
+    border-radius:50%;
+    background:var(--rose);
+    color:#fff;
+    font-size:12px;
+    font-weight:700;
+    flex-shrink:0;
+  }
+
+  label{
+    display:block;
+    font-size:13px;
+    font-weight:600;
+    color:var(--texte-doux);
+    margin-bottom:6px;
+  }
+  .champ{margin-bottom:16px; position:relative;}
+  .suggestion-cp{
+    position:absolute;
+    top:100%;
+    left:0; right:0;
+    background:#fff;
+    border:1.5px solid var(--ligne);
+    border-radius:10px;
+    margin-top:6px;
+    box-shadow:0 8px 20px rgba(45,61,116,0.14);
+    z-index:30;
+    overflow:hidden;
+  }
+  .suggestion-item{
+    display:block;
+    width:100%;
+    text-align:left;
+    background:none;
+    border:none;
+    border-bottom:1px solid var(--ligne);
+    border-radius:0;
+    padding:10px 14px;
+    font-size:13.5px;
+    font-weight:500;
+    color:var(--texte);
+    cursor:pointer;
+  }
+  .suggestion-item:last-child{border-bottom:none;}
+  .suggestion-item:hover, .suggestion-item:focus{background:#fdf0f4; color:var(--rose-dark);}
+  input[type="text"], input[type="number"]{
+    width:100%;
+    padding:12px 14px;
+    border-radius:10px;
+    border:1.5px solid var(--ligne);
+    font-size:15px;
+    font-family:'Inter',sans-serif;
+    color:var(--texte);
+    background:#fbfbfd;
+    transition:border-color .15s;
+  }
+  input[type="text"]:focus, input[type="number"]:focus{
+    outline:none;
+    border-color:var(--rose);
+    background:#fff;
+  }
+
+  .ligne-deux{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:14px;
+  }
+  @media (max-width:520px){
+    .ligne-deux{grid-template-columns:1fr;}
+  }
+
+  .interrupteur-ligne{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    padding:12px 14px;
+    background:#fbfbfd;
+    border:1.5px solid var(--ligne);
+    border-radius:10px;
+    margin-bottom:16px;
+  }
+  .interrupteur-texte{font-size:14px;font-weight:600;color:var(--texte);}
+  .interrupteur-texte span{display:block;font-weight:400;font-size:12px;color:var(--texte-doux);margin-top:2px;}
+  .interrupteur{
+    position:relative;
+    width:44px;height:26px;
+    flex-shrink:0;
+  }
+  .interrupteur input{position:absolute;opacity:0;width:100%;height:100%;margin:0;cursor:pointer;}
+  .glissiere{
+    position:absolute; inset:0;
+    background:#d8dbea;
+    border-radius:99px;
+    transition:.2s;
+  }
+  .glissiere::before{
+    content:"";
+    position:absolute;
+    width:20px;height:20px;
+    left:3px; top:3px;
+    background:#fff;
+    border-radius:50%;
+    transition:.2s;
+    box-shadow:0 1px 3px rgba(0,0,0,0.2);
+  }
+  .interrupteur input:checked + .glissiere{background:var(--rose);}
+  .interrupteur input:checked + .glissiere::before{transform:translateX(18px);}
+
+  button{
+    font-family:'Inter',sans-serif;
+    font-weight:600;
+    font-size:15px;
+    border:none;
+    border-radius:10px;
+    padding:13px 20px;
+    cursor:pointer;
+    transition:transform .1s, box-shadow .15s;
+  }
+  button:active{transform:scale(0.98);}
+  .btn-principal{
+    background:var(--rose);
+    color:#fff;
+    width:100%;
+    box-shadow:0 6px 16px rgba(240,102,145,0.35);
+  }
+  .btn-principal:hover{background:var(--rose-dark);}
+  .btn-principal:disabled{
+    background:#d8dbea;
+    box-shadow:none;
+    cursor:not-allowed;
+  }
+  .btn-secondaire{
+    background:none;
+    color:var(--bleu);
+    padding:8px 4px;
+    font-size:13px;
+    text-decoration:underline;
+    text-underline-offset:3px;
+  }
+
+  .mode-selecteur{
+    display:flex;
+    gap:8px;
+    background:#f0f1f8;
+    padding:5px;
+    border-radius:12px;
+    margin-bottom:22px;
+  }
+  .mode-btn{
+    flex:1;
+    background:none;
+    color:var(--texte-doux);
+    padding:10px 12px;
+    font-size:13.5px;
+    border-radius:9px;
+    box-shadow:none;
+  }
+  .mode-btn.active{
+    background:#fff;
+    color:var(--bleu);
+    box-shadow:0 3px 10px rgba(45,61,116,0.12);
+  }
+
+  .message{
+    margin-top:12px;
+    padding:11px 14px;
+    border-radius:9px;
+    font-size:13.5px;
+    display:none;
+  }
+  .message.erreur{
+    display:block;
+    background:#fdeeef;
+    color:var(--err);
+  }
+  .message.chargement{
+    display:block;
+    background:#eef0fa;
+    color:var(--bleu);
+  }
+  .message.succes{
+    display:block;
+    background:#eaf7f1;
+    color:var(--ok);
+  }
+
+  .trajet-resume{
+    display:none;
+    margin-top:16px;
+    padding:14px 16px;
+    background:#f4f6fc;
+    border-radius:10px;
+    border-left:3px solid var(--bleu);
+  }
+  .trajet-resume.visible{display:block;}
+  .trajet-resume-titre{
+    font-size:12px;
+    text-transform:uppercase;
+    letter-spacing:.05em;
+    color:var(--texte-doux);
+    margin-bottom:6px;
+  }
+  .trajet-resume-valeurs{
+    display:flex;
+    gap:22px;
+    flex-wrap:wrap;
+  }
+  .trajet-resume-item .chiffre{
+    font-size:19px;
+    font-weight:700;
+    color:var(--bleu);
+  }
+  .trajet-resume-item .sous{
+    font-size:12px;
+    color:var(--texte-doux);
+  }
+
+  .resultats{display:none;}
+  .resultats.visible{display:block;}
+
+  .detail-ligne{
+    display:flex;
+    justify-content:space-between;
+    align-items:baseline;
+    padding:13px 0;
+    border-bottom:1px solid var(--ligne);
+  }
+  .detail-ligne:last-of-type{border-bottom:none;}
+  .detail-libelle{font-size:14px; color:var(--texte);}
+  .detail-sous{display:block; font-size:12px; color:var(--texte-doux); margin-top:2px;}
+  .detail-montant{font-size:16px; font-weight:700; font-family:'Manrope',sans-serif; color:var(--texte); white-space:nowrap;}
+
+  .total-carte{
+    background:linear-gradient(120deg, var(--bleu), #38498a);
+    border-radius:18px;
+    padding:26px 28px;
+    color:#fff;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    flex-wrap:wrap;
+    gap:12px;
+  }
+  .total-libelle{font-size:14px; opacity:.85; text-transform:uppercase; letter-spacing:.05em;}
+  .total-montant{
+    font-size:34px;
+    font-weight:800;
+    font-family:'Manrope',sans-serif;
+    color:var(--rose);
+  }
+
+  .rappel-cout{
+    margin-top:14px;
+    font-size:12px;
+    color:var(--texte-doux);
+    padding-top:12px;
+    border-top:1px solid var(--ligne);
+  }
+
+  .actions-resultats{margin-top:6px;}
+  .btn-pdf{
+    background:var(--bleu);
+    color:#fff;
+    width:100%;
+  }
+  .btn-pdf:hover{background:var(--bleu-clair);}
+
+  /* Étapes de tournée */
+  .etape-ligne{
+    border:1.5px solid var(--ligne);
+    border-radius:12px;
+    padding:16px;
+    margin-bottom:14px;
+    background:#fbfbfd;
+    position:relative;
+  }
+  .etape-entete{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    margin-bottom:14px;
+  }
+  .etape-titre{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    font-size:13px;
+    font-weight:700;
+    color:var(--bleu);
+  }
+  .etape-suppr{
+    background:none;
+    padding:4px 8px;
+    color:var(--err);
+    font-size:16px;
+    line-height:1;
+    border-radius:6px;
+  }
+  .etape-suppr:hover{background:#fdeeef;}
+  .etape-ligne .champ:last-child{margin-bottom:0;}
+
+  .btn-ajouter-etape{
+    background:#fff;
+    color:var(--rose);
+    border:1.5px dashed var(--rose);
+    width:100%;
+    margin-bottom:16px;
+  }
+  .btn-ajouter-etape:hover{background:#fdf0f4;}
+
+  /* Détail par chantier */
+  .chantier-ligne{
+    padding:14px 0;
+    border-bottom:1px solid var(--ligne);
+  }
+  .chantier-ligne:last-of-type{border-bottom:none;}
+  .chantier-entete{
+    display:flex;
+    justify-content:space-between;
+    align-items:baseline;
+    margin-bottom:6px;
+  }
+  .chantier-nom{font-size:14.5px; font-weight:700; color:var(--texte);}
+  .chantier-total{font-size:15px; font-weight:700; font-family:'Manrope',sans-serif; color:var(--bleu);}
+  .chantier-adresse{font-size:12px; color:var(--texte-doux); margin-bottom:6px;}
+  .chantier-details{font-size:12.5px; color:var(--texte-doux); line-height:1.7;}
+
+  .pied{
+    text-align:center;
+    font-size:12px;
+    color:var(--texte-doux);
+    margin-top:28px;
+    line-height:1.6;
+  }
+  .pied a{color:var(--bleu);}
+
+  .rapport-impression{display:none;}
+
+  @media print{
+    @page{ size:A4; margin:13mm; }
+    .entete, .no-print, .pied{display:none !important;}
+    body{background:#fff;}
+    *{-webkit-print-color-adjust:exact; print-color-adjust:exact;}
+    .conteneur{margin:0 auto; max-width:100%; padding:0;}
+    .carte, .resultats{margin-bottom:0; padding:0; box-shadow:none;}
+    .rapport-impression{
+      display:block;
+      font-family:'Inter',system-ui,sans-serif;
+      color:#22284a;
+      font-size:12px;
+    }
+    .rapport-entete{
+      display:flex;
+      justify-content:space-between;
+      align-items:flex-start;
+      border-bottom:2px solid #2D3D74;
+      padding-bottom:8px;
+      margin-bottom:12px;
+    }
+    .rapport-entete h1{
+      font-family:'Manrope',sans-serif;
+      font-size:16px;
+      color:#2D3D74;
+      margin:0;
+    }
+    .rapport-entete .rose{color:#F06691;}
+    .rapport-date{font-size:11px; color:#6a7091; text-align:right;}
+    .rapport-section{margin-bottom:10px;}
+    .rapport-section h3{
+      font-family:'Manrope',sans-serif;
+      font-size:10.5px;
+      text-transform:uppercase;
+      letter-spacing:.05em;
+      color:#2D3D74;
+      margin:0 0 5px;
+    }
+    .rapport-grille{
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:3px 24px;
+      font-size:11.5px;
+    }
+    .rapport-grille .libelle{color:#6a7091;}
+    .rapport-ligne{
+      display:flex;
+      justify-content:space-between;
+      padding:5px 0;
+      border-bottom:1px solid #e5e7f2;
+      font-size:11.5px;
+    }
+    .rapport-table{width:100%; border-collapse:collapse; font-size:10.5px; margin-bottom:4px;}
+    .rapport-table th{
+      text-align:left;
+      font-family:'Manrope',sans-serif;
+      font-size:9.5px;
+      text-transform:uppercase;
+      letter-spacing:.04em;
+      color:#6a7091;
+      border-bottom:1.5px solid #2D3D74;
+      padding:4px 6px 4px 0;
+    }
+    .rapport-table td{
+      padding:4px 6px 4px 0;
+      border-bottom:1px solid #e5e7f2;
+    }
+    .rapport-table td.montant, .rapport-table th.montant{text-align:right;}
+    .rapport-total{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      background:#2D3D74;
+      color:#fff;
+      padding:9px 14px;
+      border-radius:6px;
+      margin-top:6px;
+    }
+    .rapport-total .montant{font-size:17px; font-weight:800; color:#F06691; font-family:'Manrope',sans-serif;}
+    .rapport-note{font-size:9.5px; color:#6a7091; margin-top:10px; line-height:1.5;}
+  }
+</style>
+</head>
+<body>
+
+<div class="entete">
+  <div class="entete-contenu">
+    <div class="marque"><span class="pastille"></span>Fermapro — outil interne</div>
+    <h1>Calcul déplacement &amp; intervention</h1>
+    <p>Renseignez un chantier ou construisez une tournée avec plusieurs étapes : l'outil calcule automatiquement la distance, le temps de trajet et le coût total.</p>
+  </div>
+</div>
+
+<div class="conteneur">
+
+  <div class="no-print">
+
+  <div class="carte">
+    <h2><span class="num-etape">1</span>Trajet</h2>
+
+    <div class="champ">
+      <label for="depart">Adresse de départ</label>
+      <input type="text" id="depart" value="8 rue Claude Chappe, 37230 Fondettes, France">
+    </div>
+
+    <div class="mode-selecteur">
+      <button type="button" class="mode-btn active" data-mode="simple">Trajet simple</button>
+      <button type="button" class="mode-btn" data-mode="tournee">Tournée (plusieurs étapes)</button>
+    </div>
+
+    <!-- Panneau : trajet simple -->
+    <div id="panneauSimple">
+      <div class="champ">
+        <label for="simpleReference">Référence du chantier</label>
+        <input type="text" id="simpleReference" placeholder="ex : Dupont - Tours">
+      </div>
+      <div class="champ">
+        <label for="destination">Adresse du chantier</label>
+        <input type="text" id="destination" placeholder="ex : 15 rue Nationale, 37000 Tours">
+      </div>
+      <div class="champ">
+        <label for="simpleTemps">Temps d'intervention sur place (heures)</label>
+        <input type="number" id="simpleTemps" value="1" min="0" step="0.25">
+      </div>
+
+      <div class="interrupteur-ligne">
+        <div class="interrupteur-texte">Aller-retour<span>Double la distance et le temps de conduite</span></div>
+        <div class="interrupteur">
+          <input type="checkbox" id="allerRetour" checked>
+          <span class="glissiere"></span>
+        </div>
+      </div>
+
+      <button class="btn-principal" id="btnItineraire">Calculer l'itinéraire</button>
+    </div>
+
+    <!-- Panneau : tournée -->
+    <div id="panneauTournee" style="display:none;">
+      <div id="listeEtapes"></div>
+
+      <button type="button" class="btn-ajouter-etape" id="btnAjouterEtape">+ Ajouter une étape</button>
+
+      <div class="interrupteur-ligne">
+        <div class="interrupteur-texte">Retour au point de départ<span>Ajoute le trajet retour après la dernière étape</span></div>
+        <div class="interrupteur">
+          <input type="checkbox" id="retourDepart" checked>
+          <span class="glissiere"></span>
+        </div>
+      </div>
+
+      <button class="btn-principal" id="btnTournee">Calculer la tournée</button>
+    </div>
+
+    <div class="message" id="msgItineraire"></div>
+
+    <div class="trajet-resume" id="resumeTrajet">
+      <div class="trajet-resume-titre">Itinéraire trouvé</div>
+      <div class="trajet-resume-valeurs">
+        <div class="trajet-resume-item">
+          <div class="chiffre" id="valDistance">–</div>
+          <div class="sous">distance totale</div>
+        </div>
+        <div class="trajet-resume-item">
+          <div class="chiffre" id="valDuree">–</div>
+          <div class="sous">temps de conduite total</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="carte">
+    <h2><span class="num-etape">2</span>Équipe</h2>
+
+    <div class="champ">
+      <label for="nbTechniciens">Nombre de techniciens</label>
+      <input type="number" id="nbTechniciens" value="1" min="1" step="1">
+    </div>
+
+    <div class="rappel-cout">Pour mémoire : coût de revient interne d'un technicien ≈ 25 € HT / heure (hors facturation).</div>
+  </div>
+
+  <div class="resultats" id="blocResultats">
+
+    <div class="carte" id="carteChantiers" style="display:none;">
+      <h2><span class="num-etape">3</span>Détail par chantier</h2>
+      <div id="listeChantiers"></div>
+    </div>
+
+    <div class="carte">
+      <h2><span class="num-etape">4</span>Détail du coût</h2>
+
+      <div class="detail-ligne">
+        <div class="detail-libelle">Kilométrage
+          <span class="detail-sous" id="detailKmSous">–</span>
+        </div>
+        <div class="detail-montant" id="detailKmMontant">– €</div>
+      </div>
+
+      <div class="detail-ligne">
+        <div class="detail-libelle">Conduite
+          <span class="detail-sous" id="detailConduiteSous">–</span>
+        </div>
+        <div class="detail-montant" id="detailConduiteMontant">– €</div>
+      </div>
+
+      <div class="detail-ligne">
+        <div class="detail-libelle">Main d'œuvre sur place
+          <span class="detail-sous" id="detailTravailSous">–</span>
+        </div>
+        <div class="detail-montant" id="detailTravailMontant">– €</div>
+      </div>
+    </div>
+
+    <div class="total-carte">
+      <div class="total-libelle">Coût total</div>
+      <div class="total-montant" id="totalMontant">– €</div>
+    </div>
+
+    <div class="actions-resultats no-print">
+      <button class="btn-pdf" id="btnPdf">Exporter en PDF</button>
+    </div>
+  </div>
+
+  </div>
+
+  <div class="pied">
+    Barème appliqué : 0,50 € / km · 35 € / heure de conduite (1 conducteur) · 15 € / heure de conduite par technicien supplémentaire · 55 € / heure d'intervention par technicien.<br>
+    Distances et temps de trajet estimés via OpenStreetMap (Nominatim / OSRM).
+  </div>
+
+  <div class="rapport-impression" id="rapportImpression">
+    <div class="rapport-entete">
+      <h1>Fermapro <span class="rose">—</span> Devis déplacement &amp; intervention</h1>
+      <div class="rapport-date" id="rapportDate"></div>
+    </div>
+
+    <div class="rapport-section">
+      <h3>Trajet</h3>
+      <div class="rapport-grille">
+        <div><span class="libelle">Départ : </span><span id="rDepart"></span></div>
+        <div><span class="libelle">Distance totale : </span><span id="rDistance"></span></div>
+        <div><span class="libelle">Temps de conduite total : </span><span id="rDuree"></span></div>
+        <div><span class="libelle">Techniciens : </span><span id="rNbTechniciens"></span></div>
+      </div>
+    </div>
+
+    <div class="rapport-section" id="rSectionChantiers">
+      <h3>Chantiers</h3>
+      <table class="rapport-table">
+        <thead>
+          <tr><th>Chantier</th><th>Distance</th><th>Conduite</th><th>Intervention</th><th class="montant">Coût</th></tr>
+        </thead>
+        <tbody id="rTableChantiers"></tbody>
+      </table>
+    </div>
+
+    <div class="rapport-section">
+      <h3>Récapitulatif</h3>
+      <div class="rapport-ligne"><span>Kilométrage (<span id="rKmSous"></span>)</span><span id="rKmMontant"></span></div>
+      <div class="rapport-ligne"><span>Conduite (<span id="rConduiteSous"></span>)</span><span id="rConduiteMontant"></span></div>
+      <div class="rapport-ligne"><span>Main d'œuvre sur place (<span id="rTravailSous"></span>)</span><span id="rTravailMontant"></span></div>
+      <div class="rapport-total">
+        <span>Coût total</span>
+        <span class="montant" id="rTotal"></span>
+      </div>
+    </div>
+
+    <div class="rapport-note">
+      Barème : 0,50 €/km · 35 €/h de conduite pour le conducteur · 15 €/h de conduite par technicien supplémentaire · 55 €/h d'intervention par technicien.<br>
+      Coût de revient interne d'un technicien ≈ 25 € HT/heure (information interne, hors facturation).
+    </div>
+  </div>
+
+</div>
+
+<script>
+const TARIF_KM = 0.50;
+const TARIF_CONDUITE = 35;
+const TARIF_CONDUITE_SUPPLEMENTAIRE = 15;
+const TARIF_TRAVAIL = 55;
+
+const $ = (id) => document.getElementById(id);
+
+let modeActuel = 'simple';
+let itineraire = null; // { legs: [{label, distanceKm, dureeHeures, etapeIndex}], etapes: [{reference, adresse, temps}] }
+let compteurEtapes = 0;
+
+function formatEuro(valeur){
+  return valeur.toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' €';
+}
+function formatHeures(h){
+  const heures = Math.floor(h);
+  const minutes = Math.round((h - heures) * 60);
+  if (heures === 0) return minutes + ' min';
+  if (minutes === 0) return heures + ' h';
+  return heures + ' h ' + minutes.toString().padStart(2,'0');
+}
+function afficherMessage(el, type, texte){
+  el.className = 'message ' + type;
+  el.textContent = texte;
+}
+function effacerMessage(el){
+  el.className = 'message';
+  el.textContent = '';
+}
+function reinitialiserResultats(afficherInfo){
+  itineraire = null;
+  $('resumeTrajet').classList.remove('visible');
+  $('blocResultats').classList.remove('visible');
+  if (afficherInfo === true){
+    afficherMessage($('msgItineraire'), 'chargement', 'Options modifiées : relancez le calcul de l\'itinéraire.');
+  } else {
+    effacerMessage($('msgItineraire'));
+  }
+}
+
+/* ---------- Mode simple / tournée ---------- */
+
+document.querySelectorAll('.mode-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    modeActuel = btn.dataset.mode;
+    document.querySelectorAll('.mode-btn').forEach(b => b.classList.toggle('active', b === btn));
+    $('panneauSimple').style.display = modeActuel === 'simple' ? 'block' : 'none';
+    $('panneauTournee').style.display = modeActuel === 'tournee' ? 'block' : 'none';
+    reinitialiserResultats();
+  });
+});
+
+/* ---------- Gestion des étapes de tournée ---------- */
+
+function creerLigneEtape(){
+  compteurEtapes++;
+  const numero = compteurEtapes;
+  const div = document.createElement('div');
+  div.className = 'etape-ligne';
+  div.dataset.numero = numero;
+  div.innerHTML = `
+    <div class="etape-entete">
+      <div class="etape-titre">Étape ${numero}</div>
+      <button type="button" class="etape-suppr" title="Supprimer cette étape">✕</button>
+    </div>
+    <div class="champ">
+      <label>Référence du chantier</label>
+      <input type="text" class="etape-reference" placeholder="ex : Dupont - Tours">
+    </div>
+    <div class="champ">
+      <label>Adresse</label>
+      <input type="text" class="etape-adresse" placeholder="ex : 15 rue Nationale, 37000 Tours">
+    </div>
+    <div class="champ">
+      <label>Temps d'intervention sur place (heures)</label>
+      <input type="number" class="etape-temps" value="1" min="0" step="0.25">
+    </div>
+  `;
+  div.querySelector('.etape-suppr').addEventListener('click', () => {
+    if (document.querySelectorAll('#listeEtapes .etape-ligne').length <= 1) return;
+    div.remove();
+    renumeroterEtapes();
+    reinitialiserResultats();
+  });
+  return div;
+}
+function renumeroterEtapes(){
+  document.querySelectorAll('#listeEtapes .etape-ligne').forEach((ligne, i) => {
+    ligne.querySelector('.etape-titre').textContent = 'Étape ' + (i + 1);
+  });
+}
+function ajouterEtape(){
+  $('listeEtapes').appendChild(creerLigneEtape());
+  reinitialiserResultats();
+}
+$('btnAjouterEtape').addEventListener('click', ajouterEtape);
+// deux étapes par défaut au chargement
+ajouterEtape();
+ajouterEtape();
+
+function lireEtapesTournee(){
+  return [...document.querySelectorAll('#listeEtapes .etape-ligne')].map(ligne => ({
+    reference: ligne.querySelector('.etape-reference').value.trim(),
+    adresse: ligne.querySelector('.etape-adresse').value.trim(),
+    temps: Math.max(0, parseFloat(ligne.querySelector('.etape-temps').value) || 0)
+  }));
+}
+
+/* ---------- Géocodage et itinéraire ---------- */
+
+async function geocoder(adresse){
+  const url = 'https://nominatim.openstreetmap.org/search?format=json&limit=1&q=' + encodeURIComponent(adresse);
+  const reponse = await fetch(url, { headers: { 'Accept-Language': 'fr' } });
+  if (!reponse.ok) throw new Error('geocodage_echec');
+  const data = await reponse.json();
+  if (!data || data.length === 0) throw new Error('adresse_introuvable');
+  return { lat: parseFloat(data[0].lat), lon: parseFloat(data[0].lon) };
+}
+
+/* ---------- Suggestion de ville à partir du code postal ---------- */
+
+const cacheCommunes = {};
+let minuteurCP = null;
+
+async function chercherCommunes(cp){
+  if (cacheCommunes[cp]) return cacheCommunes[cp];
+  const url = `https://geo.api.gouv.fr/communes?codePostal=${cp}&fields=nom&format=json`;
+  const reponse = await fetch(url);
+  if (!reponse.ok) throw new Error('erreur_communes');
+  const data = await reponse.json();
+  cacheCommunes[cp] = data;
+  return data;
+}
+
+function fermerSuggestionCP(input){
+  const boite = input.parentElement.querySelector('.suggestion-cp');
+  if (boite) boite.remove();
+}
+
+function inserCommune(input, cp, commune){
+  const val = input.value;
+  const idx = val.indexOf(cp);
+  if (idx === -1){ fermerSuggestionCP(input); return; }
+  input.value = val.slice(0, idx + cp.length) + ' ' + commune;
+  input.dataset.communeInseree = cp;
+  fermerSuggestionCP(input);
+  input.focus();
+}
+
+function afficherSuggestionCP(input, cp, communes){
+  fermerSuggestionCP(input);
+  if (!communes || communes.length === 0) return;
+  const boite = document.createElement('div');
+  boite.className = 'suggestion-cp';
+  boite.innerHTML = communes.map(c => `<button type="button" class="suggestion-item">${c.nom}</button>`).join('');
+  boite.querySelectorAll('.suggestion-item').forEach((btn, i) => {
+    btn.addEventListener('mousedown', (e) => {
+      e.preventDefault();
+      inserCommune(input, cp, communes[i].nom);
+    });
+  });
+  input.insertAdjacentElement('afterend', boite);
+}
+
+function gererSaisieCodePostal(e){
+  const input = e.target;
+  if (!input.matches('#depart, #destination, .etape-adresse')) return;
+
+  const match = input.value.match(/\b\d{5}\b/);
+  clearTimeout(minuteurCP);
+
+  if (!match){
+    fermerSuggestionCP(input);
+    return;
+  }
+  const cp = match[0];
+
+  if (input.dataset.communeInseree === cp){
+    fermerSuggestionCP(input);
+    return;
+  }
+
+  minuteurCP = setTimeout(async () => {
+    try {
+      const communes = await chercherCommunes(cp);
+      afficherSuggestionCP(input, cp, communes);
+    } catch (err){
+      fermerSuggestionCP(input);
+    }
+  }, 350);
+}
+
+document.addEventListener('input', gererSaisieCodePostal);
+document.addEventListener('blur', (e) => {
+  if (e.target.matches && e.target.matches('#depart, #destination, .etape-adresse')){
+    setTimeout(() => fermerSuggestionCP(e.target), 150);
+  }
+}, true);
+
+async function calculerLegs(adresseDepart, etapes, retour){
+  const adresses = [adresseDepart, ...etapes.map(e => e.adresse)];
+  const points = await Promise.all(adresses.map(geocoder));
+  const coords = points.map(p => p.lon + ',' + p.lat);
+  if (retour) coords.push(coords[0]);
+
+  const url = `https://router.project-osrm.org/route/v1/driving/${coords.join(';')}?overview=false`;
+  const reponse = await fetch(url);
+  if (!reponse.ok) throw new Error('itineraire_echec');
+  const data = await reponse.json();
+  if (!data.routes || data.routes.length === 0) throw new Error('itineraire_introuvable');
+
+  const legsData = data.routes[0].legs;
+  return legsData.map((leg, i) => {
+    const estRetour = retour && i === legsData.length - 1;
+    return {
+      label: estRetour ? 'Retour au point de départ' : (etapes[i].reference || ('Chantier ' + (i + 1))),
+      distanceKm: leg.distance / 1000,
+      dureeHeures: leg.duration / 3600,
+      etapeIndex: estRetour ? null : i
+    };
+  });
+}
+
+async function lancerCalculItineraire(etapes, retour){
+  const depart = $('depart').value.trim();
+  const msg = $('msgItineraire');
+
+  if (!depart){
+    afficherMessage(msg, 'erreur', "Merci de renseigner l'adresse de départ.");
+    return;
+  }
+  if (etapes.length === 0 || etapes.some(e => !e.adresse)){
+    afficherMessage(msg, 'erreur', "Merci de renseigner l'adresse de chaque chantier.");
+    return;
+  }
+
+  afficherMessage(msg, 'chargement', 'Recherche de l\'itinéraire…');
+  $('resumeTrajet').classList.remove('visible');
+  $('blocResultats').classList.remove('visible');
+
+  try {
+    const legs = await calculerLegs(depart, etapes, retour);
+    itineraire = { legs, etapes };
+
+    const distanceTotale = legs.reduce((s, l) => s + l.distanceKm, 0);
+    const dureeTotale = legs.reduce((s, l) => s + l.dureeHeures, 0);
+
+    $('valDistance').textContent = distanceTotale.toFixed(1) + ' km';
+    $('valDuree').textContent = formatHeures(dureeTotale);
+    $('resumeTrajet').classList.add('visible');
+
+    afficherMessage(msg, 'succes', 'Itinéraire calculé.');
+    calculerCout();
+  } catch (e) {
+    let texte = "Impossible de calculer l'itinéraire. Vérifiez les adresses saisies.";
+    if (e.message === 'adresse_introuvable') texte = "Une des adresses n'a pas été trouvée. Précisez la ville ou le code postal.";
+    afficherMessage(msg, 'erreur', texte);
+    itineraire = null;
+  }
+}
+
+$('btnItineraire').addEventListener('click', async () => {
+  const bouton = $('btnItineraire');
+  bouton.disabled = true;
+  const etapes = [{
+    reference: $('simpleReference').value.trim(),
+    adresse: $('destination').value.trim(),
+    temps: Math.max(0, parseFloat($('simpleTemps').value) || 0)
+  }];
+  await lancerCalculItineraire(etapes, $('allerRetour').checked);
+  bouton.disabled = false;
+});
+
+$('btnTournee').addEventListener('click', async () => {
+  const bouton = $('btnTournee');
+  bouton.disabled = true;
+  await lancerCalculItineraire(lireEtapesTournee(), $('retourDepart').checked);
+  bouton.disabled = false;
+});
+
+/* ---------- Calcul du coût ---------- */
+
+function calculerCout(){
+  if (!itineraire) return;
+
+  const nbTechniciens = Math.max(1, parseInt($('nbTechniciens').value) || 1);
+  const nbSupp = nbTechniciens - 1;
+
+  const distanceTotale = itineraire.legs.reduce((s, l) => s + l.distanceKm, 0);
+  const dureeTotale = itineraire.legs.reduce((s, l) => s + l.dureeHeures, 0);
+  const travailTotal = itineraire.etapes.reduce((s, e) => s + e.temps, 0);
+
+  const coutKm = distanceTotale * TARIF_KM;
+  const coutConduite = dureeTotale * TARIF_CONDUITE + dureeTotale * nbSupp * TARIF_CONDUITE_SUPPLEMENTAIRE;
+  const coutTravail = travailTotal * nbTechniciens * TARIF_TRAVAIL;
+  const total = coutKm + coutConduite + coutTravail;
+
+  const kmSous = distanceTotale.toFixed(1) + ' km × 0,50 €';
+  $('detailKmSous').textContent = kmSous;
+  $('detailKmMontant').textContent = formatEuro(coutKm);
+
+  const conduiteSous = nbSupp > 0
+    ? formatHeures(dureeTotale) + ' × 35 € + ' + nbSupp + ' technicien(s) supp. × ' + formatHeures(dureeTotale) + ' × 15 €'
+    : formatHeures(dureeTotale) + ' × 35 €';
+  $('detailConduiteSous').textContent = conduiteSous;
+  $('detailConduiteMontant').textContent = formatEuro(coutConduite);
+
+  const travailSous = travailTotal.toFixed(2).replace(/\.?0+$/, '') + ' h × ' + nbTechniciens + (nbTechniciens > 1 ? ' techniciens' : ' technicien') + ' × 55 €';
+  $('detailTravailSous').textContent = travailSous;
+  $('detailTravailMontant').textContent = formatEuro(coutTravail);
+
+  $('totalMontant').textContent = formatEuro(total);
+  $('blocResultats').classList.add('visible');
+
+  /* Détail par chantier */
+  const lignesChantier = itineraire.legs.map(leg => {
+    const coutTrajet = leg.distanceKm * TARIF_KM + leg.dureeHeures * TARIF_CONDUITE + leg.dureeHeures * nbSupp * TARIF_CONDUITE_SUPPLEMENTAIRE;
+    if (leg.etapeIndex === null){
+      return {
+        nom: 'Retour au point de départ', adresse: '',
+        distanceKm: leg.distanceKm, dureeHeures: leg.dureeHeures,
+        temps: 0, coutTravail: 0, coutTrajet, total: coutTrajet
+      };
+    }
+    const etape = itineraire.etapes[leg.etapeIndex];
+    const coutTravailEtape = etape.temps * nbTechniciens * TARIF_TRAVAIL;
+    return {
+      nom: etape.reference || ('Chantier ' + (leg.etapeIndex + 1)),
+      adresse: etape.adresse,
+      distanceKm: leg.distanceKm, dureeHeures: leg.dureeHeures,
+      temps: etape.temps, coutTravail: coutTravailEtape,
+      coutTrajet, total: coutTrajet + coutTravailEtape
+    };
+  });
+
+  const carteChantiers = $('carteChantiers');
+  const plusieurs = itineraire.etapes.length > 1;
+  carteChantiers.style.display = plusieurs ? 'block' : 'none';
+
+  if (plusieurs){
+    $('listeChantiers').innerHTML = lignesChantier.map(l => `
+      <div class="chantier-ligne">
+        <div class="chantier-entete">
+          <div class="chantier-nom">${l.nom}</div>
+          <div class="chantier-total">${formatEuro(l.total)}</div>
+        </div>
+        ${l.adresse ? `<div class="chantier-adresse">${l.adresse}</div>` : ''}
+        <div class="chantier-details">
+          ${l.distanceKm.toFixed(1)} km · ${formatHeures(l.dureeHeures)} de conduite${l.temps > 0 ? ' · ' + l.temps + ' h d\'intervention' : ''}
+        </div>
+      </div>
+    `).join('');
+  }
+
+  /* Rapport imprimable */
+  $('rDepart').textContent = $('depart').value.trim();
+  $('rDistance').textContent = distanceTotale.toFixed(1) + ' km';
+  $('rDuree').textContent = formatHeures(dureeTotale);
+  $('rNbTechniciens').textContent = nbTechniciens;
+  $('rKmSous').textContent = kmSous;
+  $('rKmMontant').textContent = formatEuro(coutKm);
+  $('rConduiteSous').textContent = conduiteSous;
+  $('rConduiteMontant').textContent = formatEuro(coutConduite);
+  $('rTravailSous').textContent = travailSous;
+  $('rTravailMontant').textContent = formatEuro(coutTravail);
+  $('rTotal').textContent = formatEuro(total);
+  $('rapportDate').textContent = new Date().toLocaleDateString('fr-FR', { year: 'numeric', month: 'long', day: 'numeric' });
+
+  $('rSectionChantiers').style.display = plusieurs ? 'block' : 'none';
+  if (plusieurs){
+    $('rTableChantiers').innerHTML = lignesChantier.map(l => `
+      <tr>
+        <td>${l.nom}</td>
+        <td>${l.distanceKm.toFixed(1)} km</td>
+        <td>${formatHeures(l.dureeHeures)}</td>
+        <td>${l.temps > 0 ? l.temps + ' h' : '–'}</td>
+        <td class="montant">${formatEuro(l.total)}</td>
+      </tr>
+    `).join('');
+  }
+}
+
+$('nbTechniciens').addEventListener('input', calculerCout);
+$('simpleTemps').addEventListener('input', calculerCout);
+$('listeEtapes').addEventListener('input', (e) => {
+  if (e.target.classList.contains('etape-temps')) calculerCout();
+});
+$('allerRetour').addEventListener('change', () => reinitialiserResultats(true));
+$('retourDepart').addEventListener('change', () => reinitialiserResultats(true));
+
+$('btnPdf').addEventListener('click', () => {
+  window.print();
+});
+</script>
+
+</body>
+</html>
